@@ -2,9 +2,9 @@ import discord
 import discord.ext.test as dpytest
 import pytest
 import pytest_asyncio
-from bot import Bot
+from src.bot import Bot
 
-@pytest_asyncio.fixture()
+@pytest_asyncio.fixture(autouse=True)
 async def bot():
     intents = discord.Intents.default()
     intents.members = True
@@ -13,7 +13,7 @@ async def bot():
     bot = Bot(intents)
 
     await bot.setup_hook()
-    await bot._async_setup_hook()
+    await bot._async_setup_hook()  # setup the loop
 
     dpytest.configure(bot, members=2)
 
@@ -22,7 +22,6 @@ async def bot():
 
 
 @pytest.mark.asyncio
-async def test_help(bot):
+async def test_help():
     await dpytest.message("!hello")
     assert dpytest.verify().message().contains().content("Hello!")
-
