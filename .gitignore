@@ -1,0 +1,4 @@
+.*~
+.*.sw?
+.token
+__pycache__
