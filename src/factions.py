@@ -32,14 +32,14 @@ class Factions:
             return []
 
 
-def read_factions(file_path: str = 'data/TI4_Factions_with_Distant_Stars.csv') -> Factions:
+def read_factions(file_path: str = 'data/TI4_Factions_with_Discordant_Stars.csv') -> Factions:
     factions: List[Faction] = []
     with open(file_path, newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader)  # Skip header row
         for row in reader:
-            if len(row) >= 3:  # Ensure there are at least two columns
-                name: str = row[1].strip()
-                source: str = row[2].strip()
+            if len(row) >= 2:  # Ensure there are at least two columns
+                name: str = row[0].strip()
+                source: str = row[1].strip()
                 factions.append(Faction(name, source))
     return Factions(factions)
