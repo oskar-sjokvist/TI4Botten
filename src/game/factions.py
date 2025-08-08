@@ -1,5 +1,8 @@
 import random
 import csv
+
+from pathlib import Path
+
 from typing import List, Optional
 
 class Faction:
@@ -33,8 +36,10 @@ class Factions:
 
 
 def read_factions(file_path: str = 'data/TI4_Factions_with_Discordant_Stars.csv') -> Factions:
+    here = Path(__file__).parent
+
     factions: List[Faction] = []
-    with open(file_path, newline='') as csvfile:
+    with open(here / file_path, newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         next(reader)  # Skip header row
         for row in reader:
