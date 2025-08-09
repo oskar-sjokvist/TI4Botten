@@ -3,7 +3,10 @@
 import discord
 import logging
 import sys
+import sqlite3
 
+
+from pathlib import Path
 from src.bot import Bot
 
 logging.basicConfig(
@@ -11,19 +14,19 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
+
 def main():
     try:
         with open('.token', 'r') as f:
             token = f.read().strip()
-        logging.info("Starting bot...")
     except FileNotFoundError:
-        logging.error(".token file not found. Please provide your Discord bot token in a .token file.")
+        logging.error('.token file not found. Please provide your Discord bot token in a .token file.')
         sys.exit(1)
     except Exception as e:
-        logging.error(f"Failed to read .token file: {e}")
+        logging.error(f'Failed to read .token file: {e}')
         sys.exit(1)
 
-    logging.info("Starting bot...")
+    logging.info('Starting bot...')
 
     intents = discord.Intents.default()
     intents.message_content = True
@@ -32,8 +35,8 @@ def main():
     try:
         bot.run(token)
     except Exception as e:
-        logging.error(f"Bot encountered an error: {e}")
+        logging.error(f'Bot encountered an error: {e}')
         sys.exit(1)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

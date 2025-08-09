@@ -2,6 +2,8 @@ import discord
 import logging
 
 from . import factions
+from . import model
+
 from typing import Optional
 from discord.ext import commands
 
@@ -11,6 +13,7 @@ class Game(commands.Cog):
     def __init__(self, factions: factions.Factions = factions.read_factions()) -> None:
         """Initialize the Commands cog with factions."""
         self.factions = factions
+        self.engine = model.get_engine()
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
