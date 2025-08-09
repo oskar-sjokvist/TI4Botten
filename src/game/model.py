@@ -22,6 +22,7 @@ class Game(Base):
     game_id = Column(Integer, primary_key=True, autoincrement=True)
     game_state = Column(String)
     timestamp = Column(DateTime, server_default=func.current_timestamp())
+
     game_players = relationship("GamePlayer", back_populates="game")
 
 class Player(Base):
@@ -30,6 +31,6 @@ class Player(Base):
     game_players = relationship("GamePlayer", back_populates="player")
 
 def get_engine():
-    engine = create_engine('sqlite://app.db', echo=True)
+    engine = create_engine('sqlite:///app.db', echo=True)
     Base.metadata.create_all(engine)
     return engine

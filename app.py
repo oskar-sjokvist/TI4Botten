@@ -3,17 +3,13 @@
 import discord
 import logging
 import sys
-import sqlite3
 
-
-from pathlib import Path
 from src.bot import Bot
 
 logging.basicConfig(
     stream=sys.stdout,
     level=logging.INFO,
 )
-
 
 def main():
     try:
