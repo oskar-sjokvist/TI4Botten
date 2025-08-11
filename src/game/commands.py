@@ -138,11 +138,11 @@ class Game(commands.Cog):
                 sources.append("pok")
 
             if game.game_settings.discordant_stars:
-                settings.append("Discordant stars active")
+                settings.append("Discordant Stars active")
                 sources.append("ds")
 
             if game.game_settings.codex:
-                settings.append("Codex active")
+                settings.append("Codex faction active")
                 sources.append("codex")
 
             if game.game_settings.drafting_mode != model.DraftingMode.EXCLUSIVE_POOL:
