@@ -28,6 +28,7 @@ class GamePlayer(Base):
     points: Mapped[int] = mapped_column(Integer, default=0)
     rank: Mapped[int] = mapped_column(Integer, default=0)
     turn_order: Mapped[int] = mapped_column(Integer, default=0)
+    
 
     # Used in exclusive pool mode.
     factions: Mapped[List[str]] = mapped_column(JSON, default=[])

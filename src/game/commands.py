@@ -1,5 +1,6 @@
 import logging
 import random
+import re
 
 from . import factions
 from . import model
@@ -19,6 +20,17 @@ class Game(commands.Cog):
         "Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.",
         "Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.",
         "Ten great powers. One empty throne. The galaxy awaits its new master — and the game begins.",
+    ]
+
+    game_end_quotes = [
+        "The galaxy falls silent. The throne is claimed, and a new era begins.",
+        "From the ruins of war, a ruler emerges. Their will shall shape the stars.",
+        "The council is dissolved. All voices bow to one — the new master of Mecatol Rex.",
+        "War fleets drift like shadows, but the victor’s banner flies above them all.",
+        "The game is over. The galaxy belongs to those bold enough to take it.",
+        "Power is not given; it is seized. Today, history remembers the conqueror.",
+        "In the wake of conquest, the galaxy is remade in the victor’s image.",
+        "The war for Mecatol Rex has ended — but the scars will never fade."
     ]
 
     def __init__(self, factions: factions.Factions = factions.read_factions()) -> None:
@@ -44,6 +56,59 @@ class Game(commands.Cog):
             await ctx.send("No factions found matching the criteria.")
             return
         await ctx.send(f"Here are {number} random factions:\n{'\n'.join(random_factions)}")
+
+
+    def _parse_int_pairs(self, s):
+        nums = list(map(int, re.findall(r"-?\d+", s)))
+        if len(nums) % 2 != 0:
+            raise ValueError(f"Odd number of integers found in '{s}'")
+        return [(nums[i], nums[i+1]) for i in range(0, len(nums), 2)]
+
+    @commands.command()
+    async def finish(self, ctx: commands.Context, game_id: Optional[int] = None, *, rankings: Optional[str]) -> None:
+        if not game_id:
+            await ctx.send("Please specify a game id.")
+            return
+        session = Session(bind=self.conn)
+        try:
+            game = session.query(model.Game).filter_by(game_id=game_id).first()
+            if not game:
+                await ctx.send("Game not found.")
+                return
+
+            if ctx.author.guild_permissions.administrator and game.game_state == model.GameState.FINISHED:
+                # Admins can update finished games.
+                pass
+            elif game.game_state != model.GameState.STARTED:
+                await ctx.send(f"Can't finish game. Game is in {game.game_state.value} state.")
+                return
+
+            players = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.turn_order.asc()).all()
+            lines = [p.player.name for p in players]
+
+            if not rankings:
+                await ctx.send(f"Players\n{"\n".join(lines)}\n\nSpecify the ranking and points based on the player order. E.g. !finish game_id 1 3, 2 5")
+                return
+
+            try:
+                for player, (rank, points) in zip(players, self._parse_int_pairs(rankings)):
+                    player.rank = rank
+                    player.points = points
+            except: 
+                await ctx.send(f"Players\n{"\n".join(lines)}\n\nSpecify the ranking and points based on the player order. E.g. !finish game_id 1 3, 2 5")
+                return
+
+            session.add_all(players)
+            game.game_state = model.GameState.FINISHED
+            session.commit()
+
+            players = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.rank.asc()).all()
+            lines = [f"{p.rank}. {p.player.name} played {p.faction} and finished with {p.points} point(s)" for p in players]
+            await ctx.send(f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"".join(lines)}\n\n{random.choice(Game.game_end_quotes)}\n\nWrong result? Rerun the !finish command.")
+
+        except Exception as e:
+            logging.error(f"Can't finish game: {e}")
+            await ctx.send("Can't finish game.")
 
     @commands.command()
     async def draft(self, ctx: commands.Context, game_id: Optional[int] = None, *, faction: Optional[str] = None) -> None:
@@ -103,7 +168,7 @@ class Game(commands.Cog):
                 game.game_state = model.GameState.STARTED
                 session.merge(game)
                 session.commit()
-                await ctx.send(f"Game '{game.name}' has started\n\nPlayers:\n{"".join(players_info_lines)}\n\n{random.choice(Game.game_start_quotes)}")
+                await ctx.send(f"Game '{game.name}' #{game.game_id} has started\n\nPlayers:\n{"".join(players_info_lines)}\n\n{random.choice(Game.game_start_quotes)}")
                 return
 
             current_drafter = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
@@ -134,8 +199,6 @@ class Game(commands.Cog):
             if game.game_state != model.GameState.LOBBY:
                 await ctx.send("Given game is not a lobby")
                 return
-
-
 
             settings = []
             sources = []
