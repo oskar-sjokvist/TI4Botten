@@ -4,9 +4,10 @@ import random
 from . import factions
 from . import model
 
+import Levenshtein
 from itertools import batched
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, Tuple, List
 from discord.ext import commands
 
 class Game(commands.Cog):
@@ -46,6 +47,7 @@ class Game(commands.Cog):
 
     @commands.command()
     async def draft(self, ctx: commands.Context, game_id: Optional[int] = None, *, faction: Optional[str] = None) -> None:
+        """Draft your faction."""
         session = Session(bind=self.conn)
         try:
             if game_id is None:
@@ -78,18 +80,21 @@ class Game(commands.Cog):
             if game.turn != player.turn_order:
                 await ctx.send(f"It is not your turn to draft! It is {current_drafter.player.name}'s turn")
                 return
-
-            if faction not in player.factions:
+                
+            cutoff = 0.1
+            factions = player.factions
+            best = max(factions, key=lambda c: Levenshtein.ratio(faction, c))
+            if Levenshtein.ratio(faction, best) <= cutoff:
                 await ctx.send(f"You can't draft faction {faction}. Check your spelling or available factions.")
                 return
             
-            player.faction = faction
+            player.faction = best
             game.turn += 1
 
             session.merge(game)
             session.merge(player)
             session.commit()
-            await ctx.send(f"{player.player.name} has selected {faction}.")
+            await ctx.send(f"{player.player.name} has selected {player.faction}.")
             if game.turn == len(game.game_players):
                 players_info_lines = []
                 for player in game.game_players:
@@ -115,6 +120,7 @@ class Game(commands.Cog):
 
     @commands.command()
     async def start(self, ctx: commands.Context, game_id: Optional[int] = None) -> None:
+        """Start the lobby."""
         session = Session(bind=self.conn)
         try:
             if game_id is None:
@@ -216,6 +222,7 @@ class Game(commands.Cog):
 
     @commands.command()
     async def lobby(self, ctx: commands.Context, *, name: Optional[str]) -> None:
+        """Create a lobby."""
         if not name:
             await ctx.send("Please specify a name for the lobby")
             return
@@ -236,6 +243,7 @@ class Game(commands.Cog):
 
     @commands.command()
     async def leave(self, ctx: commands.Context, game_id: Optional[int]) -> None:
+        """Leave a lobby."""
         id = ctx.author.id
         try:
             session = Session(bind=self.conn)
@@ -266,6 +274,7 @@ class Game(commands.Cog):
 
     @commands.command()
     async def join(self, ctx: commands.Context, game_id: Optional[int]) -> None:
+        """Join a lobby."""
         id = ctx.author.id
         try:
             session = Session(bind=self.conn)

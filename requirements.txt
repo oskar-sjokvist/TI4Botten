@@ -9,6 +9,7 @@ dpytest==0.7.0
 frozenlist==1.7.0
 idna==3.10
 iniconfig==2.1.0
+Levenshtein==0.27.1
 multidict==6.6.3
 packaging==25.0
 pluggy==1.6.0
@@ -16,6 +17,7 @@ propcache==0.3.2
 Pygments==2.19.2
 pytest==8.4.1
 pytest-asyncio==1.1.0
+RapidFuzz==3.13.0
 SQLAlchemy==2.0.42
 typing_extensions==4.14.1
 yarl==1.20.1
