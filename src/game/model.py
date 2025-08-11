@@ -43,6 +43,7 @@ class Game(Base):
     game_state: Mapped[GameState] = mapped_column("type", Enum(GameState))
     timestamp: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp())
     factions: Mapped[List[str]] = mapped_column(JSON, default=[])
+    turn: Mapped[int] = mapped_column(Integer, default=0)
 
     game_players: Mapped[List["GamePlayer"]] = relationship("GamePlayer", back_populates="game")
     game_settings: Mapped["GameSettings"] = relationship("GameSettings", back_populates="game")
