@@ -81,7 +81,7 @@ class Game(commands.Cog):
             session.commit
             
 
-            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state}\nPlayers:\n{players_info}\nSettings:\n{settings}\nFactions:\n{factions_string}")
+            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state.value}\nPlayers:\n{players_info}\nSettings:\n{settings}\nFactions:\n{factions_string}")
         except Exception as e:
             logging.error(f"Error fetching game data: {e}")
             await ctx.send("An error occurred while fetching the game data."    )
@@ -106,7 +106,7 @@ class Game(commands.Cog):
             players = game.game_players
             player_info = "\n".join([f"Player {gp.player.name if gp.player.name else "Unknown"}: {gp.faction} - Points: {gp.points}, Rank: {gp.rank}" for gp in players])
 
-            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state}\nPlayers:\n{player_info}")
+            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state.value}\nPlayers:\n{player_info}")
         except Exception as e:
             logging.error(f"Error fetching game data: {e}")
             await ctx.send("An error occurred while fetching the game data."    )
