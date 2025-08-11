@@ -1,4 +1,3 @@
-import discord
 import logging
 
 from . import factions

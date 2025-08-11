@@ -27,6 +27,10 @@ class GamePlayer(Base):
     faction: Mapped[Optional[str]] = mapped_column(String)
     points: Mapped[int] = mapped_column(Integer, default=0)
     rank: Mapped[int] = mapped_column(Integer, default=0)
+    turn_order: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Used in exclusive pool mode.
+    factions: Mapped[List[str]] = mapped_column(JSON, default=[])
 
     # Relationships
     game: Mapped["Game"] = relationship("Game", back_populates="game_players")
@@ -39,7 +43,6 @@ class Game(Base):
     game_state: Mapped[GameState] = mapped_column("type", Enum(GameState))
     timestamp: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp())
     factions: Mapped[List[str]] = mapped_column(JSON, default=[])
-    turn_order: Mapped[List[str]] = mapped_column(JSON, default=[])
 
     game_players: Mapped[List["GamePlayer"]] = relationship("GamePlayer", back_populates="game")
     game_settings: Mapped["GameSettings"] = relationship("GameSettings", back_populates="game")
