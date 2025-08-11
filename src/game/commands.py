@@ -21,8 +21,8 @@ class Game(commands.Cog):
         logging.info("Game cog loaded")
 
 
-    @commands.command()
-    async def factions(self, ctx: commands.Context, number: int = 8, *, sources: str = "") -> None:
+    @commands.command(name="factions")
+    async def random_factions(self, ctx: commands.Context, number: int = 8, *, sources: str = "") -> None:
         """Returns a specified number of random factions."""
         if number <= 0:
             await ctx.send("Please specify a positive number of factions.")
@@ -34,6 +34,52 @@ class Game(commands.Cog):
             await ctx.send("No factions found matching the criteria.")
             return
         await ctx.send(f"Here are {number} random factions:\n{'\n'.join(random_factions)}")
+
+    @commands.command()
+    async def start(self, ctx: commands.Context, game_id: Optional[int] = None) -> None:
+        session = Session(bind=self.conn)
+        try:
+            if game_id is None:
+                game = model.Game.latest_lobby(session)
+            else:
+                game = session.query(model.Game).filter_by(game_id=game_id).first()
+            if not game:
+                await ctx.send(f"No lobby found.")
+                return
+
+
+            players_info = ""
+            for player in game.game_players:
+                players_info += f"{player.player.name}\n"
+
+            settings = ""
+            sources = []
+            if game.game_settings.prophecy_of_kings:
+                settings += "Prophecy of Kings active\n"
+                sources.append("pok")
+
+            if game.game_settings.discordant_stars:
+                settings += "Discordant stars active\n"
+                sources.append("ds")
+
+            if game.game_settings.codex:
+                settings += "Codex active\n"
+                sources.append("codex")
+
+            if game.game_settings.drafting_mode != model.DraftingMode.EXCLUSIVE_POOL:
+                await ctx.send("Only exclusive pool supported at the moment")
+                return
+            
+
+            factions = self.factions.get_random_factions(40, ','.join(sources))
+            
+
+            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state}\nPlayers:\n{players_info}\nSettings:\n{settings}\nFactions:{str(factions)}")
+        except Exception as e:
+            logging.error(f"Error fetching game data: {e}")
+            await ctx.send("An error occurred while fetching the game data."    )
+
+
 
 
     # Debugging command. Fetches game and all players in the game
@@ -66,8 +112,11 @@ class Game(commands.Cog):
             game = model.Game(game_state="LOBBY")
             session.add(game)
             session.commit()
+            settings = model.GameSettings(game_id=game.game_id)
+            session.add(settings)
+            session.commit()
 
-            await ctx.send(f"Game lobby created with ID {game.game_id}. Type !join {game.game_id} to join the game.")
+            await ctx.send(f"Game lobby created with ID {game.game_id}. Type !join {game.game_id} to join the game. And !start to start the game")
         except Exception as e:
             logging.error(f"Error creating game: {e}")
             await ctx.send("An error occurred while creating the game.")
@@ -78,10 +127,10 @@ class Game(commands.Cog):
         try:
             session = Session(bind=self.conn)
 
-            if game_id:
-                game: Optional[model.Game] = session.query(model.Game).get(game_id)
+            if game_id is None:
+                game = model.Game.latest_lobby(session)
             else:
-                game = session.query(model.Game).order_by(model.Game.game_id.desc()).first()
+                game: Optional[model.Game] = session.query(model.Game).get(game_id)
             if game is None:
                 await ctx.send(f"No lobby with game id {game_id}")
                 return
@@ -89,7 +138,7 @@ class Game(commands.Cog):
             gp = session.query(model.GamePlayer).with_parent(game).filter(model.GamePlayer.player_id==id).first()
 
             if gp is None:
-                await ctx.send("You are not in this lobby!")
+                await ctx.send("You are not in this game!")
                 return
 
             session.delete(gp)
@@ -108,10 +157,10 @@ class Game(commands.Cog):
         try:
             session = Session(bind=self.conn)
 
-            if game_id:
-                game = session.query(model.Game).get(game_id)
+            if game_id is None:
+                game = model.Game.latest_lobby(session)
             else:
-                game = session.query(model.Game).order_by(model.Game.game_id.desc()).first()
+                game = session.query(model.Game).get(game_id)
 
             if game is None:
                 await ctx.send(f"No lobby found.")
