@@ -77,9 +77,11 @@ class Game(commands.Cog):
 
             if game.turn != player.turn_order:
                 await ctx.send(f"It is not your turn to draft! It is {current_drafter.player.name}'s turn")
+                return
 
             if faction not in player.factions:
                 await ctx.send(f"You can't draft faction {faction}. Check your spelling or available factions.")
+                return
             
             player.faction = faction
             game.turn += 1
@@ -96,7 +98,7 @@ class Game(commands.Cog):
                 game.game_state = model.GameState.STARTED
                 session.merge(game)
                 session.commit()
-                await ctx.send(f"Game {game.game_id} has started\n\nPlayers:\n{"".join(players_info_lines)}\n\n{random.choice(Game.game_start_quotes)}")
+                await ctx.send(f"Game '{game.name}' has started\n\nPlayers:\n{"".join(players_info_lines)}\n\n{random.choice(Game.game_start_quotes)}")
                 return
 
             current_drafter = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
@@ -213,18 +215,21 @@ class Game(commands.Cog):
             await ctx.send("An error occurred while fetching the game data."    )
 
     @commands.command()
-    async def lobby(self, ctx: commands.Context) -> None:
+    async def lobby(self, ctx: commands.Context, *, name: Optional[str]) -> None:
+        if not name:
+            await ctx.send("Please specify a name for the lobby")
+            return
         try:
             session = Session(bind=self.conn)
 
-            game = model.Game(game_state="LOBBY")
+            game = model.Game(game_state="LOBBY", name=name)
             session.add(game)
             session.commit()
             settings = model.GameSettings(game_id=game.game_id)
             session.add(settings)
             session.commit()
 
-            await ctx.send(f"Game lobby created with ID {game.game_id}. Type !join {game.game_id} to join the game. And !start to start the game")
+            await ctx.send(f"Game lobby '{game.name}' created with ID {game.game_id}. Type !join {game.game_id} to join the game. And !start {game.game_id} to start the game")
         except Exception as e:
             logging.error(f"Error creating game: {e}")
             await ctx.send("An error occurred while creating the game.")
@@ -298,7 +303,7 @@ class Game(commands.Cog):
             )
             session.add(game_player)
             session.commit()
-            await ctx.send(f"{ctx.author} has joined lobby #{game.game_id}. Current number of players {number_of_players+1}. Type !leave {game.game_id} to leave the lobby.")
+            await ctx.send(f"{ctx.author} has joined lobby '{game.name}'. Current number of players {number_of_players+1}. Type !leave {game.game_id} to leave the lobby.")
         except Exception as e:
             logging.error(f"Error joining lobby: {e}")
             await ctx.send("An error occurred while joining the lobby.")
