@@ -42,7 +42,6 @@ class Game(Base):
     game_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     game_state: Mapped[GameState] = mapped_column("type", Enum(GameState))
     timestamp: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp())
-    factions: Mapped[List[str]] = mapped_column(JSON, default=[])
     turn: Mapped[int] = mapped_column(Integer, default=0)
 
     game_players: Mapped[List["GamePlayer"]] = relationship("GamePlayer", back_populates="game")
@@ -51,6 +50,10 @@ class Game(Base):
     @classmethod
     def latest_lobby(cls, session: Session):
         return session.query(cls).order_by(cls.game_id.desc()).filter(cls.game_state==GameState.LOBBY).first()
+
+    @classmethod
+    def latest_draft(cls, session: Session):
+        return session.query(cls).order_by(cls.game_id.desc()).filter(cls.game_state==GameState.DRAFT).first()
 
 
 
@@ -63,7 +66,7 @@ class GameSettings(Base):
 
     prophecy_of_kings: Mapped[bool] = mapped_column(Boolean, default=True)
     codex: Mapped[bool] = mapped_column(Boolean, default=True)
-    discordant_stars: Mapped[bool] = mapped_column(Boolean, default=False)
+    discordant_stars: Mapped[bool] = mapped_column(Boolean, default=True)
 
     game: Mapped["Game"] = relationship("Game", back_populates="game_settings")
 

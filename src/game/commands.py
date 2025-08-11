@@ -1,14 +1,24 @@
 import logging
+import random
 
 from . import factions
 from . import model
 
+from itertools import batched
 from sqlalchemy.orm import Session
 from typing import Optional
 from discord.ext import commands
 
 class Game(commands.Cog):
     """Cog containing game related commands."""
+
+    game_start_quotes = [
+        "In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.",
+        "The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.",
+        "Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.",
+        "Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.",
+        "Ten great powers. One empty throne. The galaxy awaits its new master — and the game begins.",
+    ]
 
     def __init__(self, factions: factions.Factions = factions.read_factions()) -> None:
         """Initialize the Commands cog with factions."""
@@ -35,6 +45,73 @@ class Game(commands.Cog):
         await ctx.send(f"Here are {number} random factions:\n{'\n'.join(random_factions)}")
 
     @commands.command()
+    async def draft(self, ctx: commands.Context, game_id: Optional[int] = None, *, faction: Optional[str] = None) -> None:
+        session = Session(bind=self.conn)
+        try:
+            if game_id is None:
+                game = model.Game.latest_draft(session)
+            else:
+                game = session.query(model.Game).filter_by(game_id=game_id).first()
+            if not game:
+                await ctx.send("No game found.")
+                return
+            if game.game_state != model.GameState.DRAFT:
+                await ctx.send("Game is not in draft stage")
+                return
+
+            player = session.query(model.GamePlayer).with_parent(game).filter_by(player_id=ctx.author.id).first()
+            if not player:
+                await ctx.send("You are not in this game!")
+                return
+            if player.faction:
+                await ctx.send("You have drafted {player.faction}")
+                return
+
+            if not faction:
+                await ctx.send(f"Your available factions are:\n{"\n".join(player.factions)}")
+                return
+            
+            current_drafter = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
+            if not current_drafter:
+                raise LookupError
+
+            if game.turn != player.turn_order:
+                await ctx.send(f"It is not your turn to draft! It is {current_drafter.player.name}'s turn")
+
+            if faction not in player.factions:
+                await ctx.send(f"You can't draft faction {faction}. Check your spelling or available factions.")
+            
+            player.faction = faction
+            game.turn += 1
+
+            session.merge(game)
+            session.merge(player)
+            session.commit()
+            await ctx.send(f"{player.player.name} has selected {faction}.")
+            if game.turn == len(game.game_players):
+                players_info_lines = []
+                for player in game.game_players:
+                    players_info_lines.append(f"{player.player.name} playing {player.faction}")
+                
+                game.game_state = model.GameState.STARTED
+                session.merge(game)
+                session.commit()
+                await ctx.send(f"Game {game.game_id} has started\nPlayers:\n{"".join(players_info_lines)}\n\n{random.choice(Game.game_start_quotes)}")
+                return
+
+            current_drafter = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
+
+            await ctx.send("Next drafter is {current_drafter.player.name}.")
+
+            
+
+
+        except Exception as e:
+            logging.error(f"Error drafting: {e}")
+            await ctx.send("Something went wrong")
+            
+
+    @commands.command()
     async def start(self, ctx: commands.Context, game_id: Optional[int] = None) -> None:
         session = Session(bind=self.conn)
         try:
@@ -43,7 +120,11 @@ class Game(commands.Cog):
             else:
                 game = session.query(model.Game).filter_by(game_id=game_id).first()
             if not game:
-                await ctx.send(f"No lobby found.")
+                await ctx.send("No lobby found.")
+                return
+
+            if game.game_state != model.GameState.LOBBY:
+                await ctx.send("Given game is not a lobby")
                 return
 
 
@@ -51,18 +132,18 @@ class Game(commands.Cog):
             for player in game.game_players:
                 players_info += f"{player.player.name}\n"
 
-            settings = ""
+            settings = []
             sources = []
             if game.game_settings.prophecy_of_kings:
-                settings += "Prophecy of Kings active\n"
+                settings.append("Prophecy of Kings active")
                 sources.append("pok")
 
             if game.game_settings.discordant_stars:
-                settings += "Discordant stars active\n"
+                settings.append("Discordant stars active")
                 sources.append("ds")
 
             if game.game_settings.codex:
-                settings += "Codex active\n"
+                settings.append("Codex active")
                 sources.append("codex")
 
             if game.game_settings.drafting_mode != model.DraftingMode.EXCLUSIVE_POOL:
@@ -70,17 +151,29 @@ class Game(commands.Cog):
                 return
             
 
-            factions = self.factions.get_random_factions(len(game.game_players)*4, ','.join(sources))
+            factions_per_player = 4
+            factions = self.factions.get_random_factions(len(game.game_players)*factions_per_player, ','.join(sources))
             factions = [faction.name for faction in factions]
-            factions_string = '\n'.join(factions)
+            
+
+            players = game.game_players
+            number_of_players = len(players)
+            turn_order = random.sample(range(number_of_players), number_of_players)
+            faction_slices = batched(factions, factions_per_player)
+
+            factions_lines = []
+            for i, (player, factions) in enumerate(zip(game.game_players, faction_slices)):
+                player.turn_order = turn_order[i]
+                player.factions = list(factions)
+                factions_lines.extend(list(map(lambda x : f"{x} ({player.player.name})", factions)))
+
 
             game.game_state = model.GameState.DRAFT
-            game.factions = factions
             session.merge(game)
             session.commit
             
 
-            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state.value}\nPlayers:\n{players_info}\nSettings:\n{settings}\nFactions:\n{factions_string}")
+            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state.value}\nPlayers:\n{players_info}\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}")
         except Exception as e:
             logging.error(f"Error fetching game data: {e}")
             await ctx.send("An error occurred while fetching the game data."    )
@@ -200,36 +293,3 @@ class Game(commands.Cog):
         except Exception as e:
             logging.error(f"Error joining lobby: {e}")
             await ctx.send("An error occurred while joining the lobby.")
-
-
-    # Debugging command to create a dummy game and dummy players
-    @commands.command()
-    async def create_dummy_game(self, ctx: commands.Context) -> None:
-        try:
-            session = Session(bind=self.conn)
-
-            # Create a dummy game
-            dummy_game = model.Game(game_state="STARTED")
-            session.add(dummy_game)
-            session.commit()
-            game_id = dummy_game.game_id
-
-            # Create dummy players and game_player entries
-            factions = self.factions.get_random_factions(4, "") 
-            for i in range(4):  # Create 4 dummy players
-                player = model.Player(player_id=i, player_name=str(i))
-                session.merge(player)
-                game_player = model.GamePlayer(
-                    game_id=game_id,
-                    player_id=i,
-                    faction=str(factions[i]),
-                    points=0,
-                    rank=i
-                )
-                session.add(game_player)
-
-            session.commit()
-            await ctx.send(f"Dummy game created with ID {game_id} and 4 dummy players.")
-        except Exception as e:
-            logging.error(f"Error creating dummy game: {e}")
-            await ctx.send("An error occurred while creating the dummy game.")
