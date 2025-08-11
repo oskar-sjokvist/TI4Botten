@@ -75,7 +75,7 @@ class Game(commands.Cog):
             factions_string = '\n'.join([str(faction) for faction in factions])
             
 
-            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state}\nPlayers:\n{players_info}\nSettings:\n{settings}\nFactions\n:{factions_string}")
+            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state}\nPlayers:\n{players_info}\nSettings:\n{settings}\nFactions:\n{factions_string}")
         except Exception as e:
             logging.error(f"Error fetching game data: {e}")
             await ctx.send("An error occurred while fetching the game data."    )
