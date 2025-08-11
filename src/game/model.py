@@ -11,6 +11,7 @@ class Base(DeclarativeBase):
 
 class GameState(enum.Enum):
     LOBBY = "Lobby"
+    DRAFT = "Draft"
     STARTED = "Started"
     FINISHED = "Finished"
 
