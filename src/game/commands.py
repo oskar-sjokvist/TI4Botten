@@ -72,7 +72,13 @@ class Game(commands.Cog):
             
 
             factions = self.factions.get_random_factions(len(game.game_players)*4, ','.join(sources))
-            factions_string = '\n'.join([str(faction) for faction in factions])
+            factions = [faction.name for faction in factions]
+            factions_string = '\n'.join(factions)
+
+            game.game_state = model.GameState.DRAFT
+            game.factions = factions
+            session.merge(game)
+            session.commit
             
 
             await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state}\nPlayers:\n{players_info}\nSettings:\n{settings}\nFactions:\n{factions_string}")
