@@ -25,3 +25,10 @@ async def bot():
 async def test_help():
     await dpytest.message("!hello")
     assert dpytest.verify().message().contains().content("Hello!")
+
+
+@pytest.mark.asyncio
+async def test_factions():
+    await dpytest.message("!factions 3")
+    # The response should mention random factions and the number requested
+    assert dpytest.verify().message().contains().content("Here are 3 random factions:")

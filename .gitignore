@@ -1,4 +1,5 @@
 .*~
 .*.sw?
 .token
+*.db
 __pycache__
