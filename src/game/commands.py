@@ -100,6 +100,7 @@ class Game(commands.Cog):
 
             session.add_all(players)
             game.game_state = model.GameState.FINISHED
+            session.merge(game)
             session.commit()
 
             players = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.rank.asc()).all()
@@ -260,8 +261,25 @@ class Game(commands.Cog):
 
 
 
+    @commands.command()
+    async def games(self, ctx: commands.Context) -> None:
+        """Fetches 5 latest games."""
+        session = Session(bind=self.conn)
+        try:
+            games = session.query(model.Game).order_by(model.Game.game_id.desc()).filter_by(game_state=model.GameState.FINISHED).limit(5).all()
+            if not games:
+                await ctx.send(f"No games found.")
+                return
 
-    # Debugging command. Fetches game and all players in the game
+            lines = []
+            for game in games:
+                winner = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.rank.asc()).first()
+                lines.append(f"#{game.game_id}: {game.name}. Winner {winner.player.name if winner else "Unknown"}")
+            await ctx.send("\n".join(lines))
+        except Exception as e:
+            logging.error(f"Error fetching game data: {e}")
+            await ctx.send("An error occurred while fetching the game data.")
+
     @commands.command()
     async def game(self, ctx: commands.Context, game_id: Optional[int] = None) -> None:
         """Fetches a game and all players in the game."""
