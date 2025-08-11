@@ -19,7 +19,6 @@ class Game(commands.Cog):
         "The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.",
         "Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.",
         "Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.",
-        "Ten great powers. One empty throne. The galaxy awaits its new master — and the game begins.",
     ]
 
     game_end_quotes = [
@@ -274,7 +273,7 @@ class Game(commands.Cog):
             lines = []
             for game in games:
                 winner = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.rank.asc()).first()
-                lines.append(f"#{game.game_id}: {game.name}. Winner {winner.player.name if winner else "Unknown"}")
+                lines.append(f"#{game.game_id}: {game.name}. Winner {f"{winner.player.name} ({winner.faction})" if winner else "Unknown"}")
             await ctx.send("\n".join(lines))
         except Exception as e:
             logging.error(f"Error fetching game data: {e}")
