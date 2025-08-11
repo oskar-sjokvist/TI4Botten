@@ -71,10 +71,11 @@ class Game(commands.Cog):
                 return
             
 
-            factions = self.factions.get_random_factions(40, ','.join(sources))
+            factions = self.factions.get_random_factions(len(game.game_players)*4, ','.join(sources))
+            factions_string = '\n'.join([str(faction) for faction in factions])
             
 
-            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state}\nPlayers:\n{players_info}\nSettings:\n{settings}\nFactions:{str(factions)}")
+            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state}\nPlayers:\n{players_info}\nSettings:\n{settings}\nFactions\n:{factions_string}")
         except Exception as e:
             logging.error(f"Error fetching game data: {e}")
             await ctx.send("An error occurred while fetching the game data."    )
