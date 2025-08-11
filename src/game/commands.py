@@ -173,7 +173,7 @@ class Game(commands.Cog):
 
             current_drafter = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
 
-            await ctx.send("Next drafter is {current_drafter.player.name}.")
+            await ctx.send("Next drafter is <@{current_drafter.player_id}>.")
 
             
 
@@ -253,7 +253,7 @@ class Game(commands.Cog):
             if current_drafter is None:
                 raise LookupError
 
-            await ctx.send(f"{current_drafter.player.name} begins drafting")
+            await ctx.send(f"<@{current_drafter.player_id}> begins drafting")
         except Exception as e:
             logging.error(f"Error fetching game data: {e}")
             await ctx.send("An error occurred while fetching the game data."    )
