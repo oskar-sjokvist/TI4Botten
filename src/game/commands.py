@@ -96,7 +96,7 @@ class Game(commands.Cog):
                 game.game_state = model.GameState.STARTED
                 session.merge(game)
                 session.commit()
-                await ctx.send(f"Game {game.game_id} has started\nPlayers:\n{"".join(players_info_lines)}\n\n{random.choice(Game.game_start_quotes)}")
+                await ctx.send(f"Game {game.game_id} has started\n\nPlayers:\n{"".join(players_info_lines)}\n\n{random.choice(Game.game_start_quotes)}")
                 return
 
             current_drafter = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
@@ -128,9 +128,6 @@ class Game(commands.Cog):
                 return
 
 
-            players_info = ""
-            for player in game.game_players:
-                players_info += f"{player.player.name}\n"
 
             settings = []
             sources = []
@@ -162,18 +159,30 @@ class Game(commands.Cog):
             faction_slices = batched(factions, factions_per_player)
 
             factions_lines = []
+
+            player_from_turn = {}
             for i, (player, factions) in enumerate(zip(game.game_players, faction_slices)):
                 player.turn_order = turn_order[i]
+                player_from_turn[player.turn_order] = player.player.name
                 player.factions = list(factions)
                 factions_lines.extend(list(map(lambda x : f"{x} ({player.player.name})", factions)))
 
+            players_info_lines = []
+            for i in range(number_of_players):
+                name = player_from_turn[i]
+                players_info_lines.append(f"{name}\n")
 
             game.game_state = model.GameState.DRAFT
             session.merge(game)
             session.commit
-            
 
-            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state.value}\nPlayers:\n{players_info}\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}")
+            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}")
+
+            current_drafter = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
+            if current_drafter is None:
+                raise LookupError
+
+            await ctx.send(f"{current_drafter.player.name} begins drafting")
         except Exception as e:
             logging.error(f"Error fetching game data: {e}")
             await ctx.send("An error occurred while fetching the game data."    )
