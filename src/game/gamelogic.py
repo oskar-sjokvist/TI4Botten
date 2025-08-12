@@ -163,14 +163,13 @@ def start(session: Session, factions : fs.Factions, game_id: Optional[int] = Non
         if game.game_settings.drafting_mode != model.DraftingMode.EXCLUSIVE_POOL:
            return "Only exclusive pool supported at the moment"
         
-
-        factions_per_player = 4
-        fs = factions.get_random_factions(len(game.game_players)*factions_per_player, ','.join(sources))
-        fs = [faction.name for faction in fs]
-        
-
         players = game.game_players
         number_of_players = len(players)
+
+        factions_per_player = 4
+        fs = factions.get_random_factions(number_of_players, ','.join(sources))
+        fs = [faction.name for faction in fs]
+
         turn_order = random.sample(range(number_of_players), number_of_players)
         faction_slices = batched(fs, factions_per_player)
 
