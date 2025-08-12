@@ -63,9 +63,9 @@ def draft(session: Session, player_id: int,  game_id: Optional[int] = None, fact
         else:
             game = session.query(model.Game).filter_by(game_id=game_id).first()
         if not game:
-            return "No game found.")
+            return "No game found."
         if game.game_state != model.GameState.DRAFT:
-            return "Game is not in draft stage")
+            return "Game is not in draft stage"
 
         player = session.query(model.GamePlayer).with_parent(game).filter_by(player_id=player_id).first()
         if not player:
