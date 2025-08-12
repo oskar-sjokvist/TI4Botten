@@ -9,9 +9,10 @@ from . import model
 
 from datetime import datetime
 from itertools import batched
+from sqlalchemy import inspect, Enum, Boolean, String, Integer
 from sqlalchemy.orm import Session
-from typing import Optional
 from string import Template
+from typing import Optional, Dict, Any
 
 _game_start_quotes = [
     "'In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.'\n-$player",
@@ -145,6 +146,9 @@ def start(session: Session, factions : fs.Factions, game_id: Optional[int] = Non
 
         settings = []
         sources = []
+        if game.game_settings.base_game:
+            settings.append("Base game active")
+            sources.append("base")
         if game.game_settings.prophecy_of_kings:
             settings.append("Prophecy of Kings active")
             sources.append("pok")
@@ -296,3 +300,88 @@ def games(session : Session) -> str:
     except Exception as e:
         logging.error(f"Error fetching game data: {e}")
         return "An error occurred while fetching the game data."
+
+
+def config(session: Session, game_id: Optional[int], property: Optional[str], value: Optional[str]):
+    '''Configure a game session'''
+    try:
+        if game_id is None:
+            game = model.Game.latest_lobby(session)
+        else:
+            game = session.query(model.Game).filter_by(game_id=game_id).first()
+        if not game:
+            return "No lobby found."
+        
+        if game.game_state != model.GameState.LOBBY:
+            return "Game is not in lobby."
+
+        def get_valid_values(dtype):
+            if isinstance(dtype, Enum):
+                return dtype.enums
+            elif isinstance(dtype, Boolean):
+                return [True, False]
+            elif isinstance(dtype, String):
+                return ["String"]
+            elif isinstance(dtype, Integer):
+                return ["Integer"]
+            else:
+                raise TypeError(f"Unsupported column type: {dtype}")
+
+        settings = inspect(model.GameSettings)
+        valid_keys : Dict[str, Any] = dict()
+        for key, dtype in [(col.key, col.type) for col in settings.columns]:
+            if not ("game" in key and "id" in key):
+                valid_keys[key] = dtype
+
+        if property == "get":
+            game_settings = session.query(model.GameSettings).filter_by(game_id=game.game_id).first()
+
+            ret = "Current settings:\n"
+            for key in valid_keys.keys():
+                ret += f"* {key}: {str(getattr(game_settings, key))}\n"
+            return ret
+        if not property or not value:
+            ret = "Use 'get' to retrieve current settings.\nValid keys and datatypes:\n"
+            for key, dtype in valid_keys.items():
+                ret += f"* {key}:\n"
+                for data in get_valid_values(dtype):
+                    ret += f"\t{data}\n"
+            return ret
+
+        cutoff = 0.1
+        valid_properties = valid_keys.keys()
+        best_prop = max(valid_properties, key=lambda c: Levenshtein.ratio(property, c))
+        if Levenshtein.ratio(property, best_prop) <= cutoff:
+            return f"Cannot understand which property you mean. Please check your spelling."
+        property = best_prop
+
+        if property not in valid_keys.keys():
+            return "Property not found."
+        
+        dtype = valid_keys[property]
+        if isinstance(dtype, Enum):
+            enum_list = list(dtype.enums)
+            best_value = max(enum_list, key=lambda c: Levenshtein.ratio(value, c))
+            if Levenshtein.ratio(best_value, value) <= cutoff:
+                return f"Valid values are: {enum_list}"
+            value = best_value
+        elif isinstance(dtype, Boolean):
+            val = value.lower()
+            if val in ["true", "t", "yes", "y", "1"]:
+                value = True
+            elif val in ["false", "f", "no", "n", "0"]:
+                value = False
+            else:
+                return f"Supply a boolean value."
+        elif not isinstance(dtype, (String, Integer)):
+            return "Invalid datatype"
+
+        game_settings = session.query(model.GameSettings).filter_by(game_id=game.game_id).first()
+        setattr(game_settings, property, value)
+        session.commit()
+        return f"Set property '{property}' to '{value}'"
+
+
+    except Exception as e:
+        logging.error(f"Error configuring lobby: {e}")
+        return "An error occurred while configuring the lobby."

@@ -18,6 +18,7 @@ class DraftingMode(enum.Enum):
     PICKS_ONLY = "Picks only"
     PICKS_AND_BANS = "Picks and bans"
     EXCLUSIVE_POOL = "Exclusive drafting pool"
+    MILTY_DRAFT = "Milty draft"
 
 class GamePlayer(models.Base):
     __tablename__ = "game_player"
@@ -66,8 +67,9 @@ class GameSettings(models.Base):
     game_settings_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     game_id: Mapped[int]  = mapped_column(ForeignKey("game.game_id"))
     
-    drafting_mode: Mapped[DraftingMode] = mapped_column("type", Enum(DraftingMode), default=DraftingMode.EXCLUSIVE_POOL)
+    drafting_mode: Mapped[DraftingMode] = mapped_column("drafting_mode", Enum(DraftingMode), default=DraftingMode.EXCLUSIVE_POOL)
 
+    base_game: Mapped[bool] = mapped_column(Boolean, default=True)
     prophecy_of_kings: Mapped[bool] = mapped_column(Boolean, default=True)
     codex: Mapped[bool] = mapped_column(Boolean, default=True)
     discordant_stars: Mapped[bool] = mapped_column(Boolean, default=True)

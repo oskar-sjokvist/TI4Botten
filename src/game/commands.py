@@ -104,3 +104,9 @@ class Game(commands.Cog):
         name = ctx.author.name
         with Session(self.engine) as session:
             await ctx.send(gamelogic.join(session, id, name, game_id))
+
+    @commands.command()
+    async def config(self, ctx: commands.Context, game_id: Optional[int], property: Optional[str], value: Optional[str]) -> None:
+        """Configure a lobby."""
+        with Session(self.engine) as session:
+            await ctx.send(gamelogic.config(session, game_id, property, value))
