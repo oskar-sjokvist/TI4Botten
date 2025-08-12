@@ -21,6 +21,14 @@ class Betting(commands.Cog):
         logging.info("Betting cog loaded")
 
 
+    def _balance(self, session: Session,  bettor: betting_model.Bettor) -> int:
+        stmt = select(betting_model.GameBettor).filter_by(bettor_id=bettor.bettor_id)
+        debts = session.execute(stmt).scalars().all()
+        total_debt = sum([debt.bet for debt in debts])
+
+        return bettor.balance-total_debt
+
+
     @commands.command()
     async def balance(self, ctx: commands.Context) -> None:
         """Returns bettor's current balance."""
@@ -30,7 +38,7 @@ class Betting(commands.Cog):
                 bettor = betting_model.Bettor(bettor_id=ctx.author.id, name=ctx.author.name)
                 session.add(bettor)
             session.commit()
-            await ctx.send(f"{bettor.name} has {bettor.balance} Jake coins.")
+            await ctx.send(f"{bettor.name} has {self._balance(session, bettor)} Jake coins.")
 
     @commands.command()
     async def payout(self, ctx: commands.Context, game_id: int) -> None:
@@ -53,12 +61,13 @@ class Betting(commands.Cog):
                     if bettor is None:
                         await ctx.send("Something went wrong")
                         return
-                    bettor.balance += game_bettor.bet * 2
+                    bettor.balance += game_bettor.bet
                     lines.append(f"{bettor.name} won {game_bettor.bet} Jake coins!")
-                    session.merge(bettor)
                 else:
+                    bettor.balance -= game_bettor.bet
                     lines.append(f"{bettor.name} lost {game_bettor.bet} Jake coins!")
-                    
+
+                session.merge(bettor)
                 session.delete(game_bettor)
 
             session.commit()
@@ -111,7 +120,7 @@ class Betting(commands.Cog):
                 await ctx.send("Choose a winner.")
                 return
 
-            if bet_amount > bettor.balance:
+            if bet_amount > self._balance(session, bettor):
                 await ctx.send("You are trying to bet more than you have.")
                 return
 
@@ -130,7 +139,6 @@ class Betting(commands.Cog):
                         bet=bet_amount,
                     )
                     session.add(gm)
-                    bettor.balance -= bet_amount
                     session.merge(bettor)
                     session.commit()
                     await ctx.send(f"You placed a bet on {player.player.name} for {gm.bet} Jake coins to win game {game.name} #{game.game_id}")
