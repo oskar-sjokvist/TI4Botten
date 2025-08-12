@@ -298,7 +298,7 @@ def leave(session: Session, player_id : int, game_id: Optional[int]) -> str:
         if len(game.game_players) == 0:
             session.delete(game)
             session.commit()
-            return f"Removing lobby {name} because all players left the lobby."
+            return f"Removing lobby {game.name} because all players left the lobby."
         session.commit()
         return f"{name} has left lobby #{game.game_id}. Current number of players {len(game.game_players)}. Type !join {game.game_id} to join the lobby again."
 

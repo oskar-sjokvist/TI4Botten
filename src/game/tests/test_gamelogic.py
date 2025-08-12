@@ -27,7 +27,7 @@ def test_finish_no_game_id(session):
 
 
 def test_lobby_no_name(session):
-    result = gamelogic.lobby(session, None)
+    result = gamelogic.lobby(session, 1, "player_name", None)
     assert "Please specify a name for the lobby" in result
 
 
@@ -63,27 +63,29 @@ def test_games_no_games(session):
 def test_lobby_and_join_leave(session):
     # Create lobby
     lobby_name = "TestLobby"
-    result = gamelogic.lobby(session, lobby_name)
+    result = gamelogic.lobby(session, 1, "Alice", lobby_name)
     assert f"Game lobby '{lobby_name}' created" in result
     game = session.query(model.Game).filter_by(name=lobby_name).first()
     assert game is not None
-    # Join lobby
-    join_result = gamelogic.join(session, 1, "Alice", game.game_id)
-    assert "Alice has joined lobby" in join_result
+
     # Leave lobby
     leave_result = gamelogic.leave(session, 1, game.game_id)
-    assert "Alice has left lobby" in leave_result
+    assert "Removing lobby" in leave_result
+
+    game = session.query(model.Game).filter_by(name=lobby_name).first()
+    assert game is None
 
 
 def test_join_limit(session):
     lobby_name = "FullLobby"
-    gamelogic.lobby(session, lobby_name)
+    gamelogic.lobby(session, 0, "Alice", lobby_name)
     game = session.query(model.Game).filter_by(name=lobby_name).first()
-    # Add 8 players
-    for i in range(1, 9):
+    # Add 7 players
+    for i in range(1, 8):
         gamelogic.join(session, i, f"Player{i}", game.game_id)
     # Try to add 9th
     result = gamelogic.join(session, 9, "Player9", game.game_id)
+
     assert "Player limit reached" in result
 
 

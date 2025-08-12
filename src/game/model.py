@@ -42,7 +42,7 @@ class Game(models.Base):
     __tablename__ = "game"
     game_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     game_state: Mapped[GameState] = mapped_column("game_state", Enum(GameState))
-    name: Mapped[str] = mapped_column("name")
+    name: Mapped[str] = mapped_column("name", unique=True)
 
     lobby_create_time: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp())
     game_finish_time: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp())
