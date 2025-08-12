@@ -211,7 +211,7 @@ def _find_lobby(session: Session, game_id: Optional[int]) -> model.Game|str:
     if game_id is None:
         game = model.Game.latest_lobby(session)
     else:
-        game = session.query(model.Game).get(game_id)
+        game = session.get(model.Game, game_id)
 
     if game is None:
         return "No lobby found."
