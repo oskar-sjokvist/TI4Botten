@@ -290,7 +290,7 @@ def games(session : Session) -> str:
             return f"No games found."
         lines = []
         for game in games:
-            winner = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.rank.asc()).first()
+            winner = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.points.dsc()).first()
             lines.append(f"#{game.game_id}: {game.name}. Winner {f"{winner.player.name} ({winner.faction})" if winner else "Unknown"}")
         return "\n".join(lines)
     except Exception as e:
