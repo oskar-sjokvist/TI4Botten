@@ -20,7 +20,7 @@ class Bettor(models.Base):
     __tablename__ = "bettor"
     bettor_id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    name: Mapped[int] = mapped_column(String, primary_key=True)
+    name: Mapped[int] = mapped_column(String)
 
     balance: Mapped[int] = mapped_column(Integer, default=1000)
 
