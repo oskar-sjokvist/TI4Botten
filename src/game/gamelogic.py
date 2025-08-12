@@ -134,15 +134,9 @@ def draft(session: Session, player_id: int,  game_id: Optional[int] = None, fact
 
 def start(session: Session, factions : fs.Factions, game_id: Optional[int] = None) -> str:
     try:
-        if game_id is None:
-            game = model.Game.latest_lobby(session)
-        else:
-            game = session.query(model.Game).filter_by(game_id=game_id).first()
-        if not game:
-           return "No lobby found."
-
-        if game.game_state != model.GameState.LOBBY:
-           return "Given game is not a lobby"
+        game = _find_lobby(session, game_id)
+        if isinstance(game, str):
+            return game
 
         settings = []
         sources = []
