@@ -30,13 +30,10 @@ _game_end_quotes = [
 ]
 
 
-def _parse_int_pairs(s):
-    nums = list(map(int, re.findall(r"-?\d+", s)))
-    if len(nums) % 2 != 0:
-        raise ValueError(f"Odd number of integers found in '{s}'")
-    return [(nums[i], nums[i+1]) for i in range(0, len(nums), 2)]
+def _parse_ints(s):
+    return list(map(int, re.findall(r"-?\d+", s)))
 
-def finish(session : Session, is_admin : bool, game_id: Optional[int], rankings: Optional[str]) -> str:
+def finish(session : Session, is_admin : bool, game_id: Optional[int], all_points: Optional[str]) -> str:
     if not game_id:
         return "Please specify a game id."
     try:
@@ -52,12 +49,11 @@ def finish(session : Session, is_admin : bool, game_id: Optional[int], rankings:
         players = controller.players_ordered_by_turn(session, game)
         lines = [p.player.name for p in players]
 
-        if not rankings:
+        if not all_points:
             return f"Players\n{"\n".join(lines)}\n\nSpecify the ranking and points based on the player order. E.g. !finish game_id 1 3, 2 5"
 
         try:
-            for player, (rank, points) in zip(players, _parse_int_pairs(rankings)):
-                player.rank = rank
+            for player, points in zip(players, _parse_ints(all_points)):
                 player.points = points
         except: 
             return f"Players\n{"\n".join(lines)}\n\nSpecify the ranking and points based on the player order. E.g. !finish game_id 1 3, 2 5"
@@ -67,8 +63,8 @@ def finish(session : Session, is_admin : bool, game_id: Optional[int], rankings:
         session.merge(game)
         session.commit()
 
-        players = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.rank.asc()).all()
-        lines = [f"{p.rank}. {p.player.name} played {p.faction} and finished with {p.points} point(s)" for p in players]
+        players = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.points.dsc()).all()
+        lines = [f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)" for i, p in enumerate(players)]
         return f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{random.choice(_game_end_quotes)}\n\nWrong result? Rerun the !finish command."
     except Exception as e:
         logging.error(f"Can't finish game: {e}")
