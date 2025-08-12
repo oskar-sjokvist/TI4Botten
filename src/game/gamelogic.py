@@ -12,7 +12,7 @@ from itertools import batched
 from sqlalchemy import inspect, Enum, Boolean, String, Integer
 from sqlalchemy.orm import Session
 from string import Template
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Iterable
 
 _game_start_quotes = [
     "'In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.'\n-$player",
@@ -35,6 +35,12 @@ _game_end_quotes = [
 
 def _parse_ints(s):
     return list(map(int, re.findall(r"-?\d+", s)))
+
+def _closest_match(s : str, ss : Iterable[str], cutoff=0.1) -> str|None :
+    best = max(ss, key=lambda c: Levenshtein.ratio(s, c))
+    if Levenshtein.ratio(s, best) <= cutoff:
+        return None
+    return best
 
 def finish(session : Session, is_admin : bool, game_id: Optional[int], all_points: Optional[str]) -> str:
     if not game_id:
@@ -106,10 +112,8 @@ def draft(session: Session, player_id: int,  game_id: Optional[int] = None, fact
         if game.turn != player.turn_order:
             return f"It is not your turn to draft! It is {current_drafter.player.name}'s turn"
             
-        cutoff = 0.1
-        factions = player.factions
-        best = max(factions, key=lambda c: Levenshtein.ratio(faction, c))
-        if Levenshtein.ratio(faction, best) <= cutoff:
+        best = _closest_match(faction, player.factions)
+        if not best:
            return f"You can't draft faction {faction}. Check your spelling or available factions."
         
         player.faction = best
@@ -348,10 +352,9 @@ def config(session: Session, game_id: Optional[int], property: Optional[str], va
                     ret += f"\t{data}\n"
             return ret
 
-        cutoff = 0.1
         valid_properties = valid_keys.keys()
-        best_prop = max(valid_properties, key=lambda c: Levenshtein.ratio(property, c))
-        if Levenshtein.ratio(property, best_prop) <= cutoff:
+        best_prop = _closest_match(property, valid_properties)
+        if not best_prop:
             return f"Cannot understand which property you mean. Please check your spelling."
         property = best_prop
 
@@ -361,25 +364,25 @@ def config(session: Session, game_id: Optional[int], property: Optional[str], va
         dtype = valid_keys[property]
         if isinstance(dtype, Enum):
             enum_list = list(dtype.enums)
-            best_value = max(enum_list, key=lambda c: Levenshtein.ratio(value, c))
-            if Levenshtein.ratio(best_value, value) <= cutoff:
+            best_value = _closest_match(value, enum_list)
+            if not best_value:
                 return f"Valid values are: {enum_list}"
-            value = best_value
+            new_value = best_value
         elif isinstance(dtype, Boolean):
             val = value.lower()
             if val in ["true", "t", "yes", "y", "1"]:
-                value = True
+                new_value = True
             elif val in ["false", "f", "no", "n", "0"]:
-                value = False
+                new_value = False
             else:
                 return f"Supply a boolean value."
         elif not isinstance(dtype, (String, Integer)):
             return "Invalid datatype"
 
         game_settings = session.query(model.GameSettings).filter_by(game_id=game.game_id).first()
-        setattr(game_settings, property, value)
+        setattr(game_settings, property, new_value)
         session.commit()
-        return f"Set property '{property}' to '{value}'"
+        return f"Set property '{property}' to '{new_value}'"
 
 
     except Exception as e:
