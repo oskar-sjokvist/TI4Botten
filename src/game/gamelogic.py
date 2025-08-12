@@ -181,6 +181,7 @@ def start(session: Session, factions : fs.Factions, game_id: Optional[int] = Non
             player_from_turn[player.turn_order] = player.player.name
             player.factions = list(player_factions)
             factions_lines.extend(list(map(lambda x : f"{x} ({player.player.name})", player_factions)))
+            session.merge(player)
 
         players_info_lines = []
         for i in range(number_of_players):
@@ -195,7 +196,7 @@ def start(session: Session, factions : fs.Factions, game_id: Optional[int] = Non
 
         current_drafter = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
         if current_drafter is None:
-            raise LookupError
+            raise LookupError("No current drafter")
 
         lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
         return "\n".join(lines)
