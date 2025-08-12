@@ -212,7 +212,7 @@ def lobby(session: Session, name: Optional[str]) -> str:
         try:
             game = model.Game(game_state="LOBBY", name=name)
             session.add(game)
-            session.commit()
+            session.flush()
             settings = model.GameSettings(game_id=game.game_id)
             session.add(settings)
             session.commit()
