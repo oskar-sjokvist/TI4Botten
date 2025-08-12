@@ -123,11 +123,13 @@ def draft(session: Session, player_id: int,  game_id: Optional[int] = None, fact
             game.game_state = model.GameState.STARTED
             session.merge(game)
             session.commit()
-            return f"Game '{game.name}' #{game.game_id} has started\n\nPlayers:\n{"".join(players_info_lines)}\n\n{random.choice(_game_start_quotes)}"
+            return f"Game '{game.name}' #{game.game_id} has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{random.choice(_game_start_quotes)}"
 
-        current_drafter = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
+        current_drafter : Optional[model.GamePlayer] = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
+        if current_drafter is None:
+            raise LookupError("No current drafter")
 
-        lines.append("Next drafter is <@{current_drafter.player_id}>. Use !draft.")
+        lines.append(f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
         return "\n".join(lines)
 
     except Exception as e:
