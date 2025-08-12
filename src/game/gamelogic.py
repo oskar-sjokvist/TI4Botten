@@ -232,6 +232,19 @@ def start(session: Session, factions : fs.Factions, game_id: Optional[int] = Non
         return "An error occurred while fetching the game data."
 
 
+def lobbies(session: Session) -> str:
+        try:
+            games = session.query(model.Game).order_by(model.Game.game_id.desc()).filter_by(game_state=model.GameState.LOBBY).all()
+            if not games:
+                return f"No games found."
+            lines = []
+            for game in games:
+                lines.append(f"#{game.game_id}: {game.name}. {len(game.game_players)} player(s).")
+            return "\n".join(lines)
+        except Exception as e:
+            logging.error(f"Error fetching game data: {e}")
+            return "An error occurred while fetching the game data."
+
 def lobby(session: Session, player_id: int, player_name: str, name: Optional[str]) -> str:
         if not name:
             return "Please specify a name for the lobby"

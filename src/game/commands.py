@@ -90,6 +90,13 @@ class Game(commands.Cog):
             await ctx.send(gamelogic.lobby(session, ctx.author.id, ctx.author.name, name))
 
     @commands.command()
+    async def lobbies(self, ctx: commands.Context) -> None:
+        """Show all open lobbies."""
+        with Session(self.engine) as session:
+            await ctx.send(gamelogic.lobbies(session))
+    
+
+    @commands.command()
     async def leave(self, ctx: commands.Context, game_id: Optional[int]) -> None:
         """Leave a lobby."""
         id = ctx.author.id
