@@ -232,7 +232,7 @@ def leave(session: Session, player_id : int, game_id: Optional[int]) -> str:
         if game is None:
             return f"No lobby with game id {game_id}"
 
-        gp = session.query(model.GamePlayer).with_parent(game).filter(model.GamePlayer.player_id==id).first()
+        gp = session.query(model.GamePlayer).with_parent(game).filter(model.GamePlayer.player_id==player_id).first()
 
         if gp is None:
             return "You are not in this game!"
@@ -261,7 +261,7 @@ def join(session: Session, player_id : int, player_name : str, game_id : Optiona
             if game.game_state != model.GameState.LOBBY:
                 return "Game is not a lobby!"
 
-            gp = session.query(model.GamePlayer).with_parent(game).filter(model.GamePlayer.player_id==id).first()
+            gp = session.query(model.GamePlayer).with_parent(game).filter(model.GamePlayer.player_id==player_id).first()
             if gp is not None:
                 return "You are already in this lobby!"
 
@@ -270,11 +270,11 @@ def join(session: Session, player_id : int, player_name : str, game_id : Optiona
                 return f"Player limit reached. {number_of_players} have joined the game"
             
             
-            player = model.Player(player_id=id, name=player_name)
+            player = model.Player(player_id=player_id, name=player_name)
             session.merge(player)
             game_player = model.GamePlayer(
                 game_id=game.game_id,
-                player_id=id,
+                player_id=player_id,
             )
             session.add(game_player)
             session.commit()
