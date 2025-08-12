@@ -69,7 +69,7 @@ def finish(session : Session, is_admin : bool, game_id: Optional[int], rankings:
 
         players = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.rank.asc()).all()
         lines = [f"{p.rank}. {p.player.name} played {p.faction} and finished with {p.points} point(s)" for p in players]
-        return f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"".join(lines)}\n\n{random.choice(_game_end_quotes)}\n\nWrong result? Rerun the !finish command."
+        return f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{random.choice(_game_end_quotes)}\n\nWrong result? Rerun the !finish command."
     except Exception as e:
         logging.error(f"Can't finish game: {e}")
         return "Can't finish game. Something went wrong."
