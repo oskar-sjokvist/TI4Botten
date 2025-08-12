@@ -50,10 +50,10 @@ class Game(commands.Cog):
             await ctx.send(gamelogic.draft(session, ctx.author.id, game_id, faction))
 
     @commands.command()
-    async def start(self, ctx: commands.Context, factions : factions.Factions, game_id: Optional[int] = None) -> None:
+    async def start(self, ctx: commands.Context, game_id: Optional[int] = None) -> None:
         """Start the lobby."""
         with Session(bind=self.conn) as session:
-            await ctx.send(gamelogic.start(session, factions, game_id))
+            await ctx.send(gamelogic.start(session, self.factions, game_id))
 
     @commands.command()
     async def games(self, ctx: commands.Context) -> None:
