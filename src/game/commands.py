@@ -62,6 +62,27 @@ class Game(commands.Cog):
             await ctx.send(gamelogic.games(session))
 
     @commands.command()
+    async def game(self, ctx: commands.Context, game_id: Optional[int] = None) -> None:
+        """Fetches a game and all players in the game."""
+        session = Session(bind=self.conn)
+        try:
+            if game_id is None:
+                game = session.query(model.Game).order_by(model.Game.game_id.desc()).first()
+            else:
+                game = session.query(model.Game).filter_by(game_id=game_id).first()
+            if not game:
+                await ctx.send(f"No game found.")
+                return
+
+            players = game.game_players
+            player_info = "\n".join([f"Player {gp.player.name if gp.player.name else "Unknown"}: {gp.faction} - Points: {gp.points}, Rank: {gp.rank}" for gp in players])
+
+            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state.value}\nPlayers:\n{player_info}")
+        except Exception as e:
+            logging.error(f"Error fetching game data: {e}")
+            await ctx.send("An error occurred while fetching the game data.")
+
+    @commands.command()
     async def lobby(self, ctx: commands.Context, *, name: Optional[str]) -> None:
         """Create a lobby."""
         with Session(bind=self.conn) as session:
