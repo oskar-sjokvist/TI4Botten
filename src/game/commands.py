@@ -87,7 +87,7 @@ class Game(commands.Cog):
     async def lobby(self, ctx: commands.Context, *, name: Optional[str]) -> None:
         """Create a lobby."""
         with Session(self.engine) as session:
-            await ctx.send(gamelogic.lobby(session, name))
+            await ctx.send(gamelogic.lobby(session, ctx.author.id, ctx.author.name, name))
 
     @commands.command()
     async def leave(self, ctx: commands.Context, game_id: Optional[int]) -> None:

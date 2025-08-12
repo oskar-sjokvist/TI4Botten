@@ -232,7 +232,7 @@ def start(session: Session, factions : fs.Factions, game_id: Optional[int] = Non
         return "An error occurred while fetching the game data."
 
 
-def lobby(session: Session, name: Optional[str]) -> str:
+def lobby(session: Session, player_id: int, player_name: str, name: Optional[str]) -> str:
         if not name:
             return "Please specify a name for the lobby"
         try:
@@ -241,6 +241,13 @@ def lobby(session: Session, name: Optional[str]) -> str:
             session.flush()
             settings = model.GameSettings(game_id=game.game_id)
             session.add(settings)
+            player = model.Player(player_id=player_id, name=player_name)
+            session.merge(player)
+            game_player = model.GamePlayer(
+                game_id=game.game_id,
+                player_id=player_id,
+            )
+            session.add(game_player)
             session.commit()
 
             return f"Game lobby '{game.name}' created with ID {game.game_id}. Type !join {game.game_id} to join the game. And !start {game.game_id} to start the game"
@@ -275,6 +282,10 @@ def leave(session: Session, player_id : int, game_id: Optional[int]) -> str:
 
         name = gp.player.name
         session.delete(gp)
+        if len(game.game_players) == 0:
+            session.delete(game)
+            session.commit()
+            return f"Removing lobby {name} because all players left the lobby."
         session.commit()
         return f"{name} has left lobby #{game.game_id}. Current number of players {len(game.game_players)}. Type !join {game.game_id} to join the lobby again."
 
