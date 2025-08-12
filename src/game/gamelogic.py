@@ -50,20 +50,20 @@ def finish(session : Session, is_admin : bool, game_id: Optional[int], all_point
         lines = [p.player.name for p in players]
 
         if not all_points:
-            return f"Players\n{"\n".join(lines)}\n\nSpecify the ranking and points based on the player order. E.g. !finish game_id 1 3, 2 5"
+            return f"Players\n{"\n".join(lines)}\n\nSpecify the points based on the player order. E.g. !finish game_id 2 10"
 
         try:
             for player, points in zip(players, _parse_ints(all_points)):
                 player.points = points
         except: 
-            return f"Players\n{"\n".join(lines)}\n\nSpecify the ranking and points based on the player order. E.g. !finish game_id 1 3, 2 5"
+            return f"Players\n{"\n".join(lines)}\n\nSpecify the points based on the player order. E.g. !finish game_id 2 10"
 
         session.add_all(players)
         game.game_state = model.GameState.FINISHED
         session.merge(game)
         session.commit()
 
-        players = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.points.dsc()).all()
+        players = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.points.desc()).all()
         lines = [f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)" for i, p in enumerate(players)]
         return f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{random.choice(_game_end_quotes)}\n\nWrong result? Rerun the !finish command."
     except Exception as e:
@@ -290,7 +290,7 @@ def games(session : Session) -> str:
             return f"No games found."
         lines = []
         for game in games:
-            winner = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.points.dsc()).first()
+            winner = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.points.desc()).first()
             lines.append(f"#{game.game_id}: {game.name}. Winner {f"{winner.player.name} ({winner.faction})" if winner else "Unknown"}")
         return "\n".join(lines)
     except Exception as e:
