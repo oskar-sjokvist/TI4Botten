@@ -10,23 +10,24 @@ from . import model
 from itertools import batched
 from sqlalchemy.orm import Session
 from typing import Optional
+from string import Template
 
 _game_start_quotes = [
-    "In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.",
-    "The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.",
-    "Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.",
-    "Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.",
+    "'In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.'\n-$player",
+    "'The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.'\n-$player",
+    "'Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.'\n-$player",
+    "'Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.'\n-$player",
 ]
 
 _game_end_quotes = [
-    "The galaxy falls silent. The throne is claimed, and a new era begins.",
-    "From the ruins of war, a ruler emerges. Their will shall shape the stars.",
-    "The council is dissolved. All voices bow to one — the new master of Mecatol Rex.",
-    "War fleets drift like shadows, but the victor’s banner flies above them all.",
-    "The game is over. The galaxy belongs to those bold enough to take it.",
-    "Power is not given; it is seized. Today, history remembers the conqueror.",
-    "In the wake of conquest, the galaxy is remade in the victor’s image.",
-    "The war for Mecatol Rex has ended — but the scars will never fade."
+    "The galaxy falls silent. The throne is claimed by $winner, and a new era begins.",
+    "From the ruins of war, a ruler emerges. $winner's will shall shape the stars.",
+    "The council is dissolved. All voices bow to $winner — the new master of Mecatol Rex.",
+    "War fleets drift like shadows, but $winner's banner flies above them all.",
+    "The game is over. The galaxy belongs to $winner, bold enough to take it.",
+    "Power is not given; it is seized. Today, history remembers the $winner.",
+    "In the wake of conquest, the galaxy is remade in the $winner's image.",
+    "The war for Mecatol Rex has ended — but the scars of $loser will never fade."
 ]
 
 
@@ -65,11 +66,17 @@ def finish(session : Session, is_admin : bool, game_id: Optional[int], all_point
 
         players = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.points.desc()).all()
         lines = [f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)" for i, p in enumerate(players)]
-        return f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{random.choice(_game_end_quotes)}\n\nWrong result? Rerun the !finish command."
+        return f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{_game_end_quote(players[0].player.name, players[-1].player.name)}\n\nWrong result? Rerun the !finish command."
     except Exception as e:
         logging.error(f"Can't finish game: {e}")
         return "Can't finish game. Something went wrong."
 
+
+def _game_start_quote(player_name: str) -> str:
+    return Template(random.choice(_game_start_quotes)).safe_substitute(player=player_name)
+
+def _game_end_quote(winner: str, loser: str) -> str:
+    return Template(random.choice(_game_start_quotes)).safe_substitute(winner=winner, loser=loser)
 
 def draft(session: Session, player_id: int,  game_id: Optional[int] = None, faction: Optional[str] = None) -> str:
     try:
@@ -115,7 +122,8 @@ def draft(session: Session, player_id: int,  game_id: Optional[int] = None, fact
             
             game.game_state = model.GameState.STARTED
             session.merge(game)
-            return f"Game '{game.name}' #{game.game_id} has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{random.choice(_game_start_quotes)}"
+            session.commit()
+            return f"Game '{game.name}' #{game.game_id} has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{_game_start_quote(player.player.name)}"
         session.commit()
 
         current_drafter = controller.current_drafter(session, game)
@@ -179,7 +187,7 @@ def start(session: Session, factions : fs.Factions, game_id: Optional[int] = Non
         session.merge(game)
         session.commit()
 
-        lines = [f"Game ID: {game.game_id}\nState: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"]
+        lines = [f"Game ID: {game.game_id}\nState: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"]
 
         current_drafter = controller.current_drafter(session, game)
 
