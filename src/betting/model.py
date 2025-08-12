@@ -10,7 +10,7 @@ class GameBettor(models.Base):
     game_id: Mapped[int]  = mapped_column(ForeignKey("game.game_id", ondelete="CASCADE"), primary_key=True)
 
     # One bet per game per bettor. Could relax this to allow hedging.
-    bettor_id: Mapped[int] = mapped_column(ForeignKey("bettor.player_id"), primary_key=True)
+    bettor_id: Mapped[int] = mapped_column(ForeignKey("bettor.bettor_id"), primary_key=True)
 
     winner: Mapped[Optional[int]] = mapped_column(ForeignKey("player.player_id"))
     bet: Mapped[int] = mapped_column(Integer, default=0)
