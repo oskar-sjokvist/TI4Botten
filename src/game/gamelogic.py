@@ -6,6 +6,7 @@ import re
 from . import factions as fs
 from . import controller
 from . import model
+from ..dm import model as dm_model
 
 from discord.ext import commands
 from datetime import datetime
@@ -88,7 +89,15 @@ def finish(session : Session, is_admin : bool, game_id: Optional[int], all_point
 
         players = controller.players_ordered_by_points(session, game)
         lines = [f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)" for i, p in enumerate(players)]
-        return f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{_game_end_quote(players[0].player.name, players[-1].player.name)}\n\nWrong result? Rerun the !finish command."
+        end_text = f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{_game_end_quote(players[0].player.name, players[-1].player.name)}\n\nWrong result? Rerun the !finish command."
+
+        winner = players[0]
+        win_message = session.query(dm_model.MessageBox).filter_by(game_id=game_id, player_id=winner.player_id).first()
+        if win_message:
+            extra_brag = f"'{win_message.win_message}' - {winner.player.name}\n\n"
+            end_text = extra_brag + end_text
+        return end_text
+
     except Exception as e:
         logging.error(f"Can't finish game: {e}")
         return "Can't finish game. Something went wrong."

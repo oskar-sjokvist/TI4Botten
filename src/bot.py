@@ -4,6 +4,7 @@ import asyncio
 from .game.commands import Game
 from .misc.commands import Misc
 from .betting.commands import Betting
+from .dm.commands import DirectMessage
 
 from discord.ext import commands
 from sqlalchemy import create_engine
@@ -19,7 +20,7 @@ class Bot(commands.Bot):
         models.Base.metadata.create_all(engine)
 
         # Pass engine to cogs that need it.
-        self.init_cogs = [Game(engine), Misc(), Betting(engine)]
+        self.init_cogs = [Game(engine), Misc(), Betting(engine), DirectMessage(engine)]
         
         super().__init__(command_prefix="!", intents=intents)
 
