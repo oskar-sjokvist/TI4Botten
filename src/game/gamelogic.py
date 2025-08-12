@@ -167,7 +167,7 @@ def start(session: Session, factions : fs.Factions, game_id: Optional[int] = Non
         number_of_players = len(players)
 
         factions_per_player = 4
-        fs = factions.get_random_factions(number_of_players, ','.join(sources))
+        fs = factions.get_random_factions(number_of_players * factions_per_player, ','.join(sources))
         fs = [faction.name for faction in fs]
 
         turn_order = random.sample(range(number_of_players), number_of_players)
