@@ -76,7 +76,7 @@ def _game_start_quote(player_name: str) -> str:
     return Template(random.choice(_game_start_quotes)).safe_substitute(player=player_name)
 
 def _game_end_quote(winner: str, loser: str) -> str:
-    return Template(random.choice(_game_start_quotes)).safe_substitute(winner=winner, loser=loser)
+    return Template(random.choice(_game_end_quotes)).safe_substitute(winner=winner, loser=loser)
 
 def draft(session: Session, player_id: int,  game_id: Optional[int] = None, faction: Optional[str] = None) -> str:
     try:
