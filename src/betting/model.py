@@ -11,7 +11,7 @@ class GameBettor(models.Base):
     player_id: Mapped[int] = mapped_column(ForeignKey("player.player_id"), primary_key=True)
 
     winner: Mapped[Optional[int]] = mapped_column(ForeignKey("player.player_id"))
-    amount: Mapped[int] = mapped_column(Integer, default=0)
+    bet: Mapped[int] = mapped_column(Integer, default=0)
 
 class Bettor(models.Base):
     __tablename__ = "bettor"
