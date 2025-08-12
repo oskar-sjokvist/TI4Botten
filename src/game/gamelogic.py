@@ -184,7 +184,7 @@ def start(session: Session, factions : fs.Factions, game_id: Optional[int] = Non
         players_info_lines = []
         for i in range(number_of_players):
             name = player_from_turn[i]
-            players_info_lines.append(f"{name}\n")
+            players_info_lines.append(f"{name}")
 
         game.game_state = model.GameState.DRAFT
         session.merge(game)
