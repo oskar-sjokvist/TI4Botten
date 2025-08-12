@@ -49,7 +49,7 @@ class Game(models.Base):
 
     turn: Mapped[int] = mapped_column(Integer, default=0)
 
-    game_players: Mapped[List["GamePlayer"]] = relationship("GamePlayer", back_populates="game")
+    game_players: Mapped[List["GamePlayer"]] = relationship("GamePlayer", back_populates="game", cascade="all")
     game_settings: Mapped["GameSettings"] = relationship("GameSettings", back_populates="game", cascade="all")
 
     @classmethod
