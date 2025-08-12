@@ -2,12 +2,13 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.game import gamelogic, model
+from src.models import Base
 
 @pytest.fixture(scope="function")
 def session():
     # Use in-memory SQLite for tests
     engine = create_engine("sqlite:///:memory:")
-    model.Base.metadata.create_all(engine)
+    Base.metadata.create_all(engine)
     SessionLocal = sessionmaker(bind=engine)
     session = SessionLocal()
     yield session
