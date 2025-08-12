@@ -7,6 +7,7 @@ from . import factions as fs
 from . import controller
 from . import model
 
+from discord.ext import commands
 from datetime import datetime
 from itertools import batched
 from sqlalchemy import inspect, Enum, Boolean, String, Integer
@@ -31,6 +32,18 @@ _game_end_quotes = [
     "In the wake of conquest, the galaxy is remade in $winner's image.",
     "The war for Mecatol Rex has ended — but the scars of $loser will never fade."
 ]
+
+_introduction = '''These are some resources that can be useful for your game
+- https://www.youtube.com/watch?v=_u2xEap5hBM (Twilight Imperium 4th edition in 32 minutes)
+- https://www.youtube.com/watch?v=gdpW4FBCUuo (Common Twilight Imperium Rules Mistakes 1)
+- https://www.youtube.com/watch?v=Jk5PA4EUGJw (Common Twilight Imperium Rules Mistakes 2)
+
+Learn to play compressed
+- https://images-cdn.fantasyflightgames.com/filer_public/f3/c6/f3c66512-8e19-4f30-a0d4-d7d75701fd37/ti-k0289_learn_to_playcompressed.pdf
+
+Living rules reference (Prophecy of Kings)
+- https://images-cdn.fantasyflightgames.com/filer_public/51/55/51552c7f-c05c-445b-84bf-4b073456d008/ti10_pok_living_rules_reference_20_web.pdf
+'''
 
 
 def _parse_ints(s):
@@ -87,7 +100,7 @@ def _game_start_quote(player_name: str) -> str:
 def _game_end_quote(winner: str, loser: str) -> str:
     return Template(random.choice(_game_end_quotes)).safe_substitute(winner=winner, loser=loser)
 
-def draft(session: Session, player_id: int,  game_id: Optional[int] = None, faction: Optional[str] = None) -> str:
+async def draft(ctx: commands.Context, session: Session, player_id: int,  game_id: Optional[int] = None, faction: Optional[str] = None) -> str:
     try:
         if game_id is None:
             game = model.Game.latest_draft(session)
@@ -123,7 +136,7 @@ def draft(session: Session, player_id: int,  game_id: Optional[int] = None, fact
         session.merge(player)
         lines = [f"{player.player.name} has selected {player.faction}."]
         if game.turn == len(game.game_players):
-            return _start_game(session, game, player.player.name)
+            return await _start_game(ctx, session, game, player.player.name)
         session.commit()
 
         current_drafter = controller.current_drafter(session, game)
@@ -135,7 +148,7 @@ def draft(session: Session, player_id: int,  game_id: Optional[int] = None, fact
         logging.error(f"Error drafting: {e}")
         return "Something went wrong"
 
-def _start_game(session: Session, game: model.Game, name: str) -> str:
+async def _start_game(ctx: commands.Context, session: Session, game: model.Game, name: str) -> str:
     players_info_lines = []
     for player in game.game_players:
         players_info_lines.append(f"{player.player.name} playing {player.faction}")
@@ -143,7 +156,14 @@ def _start_game(session: Session, game: model.Game, name: str) -> str:
     game.game_state = model.GameState.STARTED
     session.merge(game)
     session.commit()
-    return f"Game '{game.name}' #{game.game_id} has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{_game_start_quote(name)}"
+    launch = f"Game '{game.name}' #{game.game_id} has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{_game_start_quote(name)}"
+    if ctx.guild:
+        channel = await ctx.guild.create_text_channel(game.name)
+        # Send game start message in new channel too
+        await channel.send(launch)
+        await channel.send(_introduction)
+
+    return launch
 
 def start(session: Session, factions : fs.Factions, game_id: Optional[int] = None) -> str:
     try:

@@ -48,7 +48,7 @@ class Game(commands.Cog):
     async def draft(self, ctx: commands.Context, game_id: Optional[int] = None, *, faction: Optional[str] = None) -> None:
         """Draft your faction."""
         with Session(self.engine) as session:
-            await ctx.send(gamelogic.draft(session, ctx.author.id, game_id, faction))
+            await ctx.send(await gamelogic.draft(ctx, session, ctx.author.id, game_id, faction))
 
     @commands.command()
     async def start(self, ctx: commands.Context, game_id: Optional[int] = None) -> None:
