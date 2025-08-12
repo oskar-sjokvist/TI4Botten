@@ -89,7 +89,7 @@ class Betting(commands.Cog):
                     if not predicted_winner:
                         await ctx.send("Something went wrong")
                         return
-                    lines.append(f"{player.name} bets {game_bettor.bet} Jake coins on {predicted_winner.name} to win the game.")
+                    lines.append(f"{bettor.name} bets {game_bettor.bet} Jake coins on {predicted_winner.name} to win the game.")
                 if lines:
                     await ctx.send("\n".join(lines))
                     return
@@ -98,7 +98,7 @@ class Betting(commands.Cog):
                 await ctx.send("You can only place bets on games in draft state")
                 return
 
-            existing_bet = session.get(betting_model.GameBettor, (game_id, bettor.player_id))
+            existing_bet = session.get(betting_model.GameBettor, (game_id, bettor.bettor_id))
             if existing_bet:
                 await ctx.send(f"You have a bet placed on {existing_bet.winner} for {existing_bet.bet} Jake coins to win game {game.name} #{game.game_id}")
                 return
@@ -125,7 +125,7 @@ class Betting(commands.Cog):
                 if winner == player.player.name:
                     gm = betting_model.GameBettor(
                         game_id=game.game_id,
-                        player_id=bettor.player_id,
+                        bettor_id=bettor.bettor_id,
                         winner=player.player_id,
                         bet=bet_amount,
                     )
