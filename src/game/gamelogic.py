@@ -25,8 +25,8 @@ _game_end_quotes = [
     "The council is dissolved. All voices bow to $winner — the new master of Mecatol Rex.",
     "War fleets drift like shadows, but $winner's banner flies above them all.",
     "The game is over. The galaxy belongs to $winner, bold enough to take it.",
-    "Power is not given; it is seized. Today, history remembers the $winner.",
-    "In the wake of conquest, the galaxy is remade in the $winner's image.",
+    "Power is not given; it is seized. Today, history remembers $winner.",
+    "In the wake of conquest, the galaxy is remade in $winner's image.",
     "The war for Mecatol Rex has ended — but the scars of $loser will never fade."
 ]
 
