@@ -190,7 +190,7 @@ def start(session: Session, factions : fs.Factions, game_id: Optional[int] = Non
 
         game.game_state = model.GameState.DRAFT
         session.merge(game)
-        session.commit
+        session.commit()
 
         lines = [f"Game ID: {game.game_id}\nState: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"]
 
