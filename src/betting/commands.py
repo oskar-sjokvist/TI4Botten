@@ -132,6 +132,10 @@ class Betting(commands.Cog):
                 await ctx.send("You are trying to bet more than you have.")
                 return
 
+            if bet_amount <= 0:
+                await ctx.send("Nice try")
+                return
+
             stmt = select(game_model.GamePlayer).filter_by(game_id=game.game_id)
             players = session.execute(stmt).scalars().all()
             for player in players:
