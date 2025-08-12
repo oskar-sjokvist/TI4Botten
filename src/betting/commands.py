@@ -120,9 +120,9 @@ class Betting(commands.Cog):
                     gm = betting_model.GameBettor(
                         game_id=game.game_id,
                         player_id=bettor.player_id,
+                        winner=player.player_id,
+                        bet=bet_amount,
                     )
-                    gm.winner = player.player_id
-                    gm.bet = bet_amount
                     session.add(gm)
                     bettor.balance -= bet_amount
                     session.merge(bettor)
