@@ -123,14 +123,7 @@ def draft(session: Session, player_id: int,  game_id: Optional[int] = None, fact
         session.merge(player)
         lines = [f"{player.player.name} has selected {player.faction}."]
         if game.turn == len(game.game_players):
-            players_info_lines = []
-            for player in game.game_players:
-                players_info_lines.append(f"{player.player.name} playing {player.faction}")
-            
-            game.game_state = model.GameState.STARTED
-            session.merge(game)
-            session.commit()
-            return f"Game '{game.name}' #{game.game_id} has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{_game_start_quote(player.player.name)}"
+            return _start_game(session, game, player.player.name)
         session.commit()
 
         current_drafter = controller.current_drafter(session, game)
@@ -141,6 +134,16 @@ def draft(session: Session, player_id: int,  game_id: Optional[int] = None, fact
     except Exception as e:
         logging.error(f"Error drafting: {e}")
         return "Something went wrong"
+
+def _start_game(session: Session, game: model.Game, name: str) -> str:
+    players_info_lines = []
+    for player in game.game_players:
+        players_info_lines.append(f"{player.player.name} playing {player.faction}")
+    
+    game.game_state = model.GameState.STARTED
+    session.merge(game)
+    session.commit()
+    return f"Game '{game.name}' #{game.game_id} has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{_game_start_quote(name)}"
 
 def start(session: Session, factions : fs.Factions, game_id: Optional[int] = None) -> str:
     try:
