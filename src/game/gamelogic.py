@@ -220,15 +220,25 @@ def lobby(session: Session, name: Optional[str]) -> str:
             logging.error(f"Error creating game: {e}")
             return "An error occurred while creating the game."
 
+def _find_lobby(session: Session, game_id: Optional[int]) -> model.Game|str:
+    if game_id is None:
+        game = model.Game.latest_lobby(session)
+    else:
+        game = session.query(model.Game).get(game_id)
+
+    if game is None:
+        return "No lobby found."
+
+    if game.game_state != model.GameState.LOBBY:
+        return "Game is not a lobby!"
+
+    return game
 
 def leave(session: Session, player_id : int, game_id: Optional[int]) -> str:
     try:
-        if game_id is None:
-            game = model.Game.latest_lobby(session)
-        else:
-            game: Optional[model.Game] = session.query(model.Game).get(game_id)
-        if game is None:
-            return f"No lobby with game id {game_id}"
+        game = _find_lobby(session, game_id)
+        if isinstance(game, str):
+            return game
 
         gp = session.query(model.GamePlayer).with_parent(game).filter(model.GamePlayer.player_id==player_id).first()
 
@@ -248,16 +258,9 @@ def leave(session: Session, player_id : int, game_id: Optional[int]) -> str:
 
 def join(session: Session, player_id : int, player_name : str, game_id : Optional[int]) -> str:
         try:
-            if game_id is None:
-                game = model.Game.latest_lobby(session)
-            else:
-                game = session.query(model.Game).get(game_id)
-
-            if game is None:
-                return f"No lobby found."
-
-            if game.game_state != model.GameState.LOBBY:
-                return "Game is not a lobby!"
+            game = _find_lobby(session, game_id)
+            if isinstance(game, str):
+                return game
 
             gp = session.query(model.GamePlayer).with_parent(game).filter(model.GamePlayer.player_id==player_id).first()
             if gp is not None:
