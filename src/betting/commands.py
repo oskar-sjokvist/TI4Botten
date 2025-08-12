@@ -22,6 +22,7 @@ class Betting(commands.Cog):
 
 
     def _balance(self, session: Session,  bettor: betting_model.Bettor) -> int:
+        session.flush()
         stmt = select(betting_model.GameBettor).filter_by(bettor_id=bettor.bettor_id)
         debts = session.execute(stmt).scalars().all()
         total_debt = sum([debt.bet for debt in debts])
@@ -37,7 +38,7 @@ class Betting(commands.Cog):
             if not bettor:
                 bettor = betting_model.Bettor(bettor_id=ctx.author.id, name=ctx.author.name)
                 session.add(bettor)
-            session.commit()
+                session.commit()
             await ctx.send(f"{bettor.name} has {self._balance(session, bettor)} Jake coins.")
 
     @commands.command()
@@ -108,8 +109,13 @@ class Betting(commands.Cog):
                 return
 
             existing_bet = session.get(betting_model.GameBettor, (game_id, bettor.bettor_id))
+
             if existing_bet:
-                await ctx.send(f"You have a bet placed on {existing_bet.winner} for {existing_bet.bet} Jake coins to win game {game.name} #{game.game_id}")
+                predicted_winner = session.get(game_model.Player, existing_bet.winner)
+                if not predicted_winner:
+                    await ctx.send("Something went wrong.")
+                    return
+                await ctx.send(f"You have a bet placed on {predicted_winner.name} for {existing_bet.bet} Jake coins to win game {game.name} #{game.game_id}")
                 return
 
             if not bet_amount:

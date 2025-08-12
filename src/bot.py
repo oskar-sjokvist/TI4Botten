@@ -9,7 +9,14 @@ from discord.ext import commands
 from sqlalchemy import create_engine
 from . import models
 
+from sqlalchemy.engine import Engine
+from sqlalchemy import event
 
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 class Bot(commands.Bot):
     def __init__(self, intents: discord.Intents) -> None:
