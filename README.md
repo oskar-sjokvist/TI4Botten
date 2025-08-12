@@ -25,11 +25,24 @@ Run the bot:
 python app.py
 ```
 
+## Database
+This project uses SQLAlchemy ORM with SQLite (`app.db`). Tables are auto-created on first run. See `src/game/model.py` for models.
+
+## Testing
+Run all tests:
+```sh
+pytest
+```
+Test coverage includes bot commands and faction logic. See `tests/` and `src/game/tests/`.
+
 ## Project Structure
 - `app.py` — Main entrypoint for the bot
 - `src/bot.py` — Bot and command definitions
-- `src/factions.py` — Faction logic and data loading
-- `tests/` — Test suite
+- `src/game/commands.py` — Game-related Discord commands (uses ORM)
+- `src/game/factions.py` — Faction logic and data loading
+- `src/game/model.py` — SQLAlchemy ORM models
+- `src/game/tests/` — Faction logic tests
+- `tests/` — Bot command tests
 
 ## Contributing
 Pull requests and issues are welcome!
