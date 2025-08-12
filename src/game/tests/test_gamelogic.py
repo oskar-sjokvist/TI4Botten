@@ -47,11 +47,13 @@ def test_join_already_in_lobby(session, monkeypatch):
     session.add(game)
     session.commit()
     monkeypatch.setattr(gamelogic, "_find_lobby", lambda s, gid: game)
+    player = model.Player(player_id=1, name="Alice")
+    session.add(player)
     # Insert a dummy GamePlayer to simulate already in lobby
     gp = model.GamePlayer(game_id=1, player_id=1)
     session.add(gp)
     session.commit()
-    result = gamelogic.join(session, 1, "Player", 1)
+    result = gamelogic.join(session, 1, "Alice", 1)
     assert "You are already in this lobby!" in result
 
 
