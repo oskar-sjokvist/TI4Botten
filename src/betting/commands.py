@@ -27,14 +27,10 @@ class Betting(commands.Cog):
         with Session(self.engine) as session:
             bettor = session.get(betting_model.Bettor, ctx.author.id)
             if not bettor:
-                player = session.get(game_model.Player, ctx.author.id)
-                if not player:
-                    player = game_model.Player(player_id=ctx.author.id)
-                    session.add(player)
-                bettor = betting_model.Bettor(player_id=player.player_id)
+                bettor = betting_model.Bettor(bettor_id=ctx.author.id, name=ctx.author.name)
                 session.add(bettor)
             session.commit()
-            await ctx.send(f"{ctx.author.name} has {bettor.balance} Jake coins.")
+            await ctx.send(f"{bettor.name} has {bettor.balance} Jake coins.")
 
     @commands.command()
     async def payout(self, ctx: commands.Context, game_id: int) -> None:
@@ -52,21 +48,16 @@ class Betting(commands.Cog):
             winner = game_controller.winner(session, game)
             lines = []
             for game_bettor in bettors:
-                player = session.get(game_model.Player, game_bettor.player_id)
-                if player is None:
-                    await ctx.send("Something went wrong")
-                    return
-
                 if game_bettor.winner == winner.player_id:
-                    bettor = session.get(betting_model.Bettor, game_bettor.player_id)
+                    bettor = session.get(betting_model.Bettor, game_bettor.bettor_id)
                     if bettor is None:
                         await ctx.send("Something went wrong")
                         return
                     bettor.balance += game_bettor.bet * 2
-                    lines.append(f"{player.name} won {game_bettor.bet} Jake coins!")
+                    lines.append(f"{bettor.name} won {game_bettor.bet} Jake coins!")
                     session.merge(bettor)
                 else:
-                    lines.append(f"{player.name} lost {game_bettor.bet} Jake coins!")
+                    lines.append(f"{bettor.name} lost {game_bettor.bet} Jake coins!")
                     
                 session.delete(game_bettor)
 
@@ -80,11 +71,7 @@ class Betting(commands.Cog):
         with Session(self.engine) as session:
             bettor = session.get(betting_model.Bettor, ctx.author.id)
             if not bettor:
-                player = session.get(game_model.Player, ctx.author.id)
-                if not player:
-                    player = game_model.Player(player_id=ctx.author.id)
-                    session.add(player)
-                bettor = betting_model.Bettor(player_id=player.player_id)
+                bettor = betting_model.Bettor(bettor_id=ctx.author.id, name=ctx.author.name)
                 session.add(bettor)
             session.commit()
 
@@ -98,10 +85,6 @@ class Betting(commands.Cog):
                 bettors = session.execute(stmt).scalars().all()
                 lines = []
                 for game_bettor in bettors:
-                    player = session.get(game_model.Player, game_bettor.player_id)
-                    if not player:
-                        await ctx.send("Something went wrong")
-                        return
                     predicted_winner = session.get(game_model.Player, game_bettor.winner)
                     if not predicted_winner:
                         await ctx.send("Something went wrong")
