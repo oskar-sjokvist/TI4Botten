@@ -4,7 +4,7 @@ from . import model as betting_model
 from ..game import model as game_model
 from ..game import controller as game_controller
 
-from sqlalchemy.orm import Session, with_parent
+from sqlalchemy.orm import Session
 from discord.ext import commands
 from sqlalchemy import Engine, select
 
@@ -34,7 +34,7 @@ class Betting(commands.Cog):
                 bettor = betting_model.Bettor(player_id=player.player_id)
                 session.add(bettor)
             session.commit()
-            await ctx.send(f"{ctx.author.name} has {bettor.balance} Jake coins")
+            await ctx.send(f"{ctx.author.name} has {bettor.balance} Jake coins.")
 
     @commands.command()
     async def payout(self, ctx: commands.Context, game_id: int) -> None:
@@ -44,7 +44,8 @@ class Betting(commands.Cog):
                 await ctx.send("Game not found.")
                 return
             if game.game_state != game_model.GameState.FINISHED:
-                await ctx.send("Game is not yet finished! Can't pay anyone out")
+                await ctx.send("Game is not yet finished! Can't pay anyone out.")
+                return
 
             stmt = select(betting_model.GameBettor).filter_by(game_id=game.game_id)
             bettors = session.execute(stmt).scalars().all()
@@ -91,6 +92,24 @@ class Betting(commands.Cog):
             if not game:
                 await ctx.send("Game not found.")
                 return
+
+            if bet_amount is None and winner is None:
+                stmt = select(betting_model.GameBettor).filter_by(game_id=game.game_id)
+                bettors = session.execute(stmt).scalars().all()
+                lines = []
+                for game_bettor in bettors:
+                    player = session.get(game_model.Player, game_bettor.player_id)
+                    if not player:
+                        await ctx.send("Something went wrong")
+                        return
+                    predicted_winner = session.get(game_model.Player, game_bettor.winner)
+                    if not predicted_winner:
+                        await ctx.send("Something went wrong")
+                        return
+                    lines.append(f"{player.name} bets {game_bettor.bet} Jake coins on {predicted_winner.name} to win the game.")
+                if lines:
+                    await ctx.send("\n".join(lines))
+                    return
 
             if game.game_state != game_model.GameState.DRAFT:
                 await ctx.send("You can only place bets on games in draft state")
