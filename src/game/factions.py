@@ -30,7 +30,7 @@ class Factions:
             words = source.split()
             if not words:
                 continue
-            
+
             # Initials in mixed, lower, and upper case
             initials = "".join(word[0] for word in words)
             valid_shortforms[source].update({initials, initials.lower(), initials.upper()})

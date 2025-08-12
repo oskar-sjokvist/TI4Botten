@@ -14,4 +14,3 @@ class Bot(commands.Bot):
     async def setup_hook(self) -> None:
         cogs = [Game(), Misc()]
         await asyncio.gather(*(self.add_cog(cog) for cog in cogs))
-        
