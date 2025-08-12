@@ -6,12 +6,12 @@ from .. import models
 
 
 class GameBettor(models.Base):
-    __tablename__ = "game_player"
+    __tablename__ = "game_bettor"
     game_id: Mapped[int]  = mapped_column(ForeignKey("game.game_id"), primary_key=True)
     player_id: Mapped[int] = mapped_column(ForeignKey("player.player_id"), primary_key=True)
 
     winner: Mapped[Optional[int]] = mapped_column(ForeignKey("player.player_id"))
-    bet: Mapped[int] = mapped_column(Integer, default=0)
+    amount: Mapped[int] = mapped_column(Integer, default=0)
 
 class Bettor(models.Base):
     __tablename__ = "bettor"

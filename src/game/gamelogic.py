@@ -1,5 +1,4 @@
 import Levenshtein
-import datetime
 import logging
 import random
 import re
@@ -8,6 +7,7 @@ from . import factions as fs
 from . import controller
 from . import model
 
+from datetime import datetime
 from itertools import batched
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -66,7 +66,7 @@ def finish(session : Session, is_admin : bool, game_id: Optional[int], all_point
         session.merge(game)
         session.commit()
 
-        players = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.points.desc()).all()
+        players = controller.players_ordered_by_points(session, game)
         lines = [f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)" for i, p in enumerate(players)]
         return f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{_game_end_quote(players[0].player.name, players[-1].player.name)}\n\nWrong result? Rerun the !finish command."
     except Exception as e:
@@ -290,7 +290,7 @@ def games(session : Session) -> str:
             return f"No games found."
         lines = []
         for game in games:
-            winner = session.query(model.GamePlayer).with_parent(game).order_by(model.GamePlayer.points.desc()).first()
+            winner = controller.winner(session, game)
             lines.append(f"#{game.game_id}: {game.name}. Winner {f"{winner.player.name} ({winner.faction})" if winner else "Unknown"}")
         return "\n".join(lines)
     except Exception as e:
