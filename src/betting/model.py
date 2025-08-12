@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, Integer
+from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from typing import Optional
 
@@ -19,6 +19,8 @@ class GameBettor(models.Base):
 class Bettor(models.Base):
     __tablename__ = "bettor"
     bettor_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    name: Mapped[int] = mapped_column(String, primary_key=True)
 
     balance: Mapped[int] = mapped_column(Integer, default=1000)
 
