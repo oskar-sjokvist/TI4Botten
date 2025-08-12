@@ -91,9 +91,7 @@ def draft(session: Session, player_id: int,  game_id: Optional[int] = None, fact
         if not faction:
            return f"Your available factions are:\n{"\n".join(player.factions)}"
         
-        current_drafter = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
-        if not current_drafter:
-            raise LookupError
+        current_drafter = controller.current_drafter(session, game)
 
         if game.turn != player.turn_order:
             return f"It is not your turn to draft! It is {current_drafter.player.name}'s turn"
@@ -109,7 +107,6 @@ def draft(session: Session, player_id: int,  game_id: Optional[int] = None, fact
 
         session.merge(game)
         session.merge(player)
-        session.commit()
         lines = [f"{player.player.name} has selected {player.faction}."]
         if game.turn == len(game.game_players):
             players_info_lines = []
@@ -118,12 +115,10 @@ def draft(session: Session, player_id: int,  game_id: Optional[int] = None, fact
             
             game.game_state = model.GameState.STARTED
             session.merge(game)
-            session.commit()
             return f"Game '{game.name}' #{game.game_id} has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{random.choice(_game_start_quotes)}"
+        session.commit()
 
-        current_drafter : Optional[model.GamePlayer] = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
-        if current_drafter is None:
-            raise LookupError("No current drafter")
+        current_drafter = controller.current_drafter(session, game)
 
         lines.append(f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
         return "\n".join(lines)
@@ -186,9 +181,7 @@ def start(session: Session, factions : fs.Factions, game_id: Optional[int] = Non
 
         lines = [f"Game ID: {game.game_id}\nState: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"]
 
-        current_drafter = session.query(model.GamePlayer).with_parent(game).filter_by(turn_order=game.turn).first()
-        if current_drafter is None:
-            raise LookupError("No current drafter")
+        current_drafter = controller.current_drafter(session, game)
 
         lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
         return "\n".join(lines)
