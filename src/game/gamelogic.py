@@ -148,6 +148,18 @@ async def draft(ctx: commands.Context, session: Session, player_id: int,  game_i
         logging.error(f"Error drafting: {e}")
         return "Something went wrong"
 
+def cancel(session: Session, game_id: int) -> str:
+    game = session.get(model.Game, game_id)
+    if not game:
+        return f"No such game found"
+    
+    if game.game_state == model.GameState.FINISHED:
+        return f"Game has already finished."
+
+    session.delete(game)
+    session.commit()
+    return f"Successfully deleted {game.name} #{game.game_id}"
+
 async def _start_game(ctx: commands.Context, session: Session, game: model.Game, name: str) -> str:
     players_info_lines = []
     for player in game.game_players:

@@ -57,6 +57,15 @@ class Game(commands.Cog):
             await ctx.send(gamelogic.start(session, self.factions, game_id))
 
     @commands.command()
+    async def cancel(self, ctx: commands.Context, game_id: int) -> None:
+        """Admin command to cancel the game or lobby."""
+        if not ctx.author.guild_permissions.administrator:
+            await ctx.send("Only admins can cancel games")
+            return 
+        with Session(self.engine) as session:
+            await ctx.send(gamelogic.cancel(session, game_id))
+
+    @commands.command()
     async def games(self, ctx: commands.Context) -> None:
         """Fetches 5 latest games."""
         with Session(self.engine) as session:
