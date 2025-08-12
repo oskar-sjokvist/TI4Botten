@@ -1,7 +1,8 @@
-import logging
-import re
-import random
 import Levenshtein
+import datetime
+import logging
+import random
+import re
 
 from . import factions as fs
 from . import controller
@@ -61,6 +62,7 @@ def finish(session : Session, is_admin : bool, game_id: Optional[int], all_point
 
         session.add_all(players)
         game.game_state = model.GameState.FINISHED
+        game.game_finish_time = datetime.now()
         session.merge(game)
         session.commit()
 
