@@ -1,12 +1,17 @@
 import pytest
-from unittest.mock import MagicMock
-from sqlalchemy.orm import Session
-from src.game import gamelogic
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from src.game import gamelogic, model
 
-@pytest.fixture
-def mock_session():
-    # Use MagicMock for session. Consider using a hermetic db with fake data.
-    return MagicMock(spec=Session)
+@pytest.fixture(scope="function")
+def session():
+    # Use in-memory SQLite for tests
+    engine = create_engine("sqlite:///:memory:")
+    model.Base.metadata.create_all(engine)
+    SessionLocal = sessionmaker(bind=engine)
+    session = SessionLocal()
+    yield session
+    session.close()
 
 
 def test_parse_ints():
@@ -15,33 +20,40 @@ def test_parse_ints():
     assert gamelogic._parse_ints("") == []
 
 
-def test_finish_no_game_id(mock_session):
-    result = gamelogic.finish(mock_session, True, None, None)
+def test_finish_no_game_id(session):
+    result = gamelogic.finish(session, True, None, None)
     assert "Please specify a game id." in result
 
 
-def test_lobby_no_name(mock_session):
-    result = gamelogic.lobby(mock_session, None)
+def test_lobby_no_name(session):
+    result = gamelogic.lobby(session, None)
     assert "Please specify a name for the lobby" in result
 
 
-def test_leave_not_in_lobby(mock_session):
-    # _find_lobby returns a mock game
-    mock_session.query.return_value.with_parent.return_value.filter.return_value.first.return_value = None
-    gamelogic._find_lobby = MagicMock(return_value=MagicMock())
-    result = gamelogic.leave(mock_session, 1, 1)
+def test_leave_not_in_lobby(session, monkeypatch):
+    # Patch _find_lobby to return a real Game instance
+    game = model.Game(game_id=1, game_state="LOBBY", name="TestLobby")
+    session.add(game)
+    session.commit()
+    monkeypatch.setattr(gamelogic, "_find_lobby", lambda s, gid: game)
+    result = gamelogic.leave(session, 1, 1)
     assert "You are not in this game!" in result
 
 
-def test_join_already_in_lobby(mock_session):
-    mock_game = MagicMock()
-    gamelogic._find_lobby = MagicMock(return_value=mock_game)
-    mock_session.query.return_value.with_parent.return_value.filter.return_value.first.return_value = True
-    result = gamelogic.join(mock_session, 1, "Player", 1)
+def test_join_already_in_lobby(session, monkeypatch):
+    # Patch _find_lobby to return a real Game instance
+    game = model.Game(game_id=1, game_state="LOBBY", name="TestLobby")
+    session.add(game)
+    session.commit()
+    monkeypatch.setattr(gamelogic, "_find_lobby", lambda s, gid: game)
+    # Insert a dummy GamePlayer to simulate already in lobby
+    gp = model.GamePlayer(game_id=1, player_id=1)
+    session.add(gp)
+    session.commit()
+    result = gamelogic.join(session, 1, "Player", 1)
     assert "You are already in this lobby!" in result
 
 
-def test_games_no_games(mock_session):
-    mock_session.query.return_value.order_by.return_value.filter_by.return_value.limit.return_value.all.return_value = []
-    result = gamelogic.games(mock_session)
+def test_games_no_games(session):
+    result = gamelogic.games(session)
     assert "No games found." in result
