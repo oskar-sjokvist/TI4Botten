@@ -41,16 +41,15 @@ class GameLogic:
     ]
 
     _introduction = '''These are some resources that can be useful for your game
-    - https://www.youtube.com/watch?v=_u2xEap5hBM (Twilight Imperium 4th edition in 32 minutes)
-    - https://www.youtube.com/watch?v=gdpW4FBCUuo (Common Twilight Imperium Rules Mistakes 1)
-    - https://www.youtube.com/watch?v=Jk5PA4EUGJw (Common Twilight Imperium Rules Mistakes 2)
+- https://www.youtube.com/watch?v=_u2xEap5hBM (Twilight Imperium 4th edition in 32 minutes)
+- https://www.youtube.com/watch?v=gdpW4FBCUuo (Common Twilight Imperium Rules Mistakes 1)
+- https://www.youtube.com/watch?v=Jk5PA4EUGJw (Common Twilight Imperium Rules Mistakes 2)
 
-    Learn to play compressed
-    - https://images-cdn.fantasyflightgames.com/filer_public/f3/c6/f3c66512-8e19-4f30-a0d4-d7d75701fd37/ti-k0289_learn_to_playcompressed.pdf
+Learn to play compressed
+- https://images-cdn.fantasyflightgames.com/filer_public/f3/c6/f3c66512-8e19-4f30-a0d4-d7d75701fd37/ti-k0289_learn_to_playcompressed.pdf
 
-    Living rules reference (Prophecy of Kings)
-    - https://images-cdn.fantasyflightgames.com/filer_public/51/55/51552c7f-c05c-445b-84bf-4b073456d008/ti10_pok_living_rules_reference_20_web.pdf
-    '''
+Living rules reference (Prophecy of Kings)
+- https://images-cdn.fantasyflightgames.com/filer_public/51/55/51552c7f-c05c-445b-84bf-4b073456d008/ti10_pok_living_rules_reference_20_web.pdf'''
 
 
     def _players_ordered_by_turn(self, session : Session, game : model.Game) -> List[model.GamePlayer]:
