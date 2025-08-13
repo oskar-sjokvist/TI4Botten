@@ -15,6 +15,7 @@ class Game(commands.Cog):
         self.factions = factions.read_factions()
         self.logic = gamelogic.GameLogic(engine)
 
+
     @commands.Cog.listener()
     async def on_ready(self) -> None:
         logging.info("Game cog loaded")

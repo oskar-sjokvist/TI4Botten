@@ -3,6 +3,7 @@ import asyncio
 
 from .game.commands import Game
 from .misc.commands import Misc
+from .rating.commands import Rating
 from .betting.commands import Betting
 
 from discord.ext import commands
@@ -26,7 +27,7 @@ class Bot(commands.Bot):
         models.Base.metadata.create_all(engine)
 
         # Pass engine to cogs that need it.
-        self.init_cogs = [Game(engine), Misc(), Betting(engine)]
+        self.init_cogs = [Game(engine), Misc(), Betting(engine), Rating(engine)]
         
         super().__init__(command_prefix="!", intents=intents)
 

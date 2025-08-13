@@ -115,6 +115,7 @@ class GameLogic:
 
                 players = self._players_ordered_by_points(session, game)
                 lines = [f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)" for i, p in enumerate(players)]
+                
                 return f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{self._game_end_quote(players[0].player.name, players[-1].player.name)}\n\nWrong result? Rerun the !finish command."
             except Exception as e:
                 logging.error(f"Can't finish game: {e}")
