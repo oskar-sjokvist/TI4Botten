@@ -38,9 +38,9 @@ class Game(commands.Cog):
 
 
     @commands.command()
-    async def finish(self, ctx: commands.Context, game_id: Optional[int] = None, *, rankings: Optional[str] = "") -> None:
+    async def finish(self, ctx: commands.Context, game_id: Optional[int] = None, *, points: Optional[str] = "") -> None:
         is_admin = ctx.author.guild_permissions.administrator
-        await ctx.send(self.logic.finish(is_admin , game_id, rankings))
+        await ctx.send(self.logic.finish(is_admin , game_id, points))
 
     @commands.command()
     async def draft(self, ctx: commands.Context, game_id: Optional[int] = None, *, faction: Optional[str] = None) -> None:

@@ -88,7 +88,7 @@ def test_finish_game_flow(db):
     for i in range(1, 4):
         player = model.Player(player_id=i, name=f"P{i}")
         session.add(player)
-        gp = model.GamePlayer(game_id=game.game_id, player_id=i, points=0, rank=i)
+        gp = model.GamePlayer(game_id=game.game_id, player_id=i, points=0)
         session.add(gp)
     session.commit()
     result = logic.finish(False, game.game_id, "10 5 7")

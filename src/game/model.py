@@ -26,7 +26,6 @@ class GamePlayer(models.Base):
     player_id: Mapped[int] = mapped_column(ForeignKey("player.player_id"), primary_key=True)
     faction: Mapped[Optional[str]] = mapped_column(String)
     points: Mapped[int] = mapped_column(Integer, default=0)
-    rank: Mapped[int] = mapped_column(Integer, default=0)
     turn_order: Mapped[int] = mapped_column(Integer, default=0)
     
 
