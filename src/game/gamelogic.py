@@ -10,9 +10,9 @@ from discord.ext import commands
 from datetime import datetime
 from itertools import batched
 from sqlalchemy import inspect, Enum, Boolean, String, Integer
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, attributes
 from string import Template
-from typing import Optional, Dict, Any, Iterable, List
+from typing import Optional, Dict, Any, Iterable, List, Tuple
 
 from blinker import signal
 
@@ -132,9 +132,221 @@ Living rules reference (Prophecy of Kings)
     def _game_end_quote(winner: str, loser: str) -> str:
         return Template(random.choice(GameLogic._game_end_quotes)).safe_substitute(winner=winner, loser=loser)
 
+    def ban_picks_and_bans(self, session: Session, game: model.Game, player: model.GamePlayer, faction: Optional[str]) -> Optional[str]:
+
+        current_drafter = self._current_drafter(session, game)
+        all_bans = [banned for gameplayer in game.game_players for banned in gameplayer.bans if gameplayer.bans]
+        if not faction or game.game_state != model.GameState.BAN:
+            lines = list()
+            if game.game_state == model.GameState.BAN:
+                lines.append(f"It is {current_drafter.player.name}'s turn to ban.")
+            else:
+                lines.append("This game is not in banning phase.")
+            if all_bans:
+                lines.append("These factions are banned:")
+                lines.extend([f"* {f}" for f in all_bans])
+            return   "\n".join(lines)
+
+        if current_drafter.player.player_id != player.player_id:
+            return f"It is not your turn to ban! It is {current_drafter.player.name}'s turn"
+
+        # Process the ban
+        best = GameLogic._closest_match(faction, player.factions)
+        if not best:
+            return f"You can't ban faction {faction}. Check your spelling or available factions."
+        
+        # Check if this faction is already banned by anyone
+        if best in all_bans:
+            return f"Faction {best} has already been banned!"
+        
+        
+        # Initialize bans list if it doesn't exist
+        if not player.bans:
+            player.bans = []
+
+        player.bans.append(best)
+        attributes.flag_modified(player, "bans")
+
+        # Remove banned faction from all players' available factions
+        for any_player in game.game_players:
+            if best in any_player.factions:
+                any_player.factions.remove(best)
+                attributes.flag_modified(any_player, "factions")
+
+
+        lines = [f"{player.player.name} has banned {best}."]
+
+        number_of_players = len(game.game_players)
+
+        total_bans_needed = number_of_players * game.game_settings.bans_per_player
+
+        game.turn = (game.turn + 1) % number_of_players
+        current_drafter = self._current_drafter(session, game)
+
+        if total_bans_needed == len(all_bans) + 1:
+            game.game_state = model.GameState.DRAFT
+            lines.append("Banning is now complete!")
+            lines.append(f"Next one to draft is <@{current_drafter.player_id}>. Use !draft.")
+        else:
+            lines.append(f"Next one to ban is <@{current_drafter.player_id}>. Use !ban.")
+
+        session.merge(player)
+        session.merge(game)
+        session.commit()
+
+        return "\n".join(lines)
+
+
+    async def ban(self, player_id: int,  game_id: Optional[int] = None, faction: Optional[str] = None) -> Optional[str]:
+        try:
+            with Session(self.engine) as session:
+                if game_id is None:
+                    game = model.Game.latest_ban(session)
+                else:
+                    game = session.query(model.Game).filter_by(game_id=game_id).first()
+                if not game:
+                    return "No game found."
+
+                player = session.query(model.GamePlayer).with_parent(game).filter_by(player_id=player_id).first()
+
+                if not player:
+                    return "You are not in this game!"
+
+                if game.game_settings.drafting_mode == model.DraftingMode.PICKS_AND_BANS:
+                    return self.ban_picks_and_bans(session, game, player, faction)
+                else:
+                    return "This drafting mode doesn't support banning"
+
+        except Exception as e:
+            logging.error(f"Error drafting: {e}")
+            return "Something went wrong"
+
+
+    def draft_exclusive_pool(self, session: Session, game: model.Game, player: model.GamePlayer, faction: Optional[str]) -> Optional[str]:
+
+            if player.faction:
+                return f"You have drafted {player.faction}"
+
+            if not faction:
+                return f"Your available factions are:\n{"\n".join(player.factions)}"
+            
+            current_drafter = self._current_drafter(session, game)
+
+            if game.turn != player.turn_order:
+                return f"It is not your turn to draft! It is {current_drafter.player.name}'s turn"
+                
+            best = GameLogic._closest_match(faction, player.factions)
+            if not best:
+                return f"You can't draft faction {faction}. Check your spelling or available factions."
+            
+            player.faction = best
+            game.turn += 1
+
+            session.merge(game)
+            session.merge(player)
+            lines = [f"{player.player.name} has selected {player.faction}."]
+            if game.turn == len(game.game_players):
+                return None
+            session.commit()
+
+            current_drafter = self._current_drafter(session, game)
+
+            lines.append(f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
+            return "\n".join(lines)
+
+
+    def draft_picks_only(self, session: Session, game: model.Game, player: model.GamePlayer, faction: Optional[str]) -> Optional[str]:
+
+            if player.faction:
+                return f"You have drafted {player.faction}"
+
+            if not faction:
+                return f"Your available factions are:\n{"\n".join(player.factions)}"
+            
+            current_drafter = self._current_drafter(session, game)
+
+            if game.turn != player.turn_order:
+                return f"It is not your turn to draft! It is {current_drafter.player.name}'s turn"
+
+            best = GameLogic._closest_match(faction, player.factions)
+            if not best:
+                return f"You can't draft faction {faction}. Check your spelling or available factions."
+            
+            player.faction = best
+            game.turn += 1
+
+            other_players = [other for other in game.game_players if other.player_id != player.player_id]
+            for other_player in other_players:
+                other_player.factions.remove(player.faction)
+                session.merge(other_player)
+
+            session.merge(game)
+            session.merge(player)
+            lines = [f"{player.player.name} has selected {player.faction}."]
+            if game.turn == len(game.game_players):
+                return None
+            session.commit()
+
+            current_drafter = self._current_drafter(session, game)
+
+            lines.append(f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
+            return "\n".join(lines)
+
+
+    def draft_picks_and_bans(self, session: Session, game: model.Game, player: model.GamePlayer, faction: Optional[str]) -> Optional[str]:
+
+            if player.faction:
+                return f"You have drafted {player.faction}"
+
+            if not faction:
+                return f"Your available factions are:\n{"\n".join(player.factions)}"
+            
+            current_drafter = self._current_drafter(session, game)
+
+            if game.turn != player.turn_order:
+                return f"It is not your turn to draft! It is {current_drafter.player.name}'s turn"
+            
+            all_bans = []
+            for game_player in game.game_players:
+                if game_player.bans:
+                    all_bans.extend(game_player.bans)
+            
+            all_factions_available = player.factions.copy()
+            all_factions_available.extend(all_bans)
+
+            best = GameLogic._closest_match(faction, all_factions_available)
+            if not best:
+                return f"You can't draft faction {faction}. Check your spelling or available factions."
+            
+            # Check if this faction is already banned by anyone
+
+            if best in all_bans:
+                return f"Faction {best} has already been banned."
+
+            player.faction = best
+            game.turn += 1
+
+            other_players = [other for other in game.game_players if other.player_id != player.player_id]
+            for other_player in other_players:
+                other_player.factions.remove(player.faction)
+                session.merge(other_player)
+
+            session.merge(game)
+            session.merge(player)
+            lines = [f"{player.player.name} has selected {player.faction}."]
+            if game.turn == len(game.game_players):
+                return None
+            session.commit()
+
+            current_drafter = self._current_drafter(session, game)
+
+            lines.append(f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
+            return "\n".join(lines)
+
+
     async def draft(self, ctx: commands.Context, player_id: int,  game_id: Optional[int] = None, faction: Optional[str] = None) -> str:
-        with Session(self.engine) as session:
-            try:
+        try:
+            with Session(self.engine) as session:
                 if game_id is None:
                     game = model.Game.latest_draft(session)
                 else:
@@ -145,41 +357,29 @@ Living rules reference (Prophecy of Kings)
                     return "Game is not in draft stage"
 
                 player = session.query(model.GamePlayer).with_parent(game).filter_by(player_id=player_id).first()
+
                 if not player:
                     return "You are not in this game!"
-                if player.faction:
-                    return "You have drafted {player.faction}"
 
-                if not faction:
-                    return f"Your available factions are:\n{"\n".join(player.factions)}"
+                error_message = None
+                if game.game_settings.drafting_mode == model.DraftingMode.EXCLUSIVE_POOL:
+                    error_message = self.draft_exclusive_pool(session, game, player, faction)
+                elif game.game_settings.drafting_mode == model.DraftingMode.PICKS_ONLY:
+                    error_message = self.draft_picks_only(session, game, player, faction)
+                elif game.game_settings.drafting_mode == model.DraftingMode.PICKS_AND_BANS:
+                    error_message = self.draft_picks_and_bans(session, game, player, faction)
+                else:
+                    return f"Mode {game.game_settings.drafting_mode} not implemented yet."
                 
-                current_drafter = self._current_drafter(session, game)
-
-                if game.turn != player.turn_order:
-                    return f"It is not your turn to draft! It is {current_drafter.player.name}'s turn"
-                    
-                best = self._closest_match(faction, player.factions)
-                if not best:
-                    return f"You can't draft faction {faction}. Check your spelling or available factions."
-                
-                player.faction = best
-                game.turn += 1
-
-                session.merge(game)
-                session.merge(player)
-                lines = [f"{player.player.name} has selected {player.faction}."]
-                if game.turn == len(game.game_players):
+                if error_message:
+                    return error_message
+                else:
                     return await self._start_game(ctx, session, game, player.player.name)
-                session.commit()
 
-                current_drafter = self._current_drafter(session, game)
+        except Exception as e:
+            logging.error(f"Error drafting: {e}")
+            return "Something went wrong"
 
-                lines.append(f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
-                return "\n".join(lines)
-
-            except Exception as e:
-                logging.error(f"Error drafting: {e}")
-                return "Something went wrong"
 
     def cancel(self, game_id: int) -> str:
         with Session(self.engine) as session:
@@ -211,72 +411,152 @@ Living rules reference (Prophecy of Kings)
 
         return launch
 
+    @staticmethod
+    def _get_start_settings(game: model.Game) -> Tuple[List[str], List[str]]:
+        settings = []
+        sources = []
+        if game.game_settings.base_game:
+            settings.append("Base game active")
+            sources.append("base")
+        if game.game_settings.prophecy_of_kings:
+            settings.append("Prophecy of Kings active")
+            sources.append("pok")
+
+        if game.game_settings.discordant_stars:
+            settings.append("Discordant Stars active")
+            sources.append("ds")
+
+        if game.game_settings.codex:
+            settings.append("Codex faction active")
+            sources.append("codex")
+        return settings, sources
+
+
+
+    def start_exclusive_pool(self, session: Session, factions : fs.Factions, game: model.Game) -> str: 
+
+        settings, sources = GameLogic._get_start_settings(game)
+        players = game.game_players
+        number_of_players = len(players)
+
+        factions_per_player = game.game_settings.factions_per_player
+        fs = factions.get_random_factions(number_of_players * factions_per_player, ','.join(sources))
+        if len(fs) < number_of_players * factions_per_player:
+            return f"There are too many factions selected per player. Max allowed for a {number_of_players} player game is {len(fs)//number_of_players}."
+        fs = [faction.name for faction in fs]
+
+        turn_order = random.sample(range(number_of_players), number_of_players)
+        faction_slices = batched(fs, factions_per_player)
+
+        factions_lines = []
+
+        player_from_turn = {}
+        for i, (player, player_factions) in enumerate(zip(game.game_players, faction_slices)):
+            player.turn_order = turn_order[i]
+            player_from_turn[player.turn_order] = player.player.name
+            player.factions = list(player_factions)
+            factions_lines.extend(list(map(lambda x : f"{x} ({player.player.name})", player_factions)))
+            session.merge(player)
+
+        players_info_lines = []
+        for i in range(number_of_players):
+            name = player_from_turn[i]
+            players_info_lines.append(f"{name}")
+
+        game.game_state = model.GameState.DRAFT
+        session.merge(game)
+        session.commit()
+
+        lines = [f"Game ID: {game.game_id}\nState: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"]
+
+        current_drafter = self._current_drafter(session, game)
+
+        lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
+        return "\n".join(lines)
+
+
+    def start_picks_only(self, session: Session, factions : fs.Factions, game: model.Game):
+        
+        settings, sources = GameLogic._get_start_settings(game)
+        players = game.game_players
+        number_of_players = len(players)
+
+        turn_order = random.sample(range(number_of_players), number_of_players)
+
+        fs = [faction.name for faction in factions.get_factions(",".join(sources))]
+        
+        player_from_turn = {}
+        for i, player in enumerate(players):
+            player.turn_order = turn_order[i]
+            player_from_turn[player.turn_order] = player.player.name
+            player.factions = fs
+        
+        players_info_lines = []
+        for i in range(number_of_players):
+            name = player_from_turn[i]
+            players_info_lines.append(f"{name}")
+
+        game.game_state = model.GameState.DRAFT
+        session.merge(game)
+        session.commit()
+
+        lines = [f"Game ID: {game.game_id}\nState: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"]
+
+        current_drafter = self._current_drafter(session, game)
+        lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
+        return "\n".join(lines)
+
+
+    def start_picks_and_bans(self, session: Session, factions : fs.Factions, game: model.Game):
+
+        settings, sources = GameLogic._get_start_settings(game)
+        players = game.game_players
+        number_of_players = len(players)
+
+        turn_order = random.sample(range(number_of_players), number_of_players)
+
+        fs = [faction.name for faction in factions.get_factions(",".join(sources))]
+        
+        player_from_turn = {}
+        for i, player in enumerate(players):
+            player.turn_order = turn_order[i]
+            player_from_turn[player.turn_order] = player.player.name
+            player.factions = fs
+        
+        players_info_lines = []
+        for i in range(number_of_players):
+            name = player_from_turn[i]
+            players_info_lines.append(f"{name}")
+
+        game.game_state = model.GameState.BAN
+        session.merge(game)
+        session.commit()
+
+        lines = [f"Game ID: {game.game_id}\nState: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"]
+
+        current_drafter = self._current_drafter(session, game)
+        lines.append(f"<@{current_drafter.player_id}> begins banning. Use !ban.")
+        return "\n".join(lines)
+
+
     def start(self, factions : fs.Factions, game_id: Optional[int] = None) -> str:
-        with Session(self.engine) as session:
-            try:
+        try:
+            with Session(self.engine) as session:
                 game = self._find_lobby(session, game_id)
                 if isinstance(game, str):
                     return game
 
-                settings = []
-                sources = []
-                if game.game_settings.base_game:
-                    settings.append("Base game active")
-                    sources.append("base")
-                if game.game_settings.prophecy_of_kings:
-                    settings.append("Prophecy of Kings active")
-                    sources.append("pok")
-
-                if game.game_settings.discordant_stars:
-                    settings.append("Discordant Stars active")
-                    sources.append("ds")
-
-                if game.game_settings.codex:
-                    settings.append("Codex faction active")
-                    sources.append("codex")
-
-                if game.game_settings.drafting_mode != model.DraftingMode.EXCLUSIVE_POOL:
-                    return "Only exclusive pool supported at the moment"
-                
-                players = game.game_players
-                number_of_players = len(players)
-
-                factions_per_player = 4
-                fs = factions.get_random_factions(number_of_players * factions_per_player, ','.join(sources))
-                fs = [faction.name for faction in fs]
-
-                turn_order = random.sample(range(number_of_players), number_of_players)
-                faction_slices = batched(fs, factions_per_player)
-
-                factions_lines = []
-
-                player_from_turn = {}
-                for i, (player, player_factions) in enumerate(zip(game.game_players, faction_slices)):
-                    player.turn_order = turn_order[i]
-                    player_from_turn[player.turn_order] = player.player.name
-                    player.factions = list(player_factions)
-                    factions_lines.extend(list(map(lambda x : f"{x} ({player.player.name})", player_factions)))
-                    session.merge(player)
-
-                players_info_lines = []
-                for i in range(number_of_players):
-                    name = player_from_turn[i]
-                    players_info_lines.append(f"{name}")
-
-                game.game_state = model.GameState.DRAFT
-                session.merge(game)
-                session.commit()
-
-                lines = [f"Game ID: {game.game_id}\nState: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"]
-
-                current_drafter = self._current_drafter(session, game)
-
-                lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
-                return "\n".join(lines)
-
-            except Exception as e:
-                logging.error(f"Error fetching game data: {e}")
-                return "An error occurred while fetching the game data."
+                if game.game_settings.drafting_mode == model.DraftingMode.EXCLUSIVE_POOL:
+                    return self.start_exclusive_pool(session, factions, game)
+                elif game.game_settings.drafting_mode == model.DraftingMode.PICKS_ONLY:
+                    return self.start_picks_only(session, factions, game)
+                elif game.game_settings.drafting_mode == model.DraftingMode.PICKS_AND_BANS:
+                    return self.start_picks_and_bans(session, factions, game)
+                else:
+                    return f"Drafting mode {game.game_settings.drafting_mode} not supported at the moment"
+        except Exception as e:
+            logging.error(f"Error fetching game data: {e}")
+            return "An error occurred while fetching the game data."
 
     def game(self, game_id: Optional[int]) -> str:
         with Session(self.engine) as session:
@@ -487,7 +767,7 @@ Living rules reference (Prophecy of Kings)
                     return "Game is not in lobby."
 
                 valid_properties = valid_keys.keys()
-                best_prop = self._closest_match(property, valid_properties)
+                best_prop = GameLogic._closest_match(property, valid_properties)
                 if not best_prop:
                     return f"Cannot understand which property you mean. Please check your spelling."
                 property = best_prop
@@ -498,7 +778,7 @@ Living rules reference (Prophecy of Kings)
                 dtype = valid_keys[property]
                 if isinstance(dtype, Enum):
                     enum_list = list(dtype.enums)
-                    best_value = self._closest_match(value, enum_list)
+                    best_value = GameLogic._closest_match(value, enum_list)
                     if not best_value:
                         return f"Valid values are: {enum_list}"
                     new_value = best_value
@@ -510,7 +790,14 @@ Living rules reference (Prophecy of Kings)
                         new_value = False
                     else:
                         return f"Supply a boolean value."
-                elif not isinstance(dtype, (String, Integer)):
+                elif isinstance(dtype, Integer):
+                    if value.isdigit():
+                        new_value = int(value)
+                    else:
+                        return "Supply a valid integer value"
+                elif isinstance(dtype, String):
+                    new_value = value
+                else:
                     return "Invalid datatype"
 
                 game_settings = session.query(model.GameSettings).filter_by(game_id=game.game_id).first()

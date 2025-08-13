@@ -48,6 +48,10 @@ class Game(commands.Cog):
         is_admin = ctx.author.guild_permissions.administrator
         await ctx.send(self.logic.finish(is_admin , game_id, points))
 
+    @commands.command()
+    async def ban(self, ctx: commands.Context, game_id: Optional[int] = None, *, faction: Optional[str] = None) -> None:
+        """Ban a faction."""
+        await ctx.send(await self.logic.ban(ctx.author.id, game_id, faction))
 
     @commands.command()
     async def draft(self, ctx: commands.Context, game_id: Optional[int] = None, *, faction: Optional[str] = None) -> None:

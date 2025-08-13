@@ -73,6 +73,16 @@ class Factions:
         except ValueError:
             return []
 
+    def get_factions(self, sources: Optional[str]) -> List[Faction]:
+        if not sources:
+            return self.factions
+
+        raw_sources = (s.strip() for s in sources.split(','))
+        filtered_sources = (s for s in raw_sources if s in self.__valid_sources)
+        mapped_sources = {self.__valid_sources[s] for s in filtered_sources}
+        filtered_factions = [faction for faction in self.factions if faction.source in mapped_sources]
+        return filtered_factions
+
 
 def read_factions(file_path: str = 'data/ti4_factions.csv') -> Factions:
     here = Path(__file__).parent
