@@ -14,11 +14,13 @@ from sqlalchemy.orm import Session
 from string import Template
 from typing import Optional, Dict, Any, Iterable, List
 
+from blinker import signal
 
 class GameLogic:
 
     def __init__(self, engine):
         self.engine = engine
+        self.signal = signal("finish")
 
     _game_start_quotes = [
         "'In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.'\n-$player",
@@ -116,6 +118,7 @@ class GameLogic:
                 players = self._players_ordered_by_points(session, game)
                 lines = [f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)" for i, p in enumerate(players)]
                 
+                self.signal.send(None, game_id=game.game_id)
                 return f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{self._game_end_quote(players[0].player.name, players[-1].player.name)}\n\nWrong result? Rerun the !finish command."
             except Exception as e:
                 logging.error(f"Can't finish game: {e}")
