@@ -117,7 +117,4 @@ class RatingLogic:
             ).scalars().all()
             if not players:
                 return "No players found."
-            return "\n".join([f"{player.name}: rating {player.rating:.2f}" for player in players])
-
-
-
+            return "\n".join([f"{i+1}. {player.name}: rating {player.rating:.2f}" for i, player in enumerate(players)])
