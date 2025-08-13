@@ -1,11 +1,8 @@
 from . import model as model
 from ..game import model as game_model
 
-import blinker
-
 from blinker import signal
 from collections import defaultdict
-from discord.ext import commands
 from itertools import combinations
 from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
@@ -17,7 +14,7 @@ class RatingLogic:
 
     def __init__(self,  engine: Engine) -> None:
         self.engine = engine
-        self.k_game = 80 # Boundedness of updates
+        self.k_game = 50 # Boundedness of updates
         self._refresh_ratings()
         signal("finish").connect(self.update_rating)
 
@@ -67,6 +64,10 @@ class RatingLogic:
                 deltas[p1.player_id].append(0.5-e_ab)
                 deltas[p2.player_id].append(0.5-e_ba)
 
+        if len(deltas) <= 1:
+            ## Solo game.
+            return
+
         for player in game.game_players:
             outcome = session.execute(select(model.OutcomeLedger).filter_by(game_id=game.game_id, player_id=player.player_id)).scalar()
             if outcome is not None:
@@ -79,7 +80,7 @@ class RatingLogic:
                 p = model.MatchPlayer(player_id=player.player_id, name=player.player.name)
                 session.add(p)
                 session.flush()
-            delta = sum(deltas[p.player_id])/len(deltas) * self.k_game
+            delta = sum(deltas[p.player_id])/(len(deltas)-1) * self.k_game
             ol = model.OutcomeLedger(
                 game_id = game.game_id,
                 player_id = p.player_id,
