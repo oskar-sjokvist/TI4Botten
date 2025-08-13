@@ -15,9 +15,9 @@ class Rating(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        logging.info("Betting cog loaded")
+        logging.info("Ratings cog loaded")
 
     @commands.command()
-    async def ratings(self, ctx: commands.Context) -> None:
-        """Returns everyone's ratings."""
+    async def stats(self, ctx: commands.Context) -> None:
+        """Returns everyone's stats."""
         await ctx.send(self.logic.ratings())

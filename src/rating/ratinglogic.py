@@ -28,6 +28,7 @@ class RatingLogic:
             if not game:
                 return
             self._update_game_rating(session, game)
+            session.commit()
         
 
     @staticmethod
@@ -56,11 +57,10 @@ class RatingLogic:
                 session.flush()
 
             e_ab, e_ba = self._expectations(a.rating, b.rating)
-            print(e_ab, e_ba)
             if p1.points < p2.points:
                 deltas[p1.player_id].append(0-e_ab)
                 deltas[p2.player_id].append(1-e_ba)
-            elif p2.points > p1.points:
+            elif p1.points > p2.points:
                 deltas[p1.player_id].append(1-e_ab)
                 deltas[p2.player_id].append(0-e_ba)
             else:
@@ -80,7 +80,6 @@ class RatingLogic:
                 session.add(p)
                 session.flush()
             delta = sum(deltas[p.player_id])/len(deltas) * self.k_game
-            delta = delta if delta else 0
             ol = model.OutcomeLedger(
                 game_id = game.game_id,
                 player_id = p.player_id,
@@ -104,8 +103,7 @@ class RatingLogic:
 
             for game in games:
                 self._update_game_rating(session, game)
-                session.flush()
-            session.commit()
+                session.commit()
 
 
 
