@@ -10,6 +10,7 @@ from .. import models
 
 class GameState(enum.Enum):
     LOBBY = "Lobby"
+    BAN = "Ban"
     DRAFT = "Draft"
     STARTED = "Started"
     FINISHED = "Finished"
@@ -29,8 +30,15 @@ class GamePlayer(models.Base):
     turn_order: Mapped[int] = mapped_column(Integer, default=0)
     
 
-    # Used in exclusive pool mode.
+    # Used in exclusive pool mode and Milty draft
     factions: Mapped[List[str]] = mapped_column(JSON, default=[])
+
+    # Used in Milty draft
+    position: Mapped[Optional[int]] = mapped_column(Integer)
+    strategy_card: Mapped[Optional[str]] = mapped_column(String)
+
+    # Used in picks and bans
+    bans: Mapped[Optional[List[str]]] = mapped_column(JSON, default=[])
 
     # Relationships
     game: Mapped["Game"] = relationship("Game", back_populates="game_players")
@@ -56,6 +64,10 @@ class Game(models.Base):
         return session.query(cls).order_by(cls.game_id.desc()).filter(cls.game_state==GameState.LOBBY).first()
 
     @classmethod
+    def latest_ban(cls, session: Session):
+        return session.query(cls).order_by(cls.game_id.desc()).filter(cls.game_state==GameState.BAN).first()
+
+    @classmethod
     def latest_draft(cls, session: Session):
         return session.query(cls).order_by(cls.game_id.desc()).filter(cls.game_state==GameState.DRAFT).first()
 
@@ -72,6 +84,9 @@ class GameSettings(models.Base):
     prophecy_of_kings: Mapped[bool] = mapped_column(Boolean, default=True)
     codex: Mapped[bool] = mapped_column(Boolean, default=True)
     discordant_stars: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    factions_per_player: Mapped[int] = mapped_column(Integer, default=4)
+    bans_per_player: Mapped[int] = mapped_column(Integer, default=2)
 
     game: Mapped["Game"] = relationship("Game", back_populates="game_settings")
 
