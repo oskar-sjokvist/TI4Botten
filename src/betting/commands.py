@@ -2,7 +2,6 @@ import logging
 
 from . import model as betting_model
 from ..game import model as game_model
-from ..game import controller as game_controller
 
 from sqlalchemy.orm import Session
 from discord.ext import commands
@@ -54,7 +53,9 @@ class Betting(commands.Cog):
 
             stmt = select(betting_model.GameBettor).filter_by(game_id=game.game_id)
             bettors = session.execute(stmt).scalars().all()
-            winner = game_controller.winner(session, game)
+            winner = session.query(game_model.GamePlayer).with_parent(game).order_by(game_model.GamePlayer.points.desc()).first()
+            if winner is None:
+                raise LookupError("Winner not found for this game!")
             lines = []
             for game_bettor in bettors:
                 if game_bettor.winner == winner.player_id:

@@ -2,9 +2,7 @@ import logging
 
 from . import gamelogic
 from . import factions
-from . import model
 
-from sqlalchemy.orm import Session
 from typing import Optional
 from discord.ext import commands
 from sqlalchemy import Engine
@@ -15,7 +13,7 @@ class Game(commands.Cog):
     def __init__(self,  engine: Engine) -> None:
         """Initialize the Commands cog with factions."""
         self.factions = factions.read_factions()
-        self.engine = engine
+        self.logic = gamelogic.GameLogic(engine)
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -41,20 +39,17 @@ class Game(commands.Cog):
     @commands.command()
     async def finish(self, ctx: commands.Context, game_id: Optional[int] = None, *, rankings: Optional[str] = "") -> None:
         is_admin = ctx.author.guild_permissions.administrator
-        with Session(self.engine) as session:
-            await ctx.send(gamelogic.finish(session, is_admin , game_id, rankings))
+        await ctx.send(self.logic.finish(is_admin , game_id, rankings))
 
     @commands.command()
     async def draft(self, ctx: commands.Context, game_id: Optional[int] = None, *, faction: Optional[str] = None) -> None:
         """Draft your faction."""
-        with Session(self.engine) as session:
-            await ctx.send(await gamelogic.draft(ctx, session, ctx.author.id, game_id, faction))
+        await ctx.send(await self.logic.draft(ctx, ctx.author.id, game_id, faction))
 
     @commands.command()
     async def start(self, ctx: commands.Context, game_id: Optional[int] = None) -> None:
         """Start the lobby."""
-        with Session(self.engine) as session:
-            await ctx.send(gamelogic.start(session, self.factions, game_id))
+        await ctx.send(self.logic.start(self.factions, game_id))
 
     @commands.command()
     async def cancel(self, ctx: commands.Context, game_id: int) -> None:
@@ -62,55 +57,29 @@ class Game(commands.Cog):
         if not ctx.author.guild_permissions.administrator:
             await ctx.send("Only admins can cancel games")
             return 
-        with Session(self.engine) as session:
-            await ctx.send(gamelogic.cancel(session, game_id))
+        await ctx.send(self.logic.cancel(game_id))
 
     @commands.command()
     async def games(self, ctx: commands.Context) -> None:
         """Fetches 5 latest games."""
-        with Session(self.engine) as session:
-            await ctx.send(gamelogic.games(session))
-
-    @commands.command()
-    async def game(self, ctx: commands.Context, game_id: Optional[int] = None) -> None:
-        """Fetches a game and all players in the game."""
-        session = Session(self.engine)
-        try:
-            if game_id is None:
-                game = session.query(model.Game).order_by(model.Game.game_id.desc()).first()
-            else:
-                game = session.query(model.Game).filter_by(game_id=game_id).first()
-            if not game:
-                await ctx.send(f"No game found.")
-                return
-
-            players = game.game_players
-            player_info = "\n".join([f"Player {gp.player.name if gp.player.name else "Unknown"}: {gp.faction} - Points: {gp.points}, Rank: {gp.rank}" for gp in players])
-
-            await ctx.send(f"Game ID: {game.game_id}\nState: {game.game_state.value}\nPlayers:\n{player_info}")
-        except Exception as e:
-            logging.error(f"Error fetching game data: {e}")
-            await ctx.send("An error occurred while fetching the game data.")
+        await ctx.send(self.logic.games())
 
     @commands.command()
     async def lobby(self, ctx: commands.Context, *, name: Optional[str]) -> None:
         """Create a lobby."""
-        with Session(self.engine) as session:
-            await ctx.send(gamelogic.lobby(session, ctx.author.id, ctx.author.name, name))
+        await ctx.send(self.logic.lobby(ctx.author.id, ctx.author.name, name))
 
     @commands.command()
     async def lobbies(self, ctx: commands.Context) -> None:
         """Show all open lobbies."""
-        with Session(self.engine) as session:
-            await ctx.send(gamelogic.lobbies(session))
+        await ctx.send(self.logic.lobbies())
     
 
     @commands.command()
     async def leave(self, ctx: commands.Context, game_id: Optional[int]) -> None:
         """Leave a lobby."""
         id = ctx.author.id
-        with Session(self.engine) as session:
-            await ctx.send(gamelogic.leave(session, id, game_id))
+        await ctx.send(self.logic.leave(game_id, id))
 
 
     @commands.command()
@@ -118,11 +87,9 @@ class Game(commands.Cog):
         """Join a lobby."""
         id = ctx.author.id
         name = ctx.author.name
-        with Session(self.engine) as session:
-            await ctx.send(gamelogic.join(session, id, name, game_id))
+        await ctx.send(self.logic.join(game_id, id, name))
 
     @commands.command()
     async def config(self, ctx: commands.Context, game_id: Optional[int], property: Optional[str], value: Optional[str]) -> None:
         """Configure a lobby."""
-        with Session(self.engine) as session:
-            await ctx.send(gamelogic.config(session, game_id, property, value))
+        await ctx.send(self.logic.config(game_id, property, value))
