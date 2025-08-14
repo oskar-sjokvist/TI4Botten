@@ -8,12 +8,13 @@ from pathlib import Path
 from typing import List, Optional, Dict, Set
 
 class Faction:
-    def __init__(self, name: str, source: str) -> None:
+    def __init__(self, name: str, source: str, short_lore) -> None:
         self.name: str = name
         self.source: str = source
+        self.short_lore: str = short_lore
 
     def __str__(self) -> str:
-        return f"{self.name} ({self.source})"
+        return f"{self.name} ({self.source}) {self.short_lore}"
 
 
 class Factions:
@@ -73,7 +74,7 @@ class Factions:
             return []
 
 
-def read_factions(file_path: str = 'data/TI4_Factions_with_Discordant_Stars.csv') -> Factions:
+def read_factions(file_path: str = 'data/ti4_factions.csv') -> Factions:
     here = Path(__file__).parent
 
     factions: List[Faction] = []
@@ -81,8 +82,9 @@ def read_factions(file_path: str = 'data/TI4_Factions_with_Discordant_Stars.csv'
         reader = csv.reader(csvfile, delimiter=',')
         next(reader)  # Skip header row
         for row in reader:
-            if len(row) >= 2:  # Ensure there are at least two columns
+            if len(row) >= 3:  # Ensure there are at least two columns
                 name: str = row[0].strip()
                 source: str = row[1].strip()
-                factions.append(Faction(name, source))
+                short_lore: str = row[2].strip()
+                factions.append(Faction(name, source,short_lore))
     return Factions(factions)

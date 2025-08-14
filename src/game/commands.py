@@ -1,4 +1,5 @@
 import logging
+import Levenshtein
 
 from . import gamelogic
 from . import factions
@@ -35,6 +36,11 @@ class Game(commands.Cog):
             return
         await ctx.send(f"Here are {number} random factions:\n{'\n'.join(random_factions)}")
 
+    @commands.command()
+    async def faction(self, ctx: commands.Context, faction: str) -> None:
+        """Returns info about the given faction."""
+        best = max(self.factions.factions, key=lambda c: Levenshtein.ratio(faction, c.name))
+        await ctx.send(str(best))
 
 
     @commands.command()
