@@ -4,10 +4,10 @@ from src.game.factions import Faction, Factions
 @pytest.fixture
 def sample_factions():
     return Factions([
-        Faction("FactionA", "Base"),
-        Faction("FactionB", "Expansion"),
-        Faction("FactionC", "Base"),
-        Faction("FactionD", "Expansion"),
+        Faction("FactionA", "Base", ""),
+        Faction("FactionB", "Expansion", ""),
+        Faction("FactionC", "Base", ""),
+        Faction("FactionD", "Expansion", ""),
     ])
 
 
