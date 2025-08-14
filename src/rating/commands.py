@@ -19,5 +19,10 @@ class Rating(commands.Cog):
 
     @commands.command()
     async def stats(self, ctx: commands.Context) -> None:
-        """Returns everyone's stats."""
+        """Returns stats for you."""
+        await ctx.send(self.logic.stats(ctx.author.id))
+
+    @commands.command()
+    async def leaderboard(self, ctx: commands.Context) -> None:
+        """Returns leaderboard."""
         await ctx.send(self.logic.ratings())

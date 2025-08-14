@@ -1,4 +1,3 @@
-import enum
 from datetime import datetime
 
 from sqlalchemy import ForeignKey, DateTime, Enum, Float, String, Integer

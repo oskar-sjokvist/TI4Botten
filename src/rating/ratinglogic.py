@@ -1,10 +1,12 @@
+import logging
+
 from . import model as model
 from ..game import model as game_model
 
 from blinker import signal
 from collections import defaultdict
 from itertools import combinations
-from sqlalchemy import Engine, select
+from sqlalchemy import Engine, select, func
 from sqlalchemy.orm import Session
 from typing import Tuple
 
@@ -38,7 +40,8 @@ class RatingLogic:
         deltas = defaultdict(list)
         for p1, p2 in combinations(game.game_players, 2):
             a = session.execute(
-                select(model.MatchPlayer).filter_by(player_id=p1.player_id)
+                select(model.MatchPlayer)
+                .filter_by(player_id=p1.player_id)
             ).scalar()
             if not a:
                 a = model.MatchPlayer(player_id=p1.player_id, name=p1.player.name)
@@ -46,7 +49,8 @@ class RatingLogic:
                 session.flush()
             
             b = session.execute(
-                select(model.MatchPlayer).filter_by(player_id=p2.player_id)
+                select(model.MatchPlayer)
+                .filter_by(player_id=p2.player_id)
             ).scalar()
             if not b:
                 b = model.MatchPlayer(player_id=p2.player_id, name=p2.player.name)
@@ -69,12 +73,16 @@ class RatingLogic:
             return
 
         for player in game.game_players:
-            outcome = session.execute(select(model.OutcomeLedger).filter_by(game_id=game.game_id, player_id=player.player_id)).scalar()
+            outcome = session.execute(
+                select(model.OutcomeLedger)
+                .filter_by(game_id=game.game_id, player_id=player.player_id)
+            ).scalar()
             if outcome is not None:
                 # Already processed this before
                 continue
             p = session.execute(
-                select(model.MatchPlayer).filter_by(player_id=player.player_id)
+                select(model.MatchPlayer)
+                .filter_by(player_id=player.player_id)
             ).scalar()
             if not p:
                 p = model.MatchPlayer(player_id=player.player_id, name=player.player.name)
@@ -98,7 +106,11 @@ class RatingLogic:
 
     def _refresh_ratings(self):
         with Session(self.engine) as session:
-            stmt = select(game_model.Game).filter_by(game_state=game_model.GameState.FINISHED).order_by(game_model.Game.game_finish_time.asc())
+            stmt = (
+                select(game_model.Game)
+                .filter_by(game_state=game_model.GameState.FINISHED)
+                .order_by(game_model.Game.game_finish_time.asc())
+            )
             games = session.execute(stmt).scalars().all()
 
 
@@ -107,14 +119,65 @@ class RatingLogic:
                 session.commit()
 
 
+    def stats(self, player_id: int) -> str:
+        """Retrieve the ratings for all players"""
+        try:
+            with Session(self.engine) as session:
+                # Find player info
+                mp = session.get(model.MatchPlayer, player_id)
+                if not mp:
+                    mp = session.merge(model.MatchPlayer(player_id=player_id))
+                    session.commit()
+
+                pp = session.execute(
+                    select(game_model.GamePlayer.faction, func.count("*"))
+                    .group_by(game_model.GamePlayer.faction).filter_by(player_id=player_id)
+                    .filter(game_model.GamePlayer.game.has(game_state=game_model.GameState.FINISHED))
+                ).all()
+
+                lines = [
+                    f"Your stats are",
+                    f"Elo rating {mp.rating}",
+                    f"Your favorite factions are"
+                ]
+                lines.extend([f"{p.faction} (played {p.count} time(s))" for p in pp[:3]])
+                pp = session.execute(
+                    select(func.sum(game_model.GamePlayer.points)/func.count("*"))
+                    .filter_by(player_id=player_id)
+                    .filter(game_model.GamePlayer.game.has(game_state=game_model.GameState.FINISHED))
+                ).scalar()
+                lines.append(f"Average points per game: {pp:.2f}")
+                sq = (
+                    select(game_model.GamePlayer.game_id, func.max(game_model.GamePlayer.points).label("max_points"))
+                    .group_by(game_model.GamePlayer.game_id)
+                    .filter(game_model.GamePlayer.game.has(game_state=game_model.GameState.FINISHED))
+                    .subquery()
+                )
+                stmt = (
+                    select(func.count("*")).select_from(game_model.GamePlayer)
+                    .filter_by(player_id=player_id)
+                    .join(sq, (sq.c.game_id == game_model.GamePlayer.game_id) & (sq.c.max_points == game_model.GamePlayer.points))
+                )
+
+                wins = session.execute(stmt).scalar()
+                lines.append(f"With {wins} wins")
+                
+                return "\n".join(lines)
+        except Exception as e:
+            logging.error(f"stats: {e}")
+            return "Something went wrong."
 
     def ratings(self) -> str:
         """Retrieve the ratings for all players"""
-        with Session(self.engine) as session:
-            # Find all players.
-            players = session.execute(
-                select(model.MatchPlayer).order_by(model.MatchPlayer.rating.desc())
-            ).scalars().all()
-            if not players:
-                return "No players found."
-            return "\n".join([f"{i+1}. {player.name}: rating {player.rating:.2f}" for i, player in enumerate(players)])
+        try:
+            with Session(self.engine) as session:
+                # Find all players.
+                players = session.execute(
+                    select(model.MatchPlayer).order_by(model.MatchPlayer.rating.desc())
+                ).scalars().all()
+                if not players:
+                    return "No players found."
+                return "\n".join([f"{i+1}. {player.name}: rating {player.rating:.2f}" for i, player in enumerate(players)])
+        except Exception as e:
+            logging.error(f"ratings: {e}")
+            return "Something went wrong."
