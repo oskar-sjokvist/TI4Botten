@@ -138,15 +138,13 @@ class RatingLogic:
                 lines = [
                     f"Your stats are",
                     f"Elo rating {mp.rating}",
-                    f"Your favorite factions are"
                 ]
-                lines.extend([f"{p.faction} (played {p.count} time(s))" for p in pp[:3]])
-                pp = session.execute(
-                    select(func.sum(game_model.GamePlayer.points)/func.count("*"))
+                games = session.execute(
+                    select(func.count("*")).select_from(game_model.GamePlayer)
                     .filter_by(player_id=player_id)
                     .filter(game_model.GamePlayer.game.has(game_state=game_model.GameState.FINISHED))
                 ).scalar()
-                lines.append(f"Average points per game: {pp:.2f}")
+                lines.append(f"You have played {games} games")
                 sq = (
                     select(game_model.GamePlayer.game_id, func.max(game_model.GamePlayer.points).label("max_points"))
                     .group_by(game_model.GamePlayer.game_id)
@@ -161,6 +159,14 @@ class RatingLogic:
 
                 wins = session.execute(stmt).scalar()
                 lines.append(f"With {wins} wins")
+                lines.append(f"Your favorite factions are")
+                lines.extend([f"{p.faction} (played {p.count} time(s))" for p in pp[:3]])
+                pp = session.execute(
+                    select(func.sum(game_model.GamePlayer.points)/func.count("*"))
+                    .filter_by(player_id=player_id)
+                    .filter(game_model.GamePlayer.game.has(game_state=game_model.GameState.FINISHED))
+                ).scalar()
+                lines.append(f"Average points per game: {pp:.2f}")
                 
                 return "\n".join(lines)
         except Exception as e:
