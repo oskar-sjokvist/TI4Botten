@@ -278,6 +278,40 @@ Living rules reference (Prophecy of Kings)
                 logging.error(f"Error fetching game data: {e}")
                 return "An error occurred while fetching the game data."
 
+    def game(self, game_id: Optional[int]) -> str:
+        with Session(self.engine) as session:
+            try:
+                if game_id is None:
+                    game = session.query(model.Game).order_by(model.Game.game_id.desc()).first()
+                else:
+                    game = session.query(model.Game).filter_by(game_id=game_id).first()
+                if not game:
+                    return f"No game found."
+
+                lines = [
+                    f"{game.name} #{game.game_id}",
+                    f"Game state: {game.game_state.value}",
+                ]
+
+                players = game.game_players
+                if players:
+                    lines.append("")
+                    lines.append("Players:")
+                    for player in players:
+                        s = player.player.name if player.player.name else "Unknown"
+                        if player.faction:
+                            s += f" Faction: {player.faction}"
+                        if player.points:
+                            s += f" Points: {player.points}"
+                    lines.append(s)
+                lines.append("")
+
+                lines.append(self.config(game.game_id, "get", None))
+                return "\n".join(lines)
+            except Exception as e:
+                logging.error(f"!game error: {e}")
+                return "An error occurred while fetching the game data."
+
 
     def lobbies(self) -> str:
         with Session(self.engine) as session:
@@ -389,10 +423,10 @@ Living rules reference (Prophecy of Kings)
 
 
 
-    def games(self) -> str:
+    def games(self, game_limit: 5) -> str:
         with Session(self.engine) as session:
             try:
-                games = session.query(model.Game).order_by(model.Game.game_id.desc()).filter_by(game_state=model.GameState.FINISHED).limit(5).all()
+                games = session.query(model.Game).order_by(model.Game.game_id.desc()).filter_by(game_state=model.GameState.FINISHED).limit(game_limit).all()
                 if not games:
                     return f"No games found."
                 lines = []
@@ -415,9 +449,6 @@ Living rules reference (Prophecy of Kings)
                     game = session.query(model.Game).filter_by(game_id=game_id).first()
                 if not game:
                     return "No lobby found."
-                
-                if game.game_state != model.GameState.LOBBY:
-                    return "Game is not in lobby."
 
                 def get_valid_values(dtype):
                     if isinstance(dtype, Enum):
@@ -440,7 +471,7 @@ Living rules reference (Prophecy of Kings)
                 if property == "get":
                     game_settings = session.query(model.GameSettings).filter_by(game_id=game.game_id).first()
 
-                    ret = "Current settings:\n"
+                    ret = "Settings:\n"
                     for key in valid_keys.keys():
                         ret += f"* {key}: {str(getattr(game_settings, key))}\n"
                     return ret
@@ -451,6 +482,9 @@ Living rules reference (Prophecy of Kings)
                         for data in get_valid_values(dtype):
                             ret += f"\t{data}\n"
                     return ret
+
+                if game.game_state != model.GameState.LOBBY:
+                    return "Game is not in lobby."
 
                 valid_properties = valid_keys.keys()
                 best_prop = self._closest_match(property, valid_properties)

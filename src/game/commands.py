@@ -42,6 +42,7 @@ class Game(commands.Cog):
         is_admin = ctx.author.guild_permissions.administrator
         await ctx.send(self.logic.finish(is_admin , game_id, points))
 
+
     @commands.command()
     async def draft(self, ctx: commands.Context, game_id: Optional[int] = None, *, faction: Optional[str] = None) -> None:
         """Draft your faction."""
@@ -61,9 +62,14 @@ class Game(commands.Cog):
         await ctx.send(self.logic.cancel(game_id))
 
     @commands.command()
+    async def game(self, ctx: commands.Context, game_id: Optional[int]) -> None:
+        """Fetch game info"""
+        await ctx.send(self.logic.game(game_id))
+
+    @commands.command()
     async def games(self, ctx: commands.Context) -> None:
         """Fetches 5 latest games."""
-        await ctx.send(self.logic.games())
+        await ctx.send(self.logic.games(5))
 
     @commands.command()
     async def lobby(self, ctx: commands.Context, *, name: Optional[str]) -> None:
