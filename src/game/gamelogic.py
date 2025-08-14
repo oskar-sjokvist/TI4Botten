@@ -423,7 +423,7 @@ Living rules reference (Prophecy of Kings)
 
 
 
-    def games(self, game_limit: 5) -> str:
+    def games(self, game_limit: int = 5) -> str:
         with Session(self.engine) as session:
             try:
                 games = session.query(model.Game).order_by(model.Game.game_id.desc()).filter_by(game_state=model.GameState.FINISHED).limit(game_limit).all()
