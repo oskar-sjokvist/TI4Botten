@@ -105,7 +105,7 @@ Living rules reference (Prophecy of Kings)
     ) -> Result[str]:
         with Session(self.engine) as session:
             try:
-                game = session.query(model.Game).get(game_id)
+                game = session.get(model.Game, game_id)
                 if not game:
                     return Err("Game not found.")
                 if is_admin and game.game_state == model.GameState.FINISHED:
@@ -148,7 +148,7 @@ Living rules reference (Prophecy of Kings)
     ) -> Optional[str]:
         try:
             with Session(self.engine) as session:
-                game = session.query(model.Game).get(game_id)
+                game = session.get(model.Game, game_id)
                 if not game:
                     return "No game found."
 
@@ -175,7 +175,7 @@ Living rules reference (Prophecy of Kings)
     ) -> str:
         try:
             with Session(self.engine) as session:
-                game = session.query(model.Game).get(game_id)
+                game = session.get(model.Game, game_id)
                 if not game:
                     return "No game found."
                 if game.game_state != model.GameState.DRAFT:
