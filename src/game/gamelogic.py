@@ -90,7 +90,7 @@ Living rules reference (Prophecy of Kings)
                 game = session.query(model.Game).filter_by(game_id=game_id).first()
                 if not game:
                     return Err("Game not found.")
-                # if is_admin and game.game_state == model.GameState.FINISHED:
+                if is_admin and game.game_state == model.GameState.FINISHED:
                     # Admins can update finished games.
                     pass
                 elif game.game_state != model.GameState.STARTED:
@@ -100,7 +100,7 @@ Living rules reference (Prophecy of Kings)
                 lines = [p.player.name for p in players]
 
                 if not all_points:
-                    return Err(f"Players\n{"\n".join(lines)}\n\nSpecify the points based on the player order. E.g. !finish game_id 2 10")
+                    return Err(f"Players\n{"\n".join(lines)}\n\nSpecify the points based on the player order. E.g. !finish 2 10 to give player A 2 points and player B 10 points")
                 for player, points in zip(players, self._parse_ints(all_points)):
                     player.points = points
 
