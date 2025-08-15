@@ -44,7 +44,7 @@ class BettingLogic:
             bettors = session.execute(stmt).scalars().all()
             winner = (
                 session.query(game_model.GamePlayer)
-                .with_parent(game)
+                .where(with_parent(game))
                 .order_by(game_model.GamePlayer.points.desc())
                 .first()
             )

@@ -6,6 +6,7 @@ import re
 from . import factions as fs
 from . import model
 from . import draftingmodes
+from . import controller
 
 from ..typing import *
 
@@ -23,6 +24,7 @@ class GameLogic:
     def __init__(self, engine):
         self.engine = engine
         self.signal = signal("finish")
+        self.controller = controller.GameController()
 
     __game_start_quotes = [
         "'In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.'\n-$player",
@@ -42,6 +44,19 @@ class GameLogic:
         "The war for Mecatol Rex has ended — but the scars of $loser will never fade.",
     ]
 
+    @staticmethod
+    def __game_start_quote(player_name: str) -> str:
+        return Template(random.choice(GameLogic.__game_start_quotes)).safe_substitute(
+            player=player_name
+        )
+
+    @staticmethod
+    def __game_end_quote(winner: str, loser: str) -> str:
+        return Template(random.choice(GameLogic.__game_end_quotes)).safe_substitute(
+            winner=winner, loser=loser
+        )
+
+
     _introduction = """These are some resources that can be useful for your game
 - https://www.youtube.com/watch?v=_u2xEap5hBM (Twilight Imperium 4th edition in 32 minutes)
 - https://www.youtube.com/watch?v=gdpW4FBCUuo (Common Twilight Imperium Rules Mistakes 1)
@@ -52,48 +67,6 @@ Learn to play compressed
 
 Living rules reference (Prophecy of Kings)
 - https://images-cdn.fantasyflightgames.com/filer_public/51/55/51552c7f-c05c-445b-84bf-4b073456d008/ti10_pok_living_rules_reference_20_web.pdf"""
-
-    def _players_ordered_by_turn(
-        self, session: Session, game: model.Game
-    ) -> List[model.GamePlayer]:
-        return (
-            session.query(model.GamePlayer)
-            .with_parent(game)
-            .order_by(model.GamePlayer.turn_order.asc())
-            .all()
-        )
-
-    def _players_ordered_by_points(
-        self, session: Session, game: model.Game
-    ) -> List[model.GamePlayer]:
-        return (
-            session.query(model.GamePlayer)
-            .with_parent(game)
-            .order_by(model.GamePlayer.points.desc())
-            .all()
-        )
-
-    def _winner(self, session: Session, game: model.Game) -> model.GamePlayer:
-        winner = (
-            session.query(model.GamePlayer)
-            .with_parent(game)
-            .order_by(model.GamePlayer.points.desc())
-            .first()
-        )
-        if winner is None:
-            raise LookupError("Winner not found for this game!")
-        return winner
-
-    def _current_drafter(self, session: Session, game: model.Game) -> model.GamePlayer:
-        current_drafter = (
-            session.query(model.GamePlayer)
-            .with_parent(game)
-            .filter_by(turn_order=game.turn)
-            .first()
-        )
-        if current_drafter is None:
-            raise LookupError("Current drafter not found for this game!")
-        return current_drafter
 
     @staticmethod
     def _parse_ints(s):
@@ -109,12 +82,30 @@ Living rules reference (Prophecy of Kings)
             return None
         return best
 
+    def __finish_game(self, session: Session, game: model.Game) -> None:
+        game.game_state = model.GameState.FINISHED
+        game.game_finish_time = datetime.now()
+        session.merge(game)
+
+    def __end_game_message(self, game: model.Game, players: List[model.GamePlayer]) -> str:
+        lines = [
+            f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)"
+            for i, p in enumerate(players)
+        ]
+        msg = (
+            f"Game '{game.name}' has finished\n\n"
+            f"Players:\n{"\n".join(lines)}\n\n"
+            f"{self.__game_end_quote(players[0].player.name, players[-1].player.name)}\n\n"
+            "Wrong result? Rerun the !finish command."
+        )
+        return "\n".join(lines) + msg
+
     def finish(
         self, is_admin: bool, game_id: int, all_points: Optional[str]
     ) -> Result[str]:
         with Session(self.engine) as session:
             try:
-                game = session.query(model.Game).filter_by(game_id=game_id).first()
+                game = session.query(model.Game).get(game_id)
                 if not game:
                     return Err("Game not found.")
                 if is_admin and game.game_state == model.GameState.FINISHED:
@@ -125,7 +116,7 @@ Living rules reference (Prophecy of Kings)
                         f"Can't finish game. Game is in {game.game_state.value} state."
                     )
 
-                players = self._players_ordered_by_turn(session, game)
+                players = self.controller.players_ordered_by_turn(session, game)
                 lines = [p.player.name for p in players]
 
                 if not all_points:
@@ -134,53 +125,35 @@ Living rules reference (Prophecy of Kings)
                         "Specify the points based on the player order. "
                         "E.g. !finish 2 10 to give player A 2 points and player B 10 points"
                     )
+
                 for player, points in zip(players, self._parse_ints(all_points)):
                     player.points = points
-
                 session.add_all(players)
-                game.game_state = model.GameState.FINISHED
-                game.game_finish_time = datetime.now()
-                session.merge(game)
+
+                self.__finish_game(session, game)
+                players = self.controller.players_ordered_by_points(session, game)
+                msg = self.__end_game_message(game, players)
                 session.commit()
 
-                players = self._players_ordered_by_points(session, game)
-                lines = [
-                    f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)"
-                    for i, p in enumerate(players)
-                ]
-
                 self.signal.send(None, game_id=game.game_id)
-
                 return Ok(
-                    f"Game '{game.name}' has finished\n\n"
-                    f"Players:\n{"\n".join(lines)}\n\n"
-                    f"{self.__game_end_quote(players[0].player.name, players[-1].player.name)}\n\n"
-                    "Wrong result? Rerun the !finish command."
+                    msg
                 )
             except Exception as e:
                 logging.error(f"Can't finish game: {e}")
                 return Err("Can't finish game. Something went wrong.")
-
-    @staticmethod
-    def __game_start_quote(player_name: str) -> str:
-        return Template(random.choice(GameLogic.__game_start_quotes)).safe_substitute(
-            player=player_name
-        )
-
-    @staticmethod
-    def __game_end_quote(winner: str, loser: str) -> str:
-        return Template(random.choice(GameLogic.__game_end_quotes)).safe_substitute(
-            winner=winner, loser=loser
-        )
 
     async def ban(
         self, player_id: int, game_id: int, faction: Optional[str] = None
     ) -> Optional[str]:
         try:
             with Session(self.engine) as session:
-                game = session.query(model.Game).filter_by(game_id=game_id).first()
+                game = session.query(model.Game).get(game_id)
                 if not game:
                     return "No game found."
+
+                if game.game_state != model.GameState.BAN:
+                    return "Game is not in ban stage."
 
                 player = (
                     session.query(model.GamePlayer)
@@ -188,9 +161,9 @@ Living rules reference (Prophecy of Kings)
                     .filter_by(player_id=player_id)
                     .first()
                 )
-
                 if not player:
                     return "You are not in this game!"
+
                 return draftingmodes.GameMode.create(game).ban(session, player, faction)
 
         except Exception as e:
@@ -202,7 +175,7 @@ Living rules reference (Prophecy of Kings)
     ) -> str:
         try:
             with Session(self.engine) as session:
-                game = session.query(model.Game).filter_by(game_id=game_id).first()
+                game = session.query(model.Game).get(game_id)
                 if not game:
                     return "No game found."
                 if game.game_state != model.GameState.DRAFT:
@@ -211,8 +184,7 @@ Living rules reference (Prophecy of Kings)
                 player = (
                     session.query(model.GamePlayer)
                     .with_parent(game)
-                    .filter_by(player_id=player_id)
-                    .first()
+                    .get(player_id)
                 )
 
                 if not player:
@@ -383,8 +355,7 @@ Living rules reference (Prophecy of Kings)
                 gp = (
                     session.query(model.GamePlayer)
                     .with_parent(game)
-                    .filter(model.GamePlayer.player_id == player_id)
-                    .first()
+                    .get(player_id)
                 )
 
                 if gp is None:
@@ -416,8 +387,7 @@ Living rules reference (Prophecy of Kings)
                 gp = (
                     session.query(model.GamePlayer)
                     .with_parent(game)
-                    .filter(model.GamePlayer.player_id == player_id)
-                    .first()
+                    .get(player_id)
                 )
                 if gp is not None:
                     return Err("You are already in this lobby!")
@@ -450,7 +420,7 @@ Living rules reference (Prophecy of Kings)
             try:
                 games = (
                     session.query(model.Game)
-                    .order_by(model.Game.game_id.desc())
+                    .order_by(model.Game.game_finish_time.desc())
                     .filter_by(game_state=model.GameState.FINISHED)
                     .limit(game_limit)
                     .all()
@@ -459,7 +429,7 @@ Living rules reference (Prophecy of Kings)
                     return Err(f"No games found.")
                 lines = []
                 for game in games:
-                    winner = self._winner(session, game)
+                    winner = self.controller.winner(session, game)
                     lines.append(
                         f"{game.name}. Winner {f"{winner.player.name} ({winner.faction})" if winner else "Unknown"}"
                     )

@@ -334,12 +334,10 @@ class PicksAndBans(GameMode):
             for banned in gameplayer.bans
             if gameplayer.bans
         ]
-        if not faction or self.game.game_state != model.GameState.BAN:
+        if not faction:
             lines = list()
             if self.game.game_state == model.GameState.BAN:
                 lines.append(f"It is {current_drafter.player.name}'s turn to ban.")
-            else:
-                lines.append("This game is not in banning phase.")
             if all_bans:
                 lines.append("These factions are banned:")
                 lines.extend([f"* {f}" for f in all_bans])
