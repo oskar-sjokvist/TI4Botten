@@ -24,14 +24,14 @@ class GameLogic:
         self.engine = engine
         self.signal = signal("finish")
 
-    _game_start_quotes = [
+    __game_start_quotes = [
         "'In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.'\n-$player",
         "'The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.'\n-$player",
         "'Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.'\n-$player",
         "'Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.'\n-$player",
     ]
 
-    _game_end_quotes = [
+    __game_end_quotes = [
         "The galaxy falls silent. The throne is claimed by $winner, and a new era begins.",
         "From the ruins of war, a ruler emerges. $winner's will shall shape the stars.",
         "The council is dissolved. All voices bow to $winner — the new master of Mecatol Rex.",
@@ -130,7 +130,9 @@ Living rules reference (Prophecy of Kings)
 
                 if not all_points:
                     return Err(
-                        f"Players\n{"\n".join(lines)}\n\nSpecify the points based on the player order. E.g. !finish 2 10 to give player A 2 points and player B 10 points"
+                        f"Players\n{"\n".join(lines)}\n\n"
+                        "Specify the points based on the player order. "
+                        "E.g. !finish 2 10 to give player A 2 points and player B 10 points"
                     )
                 for player, points in zip(players, self._parse_ints(all_points)):
                     player.points = points
@@ -150,21 +152,24 @@ Living rules reference (Prophecy of Kings)
                 self.signal.send(None, game_id=game.game_id)
 
                 return Ok(
-                    f"Game '{game.name}' has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{self._game_end_quote(players[0].player.name, players[-1].player.name)}\n\nWrong result? Rerun the !finish command."
+                    f"Game '{game.name}' has finished\n\n"
+                    f"Players:\n{"\n".join(lines)}\n\n"
+                    f"{self.__game_end_quote(players[0].player.name, players[-1].player.name)}\n\n"
+                    "Wrong result? Rerun the !finish command."
                 )
             except Exception as e:
                 logging.error(f"Can't finish game: {e}")
                 return Err("Can't finish game. Something went wrong.")
 
     @staticmethod
-    def _game_start_quote(player_name: str) -> str:
-        return Template(random.choice(GameLogic._game_start_quotes)).safe_substitute(
+    def __game_start_quote(player_name: str) -> str:
+        return Template(random.choice(GameLogic.__game_start_quotes)).safe_substitute(
             player=player_name
         )
 
     @staticmethod
-    def _game_end_quote(winner: str, loser: str) -> str:
-        return Template(random.choice(GameLogic._game_end_quotes)).safe_substitute(
+    def __game_end_quote(winner: str, loser: str) -> str:
+        return Template(random.choice(GameLogic.__game_end_quotes)).safe_substitute(
             winner=winner, loser=loser
         )
 
@@ -248,8 +253,10 @@ Living rules reference (Prophecy of Kings)
         game.game_state = model.GameState.STARTED
         session.merge(game)
         session.commit()
-        launch = f"Game '{game.name}' has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{GameLogic._game_start_quote(name)}\n\n{GameLogic._introduction}"
-        return launch
+        return (
+            f"Game '{game.name}' has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n"
+            f"{GameLogic.__game_start_quote(name)}\n\n{self._introduction}"
+        )
 
     def start(self, factions: fs.Factions, game_id: int) -> Result[str]:
         try:
@@ -430,7 +437,9 @@ Living rules reference (Prophecy of Kings)
                 session.add(game_player)
                 session.commit()
                 return Ok(
-                    f"{player_name} has joined lobby '{game.name}'. Current number of players {number_of_players+1}. Type !leave to leave the lobby."
+                    f"{player_name} has joined lobby '{game.name}'. "
+                    "Current number of players {number_of_players+1}. "
+                    "Type !leave to leave the lobby."
                 )
             except Exception as e:
                 logging.error(f"Error joining lobby: {e}")
