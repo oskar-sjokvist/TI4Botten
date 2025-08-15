@@ -204,7 +204,8 @@ class PicksOnly(GameMode):
 
         turn_order = random.sample(range(number_of_players), number_of_players)
 
-        fs = [faction.name for faction in factions.get_factions(",".join(sources))]
+        total_factions = self.game.game_settings.factions_per_player*number_of_players
+        fs = [faction.name for faction in factions.get_random_factions(total_factions, ",".join(sources))]
 
         player_from_turn = {}
         for i, player in enumerate(players):
@@ -299,7 +300,8 @@ class PicksAndBans(GameMode):
 
         turn_order = random.sample(range(number_of_players), number_of_players)
 
-        fs = [faction.name for faction in factions.get_factions(",".join(sources))]
+        total_factions = self.game.game_settings.factions_per_player*number_of_players
+        fs = [faction.name for faction in factions.get_random_factions(total_factions, ",".join(sources))]
 
         player_from_turn = {}
         for i, player in enumerate(players):

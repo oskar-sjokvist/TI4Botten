@@ -101,10 +101,7 @@ class Game(models.Base):
 
 class GameSettings(models.Base):
     __tablename__ = "game_settings"
-    game_settings_id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
-    game_id: Mapped[int] = mapped_column(ForeignKey("game.game_id"))
+    game_id: Mapped[int] = mapped_column(ForeignKey("game.game_id"), primary_key=True)
 
     drafting_mode: Mapped[DraftingMode] = mapped_column(
         "drafting_mode", Enum(DraftingMode), default=DraftingMode.EXCLUSIVE_POOL
