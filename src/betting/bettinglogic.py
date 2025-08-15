@@ -41,7 +41,7 @@ class BettingLogic:
                 return "Game is not yet finished! Can't pay anyone out."
 
             stmt = select(betting_model.GameBettor).filter_by(game_id=game.game_id)
-            bettors = session.scalars(stmt).scalars().all()
+            bettors = session.scalars(stmt).all()
             winner = (
                 session.query(game_model.GamePlayer)
                 .with_parent(game)
@@ -142,3 +142,5 @@ class BettingLogic:
                     session.merge(bettor)
                     session.commit()
                     return f"You placed a bet on {player.player.name} for {gm.bet} Jake coins to win this game."
+                    
+            return "Player not found."
