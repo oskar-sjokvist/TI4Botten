@@ -19,25 +19,20 @@ class GameMode:
         self.game = game
         self.controller = controller.GameController()
 
-    def _get_start_settings(self) -> Tuple[List[str], List[str]]:
+    def _get_faction_sources(self) ->  str:
         game = self.game
-        settings = []
         sources = []
         if game.game_settings.base_game:
-            settings.append("Base game active")
             sources.append("base")
         if game.game_settings.prophecy_of_kings:
-            settings.append("Prophecy of Kings active")
             sources.append("pok")
 
         if game.game_settings.discordant_stars:
-            settings.append("Discordant Stars active")
             sources.append("ds")
 
         if game.game_settings.codex:
-            settings.append("Codex faction active")
             sources.append("codex")
-        return settings, sources
+        return ",".join(sources)
 
     @classmethod
     def create(cls, game: model.Game) -> GameMode:
@@ -102,13 +97,12 @@ class ExclusivePool(GameMode):
 
     def start(self, session: Session, factions: fs.Factions) -> Result[str]:
 
-        settings, sources = self._get_start_settings()
         players = self.game.game_players
         number_of_players = len(players)
 
         factions_per_player = self.game.game_settings.factions_per_player
         fs = factions.get_random_factions(
-            number_of_players * factions_per_player, ",".join(sources)
+            number_of_players * factions_per_player, self._get_faction_sources()
         )
         if len(fs) < number_of_players * factions_per_player:
             return Err(
@@ -143,7 +137,7 @@ class ExclusivePool(GameMode):
         session.commit()
 
         lines = [
-            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"
+            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nFactions:\n{"\n".join(factions_lines)}"
         ]
 
         current_drafter = self.controller.current_drafter(session, self.game)
@@ -197,15 +191,13 @@ class PicksOnly(GameMode):
         return "\n".join(lines)
 
     def start(self, session: Session, factions: fs.Factions) -> Result[str]:
-
-        settings, sources = self._get_start_settings()
         players = self.game.game_players
         number_of_players = len(players)
 
         turn_order = random.sample(range(number_of_players), number_of_players)
 
         total_factions = self.game.game_settings.factions_per_player*number_of_players
-        fs = [faction.name for faction in factions.get_random_factions(total_factions, ",".join(sources))]
+        fs = [faction.name for faction in factions.get_random_factions(total_factions, self._get_faction_sources())]
 
         player_from_turn = {}
         for i, player in enumerate(players):
@@ -223,7 +215,7 @@ class PicksOnly(GameMode):
         session.commit()
 
         lines = [
-            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"
+            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\n"
         ]
 
         lines.append("Available factions are:")
@@ -296,14 +288,13 @@ class PicksAndBans(GameMode):
         return "\n".join(lines)
 
     def start(self, session: Session, factions: fs.Factions) -> Result[str]:
-        settings, sources = self._get_start_settings()
         players = self.game.game_players
         number_of_players = len(players)
 
         turn_order = random.sample(range(number_of_players), number_of_players)
 
         total_factions = self.game.game_settings.factions_per_player*number_of_players
-        fs = [faction.name for faction in factions.get_random_factions(total_factions, ",".join(sources))]
+        fs = [faction.name for faction in factions.get_random_factions(total_factions, self._get_faction_sources())]
 
         player_from_turn = {}
         for i, player in enumerate(players):
@@ -321,7 +312,7 @@ class PicksAndBans(GameMode):
         session.commit()
 
         lines = [
-            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"
+            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\n"
         ]
         lines.append("Available factions are:")
         lines.extend(fs)
