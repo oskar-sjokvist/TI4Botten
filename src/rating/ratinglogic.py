@@ -25,10 +25,11 @@ class RatingLogic:
 
     def update_rating(self, _, game_id: int):
         with Session(self.engine) as session:
-            stmt = select(game_model.Game).filter_by(
-                game_id=game_id, game_state=game_model.GameState.FINISHED
+            game = session.scalar(
+                select(game_model.Game).filter_by(
+                    game_id=game_id, game_state=game_model.GameState.FINISHED
+                )
             )
-            game = session.execute(stmt).scalar()
             if not game:
                 return
             self._update_game_rating(session, game)
@@ -43,17 +44,13 @@ class RatingLogic:
     def _update_game_rating(self, session, game):
         deltas = defaultdict(list)
         for p1, p2 in combinations(game.game_players, 2):
-            a = session.execute(
-                select(model.MatchPlayer).filter_by(player_id=p1.player_id)
-            ).scalar()
+            a = session.get(model.MatchPlayer, p1.player_id)
             if not a:
                 a = model.MatchPlayer(player_id=p1.player_id, name=p1.player.name)
                 session.add(a)
                 session.flush()
 
-            b = session.execute(
-                select(model.MatchPlayer).filter_by(player_id=p2.player_id)
-            ).scalar()
+            b = session.get(model.MatchPlayer, p2.player_id)
             if not b:
                 b = model.MatchPlayer(player_id=p2.player_id, name=p2.player.name)
                 session.add(b)
@@ -109,12 +106,11 @@ class RatingLogic:
 
     def _refresh_ratings(self):
         with Session(self.engine) as session:
-            stmt = (
+            games = session.scalars(
                 select(game_model.Game)
                 .filter_by(game_state=game_model.GameState.FINISHED)
                 .order_by(game_model.Game.game_finish_time.asc())
             )
-            games = session.execute(stmt).scalars().all()
 
             for game in games:
                 self._update_game_rating(session, game)
@@ -208,12 +204,11 @@ class RatingLogic:
             with Session(self.engine) as session:
                 # Find all players.
                 players = (
-                    session.execute(
+                    session.scalars(
                         select(model.MatchPlayer).order_by(
                             model.MatchPlayer.rating.desc()
                         )
                     )
-                    .scalars()
                     .all()
                 )
                 if not players:

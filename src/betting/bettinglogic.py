@@ -17,7 +17,7 @@ class BettingLogic:
     def _balance(session: Session, bettor: betting_model.Bettor) -> int:
         session.flush()
         stmt = select(betting_model.GameBettor).filter_by(bettor_id=bettor.bettor_id)
-        debts = session.execute(stmt).scalars().all()
+        debts = session.execute(stmt).all()
         total_debt = sum([debt.bet for debt in debts])
 
         return bettor.balance - total_debt
@@ -41,7 +41,7 @@ class BettingLogic:
                 return "Game is not yet finished! Can't pay anyone out."
 
             stmt = select(betting_model.GameBettor).filter_by(game_id=game.game_id)
-            bettors = session.execute(stmt).scalars().all()
+            bettors = session.scalars(stmt).scalars().all()
             winner = (
                 session.query(game_model.GamePlayer)
                 .with_parent(game)
@@ -89,8 +89,7 @@ class BettingLogic:
                 return "Game not found."
 
             if bet_amount is None and winner is None:
-                stmt = select(betting_model.GameBettor).filter_by(game_id=game.game_id)
-                bettors = session.execute(stmt).scalars().all()
+                bettors = session.scalars(select(betting_model.GameBettor).filter_by(game_id=game.game_id)).all()
                 lines = []
                 for game_bettor in bettors:
                     predicted_winner = session.get(
@@ -130,7 +129,7 @@ class BettingLogic:
                 return "Nice try"
 
             stmt = select(game_model.GamePlayer).filter_by(game_id=game.game_id)
-            players = session.execute(stmt).scalars().all()
+            players = session.scalars(stmt).all()
             for player in players:
                 if winner == player.player.name:
                     gm = betting_model.GameBettor(
