@@ -393,7 +393,7 @@ Living rules reference (Prophecy of Kings)
         game.game_state = model.GameState.STARTED
         session.merge(game)
         session.commit()
-        launch = f"Game '{game.name}' has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{GameLogic._game_start_quote(name)}\n{GameLogic._introduction}"
+        launch = f"Game '{game.name}' has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{GameLogic._game_start_quote(name)}\n\n{GameLogic._introduction}"
         return launch
 
     @staticmethod
