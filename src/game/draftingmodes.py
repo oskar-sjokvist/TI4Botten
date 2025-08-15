@@ -1,4 +1,5 @@
 from __future__ import annotations
+# TODO: Clean up code here, make it more DRY
 
 import random
 
@@ -55,7 +56,7 @@ class GameMode:
         return Err(f"Drafting mode {self.game.game_settings.drafting_mode} not supported at the moment")
 
     def ban(self, session: Session, player: model.GamePlayer, faction: Optional[str]) -> Optional[str]:
-        return Err(f"Drafting mode {self.game.game_settings.drafting_mode} does not support bans")
+        return f"Drafting mode {self.game.game_settings.drafting_mode} does not support bans"
 
 
 class ExclusivePool(GameMode):
@@ -91,13 +92,13 @@ class ExclusivePool(GameMode):
 
         return "\n".join(lines)
 
-    def start(self, session: Session, factions: fs.Factions, game: model.Game) -> Result[str]:
+    def start(self, session: Session, factions: fs.Factions) -> Result[str]:
 
         settings, sources = self.__get_start_settings()
-        players = game.game_players
+        players = self.game.game_players
         number_of_players = len(players)
 
-        factions_per_player = game.game_settings.factions_per_player
+        factions_per_player = self.game.segame_settings.factions_per_player
         fs = factions.get_random_factions(
             number_of_players * factions_per_player, ','.join(sources))
         if len(fs) < number_of_players * factions_per_player:
@@ -110,7 +111,7 @@ class ExclusivePool(GameMode):
         factions_lines = []
 
         player_from_turn = {}
-        for i, (player, player_factions) in enumerate(zip(game.game_players, faction_slices)):
+        for i, (player, player_factions) in enumerate(zip(self.game.game_players, faction_slices)):
             player.turn_order = turn_order[i]
             player_from_turn[player.turn_order] = player.player.name
             player.factions = list(player_factions)
@@ -123,14 +124,14 @@ class ExclusivePool(GameMode):
             name = player_from_turn[i]
             players_info_lines.append(f"{name}")
 
-        game.game_state = model.GameState.DRAFT
-        session.merge(game)
+        self.game.game_state = model.GameState.DRAFT
+        session.merge(self.game)
         session.commit()
 
         lines = [
-            f"State: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"]
+            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"]
 
-        current_drafter = self.controller.current_drafter(session, game)
+        current_drafter = self.controller.current_drafter(session, self.game)
 
         lines.append(
             f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
