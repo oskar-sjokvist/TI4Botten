@@ -13,22 +13,24 @@ from . import models
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
 
+
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
 
+
 class Bot(commands.Bot):
     def __init__(self, intents: discord.Intents) -> None:
-        engine = create_engine('sqlite:///app.db', echo=True)
+        engine = create_engine("sqlite:///app.db", echo=True)
 
         # Instantiate all the tables.
         models.Base.metadata.create_all(engine)
 
         # Pass engine to cogs that need it.
         self.init_cogs = [Game(engine), Misc(), Betting(engine), Rating(engine)]
-        
+
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self) -> None:

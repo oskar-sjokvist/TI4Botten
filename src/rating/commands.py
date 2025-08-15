@@ -5,12 +5,11 @@ from . import ratinglogic
 from discord.ext import commands
 from sqlalchemy import Engine
 
-from typing import Optional
 
 class Rating(commands.Cog):
     """Cog containing rating related commands."""
 
-    def __init__(self,  engine: Engine) -> None:
+    def __init__(self, engine: Engine) -> None:
         self.logic = ratinglogic.RatingLogic(engine)
 
     @commands.Cog.listener()
@@ -26,7 +25,6 @@ class Rating(commands.Cog):
     async def wins(self, ctx: commands.Context) -> None:
         """Returns wins leaderboard."""
         await ctx.send(self.logic.wins())
-
 
     @commands.command()
     async def leaderboard(self, ctx: commands.Context) -> None:

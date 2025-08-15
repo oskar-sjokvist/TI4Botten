@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # TODO: Clean up code here, make it more DRY
 
 import random
@@ -17,7 +18,6 @@ class GameMode:
     def __init__(self, game):
         self.game = game
         self.controller = controller.GameController()
-
 
     def _get_start_settings(self) -> Tuple[List[str], List[str]]:
         game = self.game
@@ -50,18 +50,26 @@ class GameMode:
                 return PicksAndBans(game)
         return GameMode(game)
 
-    def draft(self, session: Session, player: model.GamePlayer, faction: Optional[str]) -> Optional[str]:
+    def draft(
+        self, session: Session, player: model.GamePlayer, faction: Optional[str]
+    ) -> Optional[str]:
         return f"Mode {self.game.game_settings.drafting_mode} not implemented yet."
 
     def start(self, session: Session, factions: fs.Factions) -> Result[str]:
-        return Err(f"Drafting mode {self.game.game_settings.drafting_mode} not supported at the moment")
+        return Err(
+            f"Drafting mode {self.game.game_settings.drafting_mode} not supported at the moment"
+        )
 
-    def ban(self, session: Session, player: model.GamePlayer, faction: Optional[str]) -> Optional[str]:
+    def ban(
+        self, session: Session, player: model.GamePlayer, faction: Optional[str]
+    ) -> Optional[str]:
         return f"Drafting mode {self.game.game_settings.drafting_mode} does not support bans"
 
 
 class ExclusivePool(GameMode):
-    def draft(self, session: Session, player: model.GamePlayer, faction: Optional[str]) -> Optional[str]:
+    def draft(
+        self, session: Session, player: model.GamePlayer, faction: Optional[str]
+    ) -> Optional[str]:
         if player.faction:
             return f"You have drafted {player.faction}"
 
@@ -88,8 +96,7 @@ class ExclusivePool(GameMode):
             return None
         session.commit()
         current_drafter = self.controller.current_drafter(session, self.game)
-        lines.append(
-            f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
+        lines.append(f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
 
         return "\n".join(lines)
 
@@ -101,9 +108,12 @@ class ExclusivePool(GameMode):
 
         factions_per_player = self.game.game_settings.factions_per_player
         fs = factions.get_random_factions(
-            number_of_players * factions_per_player, ','.join(sources))
+            number_of_players * factions_per_player, ",".join(sources)
+        )
         if len(fs) < number_of_players * factions_per_player:
-            return Err(f"There are too many factions selected per player. Max allowed for a {number_of_players} player game is {len(fs)//number_of_players}.")
+            return Err(
+                f"There are too many factions selected per player. Max allowed for a {number_of_players} player game is {len(fs)//number_of_players}."
+            )
         fs = [faction.name for faction in fs]
 
         turn_order = random.sample(range(number_of_players), number_of_players)
@@ -112,12 +122,15 @@ class ExclusivePool(GameMode):
         factions_lines = []
 
         player_from_turn = {}
-        for i, (player, player_factions) in enumerate(zip(self.game.game_players, faction_slices)):
+        for i, (player, player_factions) in enumerate(
+            zip(self.game.game_players, faction_slices)
+        ):
             player.turn_order = turn_order[i]
             player_from_turn[player.turn_order] = player.player.name
             player.factions = list(player_factions)
             factions_lines.extend(
-                list(map(lambda x: f"{x} ({player.player.name})", player_factions)))
+                list(map(lambda x: f"{x} ({player.player.name})", player_factions))
+            )
             session.merge(player)
 
         players_info_lines = []
@@ -130,17 +143,19 @@ class ExclusivePool(GameMode):
         session.commit()
 
         lines = [
-            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"]
+            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"
+        ]
 
         current_drafter = self.controller.current_drafter(session, self.game)
 
-        lines.append(
-            f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
+        lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
         return Ok("\n".join(lines))
 
 
 class PicksOnly(GameMode):
-    def draft(self, session: Session, player: model.GamePlayer, faction: Optional[str]) -> Optional[str]:
+    def draft(
+        self, session: Session, player: model.GamePlayer, faction: Optional[str]
+    ) -> Optional[str]:
 
         if player.faction:
             return f"You have drafted {player.faction}"
@@ -161,7 +176,10 @@ class PicksOnly(GameMode):
         self.game.turn += 1
 
         other_players = [
-            other for other in self.game.game_players if other.player_id != player.player_id]
+            other
+            for other in self.game.game_players
+            if other.player_id != player.player_id
+        ]
         for other_player in other_players:
             other_player.factions.remove(player.faction)
             session.merge(other_player)
@@ -175,8 +193,7 @@ class PicksOnly(GameMode):
 
         current_drafter = self.controller.current_drafter(session, self.game)
 
-        lines.append(
-            f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
+        lines.append(f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
         return "\n".join(lines)
 
     def start(self, session: Session, factions: fs.Factions) -> Result[str]:
@@ -187,8 +204,7 @@ class PicksOnly(GameMode):
 
         turn_order = random.sample(range(number_of_players), number_of_players)
 
-        fs = [faction.name for faction in factions.get_factions(
-            ",".join(sources))]
+        fs = [faction.name for faction in factions.get_factions(",".join(sources))]
 
         player_from_turn = {}
         for i, player in enumerate(players):
@@ -206,16 +222,22 @@ class PicksOnly(GameMode):
         session.commit()
 
         lines = [
-            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"]
+            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"
+        ]
 
         current_drafter = self.controller.current_drafter(session, self.game)
-        lines.append(
-            f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
+        lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
         return Ok("\n".join(lines))
 
 
 class PicksAndBans(GameMode):
-    def draft(self, session: Session, game: model.Game, player: model.GamePlayer, faction: Optional[str]) -> Optional[str]:
+    def draft(
+        self,
+        session: Session,
+        game: model.Game,
+        player: model.GamePlayer,
+        faction: Optional[str],
+    ) -> Optional[str]:
 
         if player.faction:
             return f"You have drafted {player.faction}"
@@ -236,8 +258,7 @@ class PicksAndBans(GameMode):
         all_factions_available = player.factions.copy()
         all_factions_available.extend(all_bans)
 
-        best = gamelogic.GameLogic._closest_match(
-            faction, all_factions_available)
+        best = gamelogic.GameLogic._closest_match(faction, all_factions_available)
         if not best:
             return f"You can't draft faction {faction}. Check your spelling or available factions."
 
@@ -250,7 +271,8 @@ class PicksAndBans(GameMode):
         game.turn += 1
 
         other_players = [
-            other for other in game.game_players if other.player_id != player.player_id]
+            other for other in game.game_players if other.player_id != player.player_id
+        ]
         for other_player in other_players:
             # Somehow the typing doesn't work without the if-statement
             # Look into it later.
@@ -267,8 +289,7 @@ class PicksAndBans(GameMode):
 
         current_drafter = self.controller.current_drafter(session, game)
 
-        lines.append(
-            f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
+        lines.append(f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
         return "\n".join(lines)
 
     def start(self, session: Session, factions: fs.Factions) -> Result[str]:
@@ -278,8 +299,7 @@ class PicksAndBans(GameMode):
 
         turn_order = random.sample(range(number_of_players), number_of_players)
 
-        fs = [faction.name for faction in factions.get_factions(
-            ",".join(sources))]
+        fs = [faction.name for faction in factions.get_factions(",".join(sources))]
 
         player_from_turn = {}
         for i, player in enumerate(players):
@@ -297,22 +317,27 @@ class PicksAndBans(GameMode):
         session.commit()
 
         lines = [
-            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"]
+            f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"
+        ]
 
         current_drafter = self.controller.current_drafter(session, self.game)
-        lines.append(
-            f"<@{current_drafter.player_id}> begins banning. Use !ban.")
+        lines.append(f"<@{current_drafter.player_id}> begins banning. Use !ban.")
         return Ok("\n".join(lines))
 
-    def ban(self, session: Session, player: model.GamePlayer, faction: Optional[str]) -> Optional[str]:
+    def ban(
+        self, session: Session, player: model.GamePlayer, faction: Optional[str]
+    ) -> Optional[str]:
         current_drafter = self.controller.current_drafter(session, self.game)
         all_bans = [
-            banned for gameplayer in self.game.game_players for banned in gameplayer.bans if gameplayer.bans]
+            banned
+            for gameplayer in self.game.game_players
+            for banned in gameplayer.bans
+            if gameplayer.bans
+        ]
         if not faction or self.game.game_state != model.GameState.BAN:
             lines = list()
             if self.game.game_state == model.GameState.BAN:
-                lines.append(
-                    f"It is {current_drafter.player.name}'s turn to ban.")
+                lines.append(f"It is {current_drafter.player.name}'s turn to ban.")
             else:
                 lines.append("This game is not in banning phase.")
             if all_bans:
@@ -358,10 +383,12 @@ class PicksAndBans(GameMode):
             self.game.game_state = model.GameState.DRAFT
             lines.append("Banning is now complete!")
             lines.append(
-                f"Next one to draft is <@{current_drafter.player_id}>. Use !draft.")
+                f"Next one to draft is <@{current_drafter.player_id}>. Use !draft."
+            )
         else:
             lines.append(
-                f"Next one to ban is <@{current_drafter.player_id}>. Use !ban.")
+                f"Next one to ban is <@{current_drafter.player_id}>. Use !ban."
+            )
 
         session.merge(player)
         session.merge(self.game)

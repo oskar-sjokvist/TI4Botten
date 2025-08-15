@@ -7,10 +7,11 @@ from sqlalchemy import Engine
 
 from typing import Optional
 
+
 class Betting(commands.Cog):
     """Cog containing betting related commands."""
 
-    def __init__(self,  engine: Engine) -> None:
+    def __init__(self, engine: Engine) -> None:
         self.logic = bettinglogic.BettingLogic(engine)
 
     @commands.Cog.listener()
@@ -25,8 +26,14 @@ class Betting(commands.Cog):
     @commands.command()
     async def payout(self, ctx: commands.Context) -> None:
         await ctx.send(self.logic.payout(ctx.channel.id))
-            
+
     @commands.command()
-    async def bet(self, ctx: commands.Context, bet_amount: Optional[int], winner: Optional[str]) -> None:
+    async def bet(
+        self, ctx: commands.Context, bet_amount: Optional[int], winner: Optional[str]
+    ) -> None:
         """Places a bet on game_id, for bet amount on player id."""
-        await ctx.send(self.logic.bet(ctx.channel.id, bet_amount, winner, ctx.author.id, ctx.author.name))
+        await ctx.send(
+            self.logic.bet(
+                ctx.channel.id, bet_amount, winner, ctx.author.id, ctx.author.name
+            )
+        )

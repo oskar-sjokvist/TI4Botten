@@ -1,14 +1,17 @@
 import pytest
 from src.game.factions import Faction, Factions
 
+
 @pytest.fixture
 def sample_factions():
-    return Factions([
-        Faction("FactionA", "Base", ""),
-        Faction("FactionB", "Expansion", ""),
-        Faction("FactionC", "Base", ""),
-        Faction("FactionD", "Expansion", ""),
-    ])
+    return Factions(
+        [
+            Faction("FactionA", "Base", ""),
+            Faction("FactionB", "Expansion", ""),
+            Faction("FactionC", "Base", ""),
+            Faction("FactionD", "Expansion", ""),
+        ]
+    )
 
 
 def test_get_random_factions_count(sample_factions):

@@ -1,4 +1,3 @@
-
 from . import model as betting_model
 from ..game import model as game_model
 
@@ -11,23 +10,22 @@ from typing import Optional
 class BettingLogic:
     """Cog containing betting related commands."""
 
-    def __init__(self,  engine: Engine) -> None:
+    def __init__(self, engine: Engine) -> None:
         self.engine = engine
 
     @staticmethod
-    def _balance(session: Session,  bettor: betting_model.Bettor) -> int:
+    def _balance(session: Session, bettor: betting_model.Bettor) -> int:
         session.flush()
         stmt = select(betting_model.GameBettor).filter_by(bettor_id=bettor.bettor_id)
         debts = session.execute(stmt).scalars().all()
         total_debt = sum([debt.bet for debt in debts])
 
-        return bettor.balance-total_debt
-
+        return bettor.balance - total_debt
 
     def balance(self, id: int, name: str) -> str:
         """Returns bettor's current balance."""
         with Session(self.engine) as session:
-            bettor = session.get(betting_model.Bettor,id)
+            bettor = session.get(betting_model.Bettor, id)
             if not bettor:
                 bettor = betting_model.Bettor(bettor_id=id, name=name)
                 session.add(bettor)
@@ -44,7 +42,12 @@ class BettingLogic:
 
             stmt = select(betting_model.GameBettor).filter_by(game_id=game.game_id)
             bettors = session.execute(stmt).scalars().all()
-            winner = session.query(game_model.GamePlayer).with_parent(game).order_by(game_model.GamePlayer.points.desc()).first()
+            winner = (
+                session.query(game_model.GamePlayer)
+                .with_parent(game)
+                .order_by(game_model.GamePlayer.points.desc())
+                .first()
+            )
             if winner is None:
                 return "Something went wrong"
             lines = []
@@ -63,10 +66,16 @@ class BettingLogic:
                 session.delete(game_bettor)
 
             session.commit()
-            return"\n".join(lines)
-            
+            return "\n".join(lines)
 
-    def bet(self, game_id: int, bet_amount: Optional[int], winner: Optional[str], id: int, name: str) -> str:
+    def bet(
+        self,
+        game_id: int,
+        bet_amount: Optional[int],
+        winner: Optional[str],
+        id: int,
+        name: str,
+    ) -> str:
         """Places a bet on game_id, for bet amount on player id."""
         with Session(self.engine) as session:
             bettor = session.get(betting_model.Bettor, id)
@@ -84,17 +93,23 @@ class BettingLogic:
                 bettors = session.execute(stmt).scalars().all()
                 lines = []
                 for game_bettor in bettors:
-                    predicted_winner = session.get(game_model.Player, game_bettor.winner)
+                    predicted_winner = session.get(
+                        game_model.Player, game_bettor.winner
+                    )
                     if not predicted_winner:
                         return "Something went wrong"
-                    lines.append(f"{bettor.name} bets {game_bettor.bet} Jake coins on {predicted_winner.name} to win the game.")
+                    lines.append(
+                        f"{bettor.name} bets {game_bettor.bet} Jake coins on {predicted_winner.name} to win the game."
+                    )
                 if lines:
                     return "\n".join(lines)
 
             if game.game_state != game_model.GameState.DRAFT:
                 return "You can only place bets on games in draft state"
 
-            existing_bet = session.get(betting_model.GameBettor, (game_id, bettor.bettor_id))
+            existing_bet = session.get(
+                betting_model.GameBettor, (game_id, bettor.bettor_id)
+            )
 
             if existing_bet:
                 predicted_winner = session.get(game_model.Player, existing_bet.winner)

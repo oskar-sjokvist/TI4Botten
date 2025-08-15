@@ -3,6 +3,7 @@ import logging
 
 from discord.ext import commands
 
+
 class Misc(commands.Cog):
     """Cog containing misc related commands."""
 
@@ -13,4 +14,3 @@ class Misc(commands.Cog):
     @commands.command()
     async def hello(self, ctx: commands.Context) -> None:
         await ctx.send("Hello!")
-

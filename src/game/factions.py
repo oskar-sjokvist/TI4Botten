@@ -7,6 +7,7 @@ from pathlib import Path
 
 from typing import List, Optional, Dict, Set
 
+
 class Faction:
     def __init__(self, name: str, source: str, short_lore) -> None:
         self.name: str = name
@@ -20,7 +21,7 @@ class Faction:
 class Factions:
     def __init__(self, factions: List[Faction]) -> None:
         self.factions: List[Faction] = factions
-        self.__valid_sources : Dict[str, str] = self.__generate_valid_source_references()
+        self.__valid_sources: Dict[str, str] = self.__generate_valid_source_references()
 
     def __generate_valid_source_references(self) -> Dict[str, str]:
         sources = {faction.source for faction in self.factions}
@@ -34,12 +35,18 @@ class Factions:
 
             # Initials in mixed, lower, and upper case
             initials = "".join(word[0] for word in words)
-            valid_shortforms[source].update({initials, initials.lower(), initials.upper()})
+            valid_shortforms[source].update(
+                {initials, initials.lower(), initials.upper()}
+            )
 
             # First word logic (skip "a" or "the")
-            first_word_index = 1 if words[0].lower() in {"a", "the"} and len(words) > 1 else 0
+            first_word_index = (
+                1 if words[0].lower() in {"a", "the"} and len(words) > 1 else 0
+            )
             first_word = words[first_word_index]
-            valid_shortforms[source].update({first_word, first_word.lower(), first_word.upper()})
+            valid_shortforms[source].update(
+                {first_word, first_word.lower(), first_word.upper()}
+            )
 
         # Uniqueness check
         shortform_to_sources = defaultdict(list)
@@ -48,7 +55,9 @@ class Factions:
                 shortform_to_sources[sf].append(source)
 
         # Keep only unique mappings
-        shortform_mapping = {sf: srcs[0] for sf, srcs in shortform_to_sources.items() if len(srcs) == 1}
+        shortform_mapping = {
+            sf: srcs[0] for sf, srcs in shortform_to_sources.items() if len(srcs) == 1
+        }
 
         # Always map full sources to themselves
         shortform_mapping.update({src: src for src in sources})
@@ -62,10 +71,12 @@ class Factions:
             if not sources:
                 return random.sample(self.factions, number)
 
-            raw_sources = (s.strip() for s in sources.split(','))
+            raw_sources = (s.strip() for s in sources.split(","))
             filtered_sources = (s for s in raw_sources if s in self.__valid_sources)
             mapped_sources = {self.__valid_sources[s] for s in filtered_sources}
-            filtered_factions = [faction for faction in self.factions if faction.source in mapped_sources]
+            filtered_factions = [
+                faction for faction in self.factions if faction.source in mapped_sources
+            ]
             if not filtered_factions:
                 return []
             return random.sample(filtered_factions, min(number, len(filtered_factions)))
@@ -77,24 +88,26 @@ class Factions:
         if not sources:
             return self.factions
 
-        raw_sources = (s.strip() for s in sources.split(','))
+        raw_sources = (s.strip() for s in sources.split(","))
         filtered_sources = (s for s in raw_sources if s in self.__valid_sources)
         mapped_sources = {self.__valid_sources[s] for s in filtered_sources}
-        filtered_factions = [faction for faction in self.factions if faction.source in mapped_sources]
+        filtered_factions = [
+            faction for faction in self.factions if faction.source in mapped_sources
+        ]
         return filtered_factions
 
 
-def read_factions(file_path: str = 'data/ti4_factions.csv') -> Factions:
+def read_factions(file_path: str = "data/ti4_factions.csv") -> Factions:
     here = Path(__file__).parent
 
     factions: List[Faction] = []
-    with open(here / file_path, newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
+    with open(here / file_path, newline="") as csvfile:
+        reader = csv.reader(csvfile, delimiter=",")
         next(reader)  # Skip header row
         for row in reader:
             if len(row) >= 3:  # Ensure there are at least two columns
                 name: str = row[0].strip()
                 source: str = row[1].strip()
                 short_lore: str = row[2].strip()
-                factions.append(Faction(name, source,short_lore))
+                factions.append(Faction(name, source, short_lore))
     return Factions(factions)

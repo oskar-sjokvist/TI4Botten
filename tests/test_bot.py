@@ -4,6 +4,7 @@ import pytest
 import pytest_asyncio
 from src.bot import Bot
 
+
 @pytest_asyncio.fixture(autouse=True)
 async def bot():
     intents = discord.Intents.default()

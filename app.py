@@ -11,12 +11,15 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
+
 def main():
     try:
         with open(".token", "r") as f:
             token = f.read().strip()
     except FileNotFoundError:
-        logging.error(".token file not found. Please provide your Discord bot token in a .token file.")
+        logging.error(
+            ".token file not found. Please provide your Discord bot token in a .token file."
+        )
         sys.exit(1)
     except Exception as e:
         logging.error(f"Failed to read .token file: {e}")
@@ -33,6 +36,7 @@ def main():
     except Exception as e:
         logging.error(f"Bot encountered an error: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

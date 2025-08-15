@@ -5,6 +5,7 @@ from src.game import gamelogic, model
 from src.models import Base
 from src.typing import *
 
+
 @pytest.fixture(scope="function")
 def db():
     # Use in-memory SQLite for tests
@@ -16,10 +17,12 @@ def db():
     yield session, logic
     session.close()
 
+
 def test_parse_ints():
     assert gamelogic.GameLogic._parse_ints("1 2 3") == [1, 2, 3]
     assert gamelogic.GameLogic._parse_ints("-1, 0, 42") == [-1, 0, 42]
     assert gamelogic.GameLogic._parse_ints("") == []
+
 
 def test_leave_not_in_lobby(db):
     session, logic = db
@@ -28,6 +31,7 @@ def test_leave_not_in_lobby(db):
     session.commit()
     result = logic.leave(1, 1)
     assert "You are not in this game!" in result.msg
+
 
 def test_join_already_in_lobby(db):
     session, logic = db
@@ -41,6 +45,7 @@ def test_join_already_in_lobby(db):
     session.commit()
     result = logic.join(1, 1, "Alice")
     assert "You are already in this lobby!" in result.msg
+
 
 def test_games_no_games(db):
     _, logic = db
@@ -59,6 +64,7 @@ def test_lobby_and_join_leave(db):
     leave_result = logic.leave(game.game_id, 1)
     assert "All players have left" in leave_result.value
 
+
 def test_join_limit(db):
     session, logic = db
     lobby_name = "FullLobby"
@@ -68,6 +74,7 @@ def test_join_limit(db):
         logic.join(game.game_id, i, f"Player{i}")
     result = logic.join(game.game_id, 9, "Player9")
     assert "Player limit reached" in result.msg
+
 
 def test_finish_game_flow(db):
     session, logic = db
@@ -86,6 +93,7 @@ def test_finish_game_flow(db):
     assert "5 point(s)" in result
     assert "7 point(s)" in result
 
+
 def test_games_summary(db):
     session, logic = db
     for i in range(1, 4):
@@ -94,7 +102,9 @@ def test_games_summary(db):
         session.flush()
         player = model.Player(player_id=i, name=f"Winner{i}")
         session.add(player)
-        gp = model.GamePlayer(game_id=game.game_id, player_id=i, faction="FactionA", points=10)
+        gp = model.GamePlayer(
+            game_id=game.game_id, player_id=i, faction="FactionA", points=10
+        )
         session.add(gp)
         session.commit()
 

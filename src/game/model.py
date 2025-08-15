@@ -8,6 +8,7 @@ from typing import Optional, List
 
 from .. import models
 
+
 class GameState(enum.Enum):
     LOBBY = "Lobby"
     BAN = "Ban"
@@ -15,20 +16,23 @@ class GameState(enum.Enum):
     STARTED = "Started"
     FINISHED = "Finished"
 
+
 class DraftingMode(enum.Enum):
     PICKS_ONLY = "Picks only"
     PICKS_AND_BANS = "Picks and bans"
     EXCLUSIVE_POOL = "Exclusive drafting pool"
     MILTY_DRAFT = "Milty draft"
 
+
 class GamePlayer(models.Base):
     __tablename__ = "game_player"
-    game_id: Mapped[int]  = mapped_column(ForeignKey("game.game_id"), primary_key=True)
-    player_id: Mapped[int] = mapped_column(ForeignKey("player.player_id"), primary_key=True)
+    game_id: Mapped[int] = mapped_column(ForeignKey("game.game_id"), primary_key=True)
+    player_id: Mapped[int] = mapped_column(
+        ForeignKey("player.player_id"), primary_key=True
+    )
     faction: Mapped[Optional[str]] = mapped_column(String)
     points: Mapped[int] = mapped_column(Integer, default=0)
     turn_order: Mapped[int] = mapped_column(Integer, default=0)
-    
 
     # Used in exclusive pool mode and Milty draft
     factions: Mapped[List[str]] = mapped_column(JSON, default=[])
@@ -51,34 +55,60 @@ class Game(models.Base):
     game_state: Mapped[GameState] = mapped_column("game_state", Enum(GameState))
     name: Mapped[str] = mapped_column("name")
 
-    lobby_create_time: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp())
-    game_finish_time: Mapped[datetime] = mapped_column(DateTime, server_default=func.current_timestamp())
+    lobby_create_time: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.current_timestamp()
+    )
+    game_finish_time: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.current_timestamp()
+    )
 
     turn: Mapped[int] = mapped_column(Integer, default=0)
 
-    game_players: Mapped[List["GamePlayer"]] = relationship("GamePlayer", back_populates="game", cascade="all")
-    game_settings: Mapped["GameSettings"] = relationship("GameSettings", back_populates="game", cascade="all")
+    game_players: Mapped[List["GamePlayer"]] = relationship(
+        "GamePlayer", back_populates="game", cascade="all"
+    )
+    game_settings: Mapped["GameSettings"] = relationship(
+        "GameSettings", back_populates="game", cascade="all"
+    )
 
     @classmethod
     def latest_lobby(cls, session: Session):
-        return session.query(cls).order_by(cls.game_id.desc()).filter(cls.game_state==GameState.LOBBY).first()
+        return (
+            session.query(cls)
+            .order_by(cls.game_id.desc())
+            .filter(cls.game_state == GameState.LOBBY)
+            .first()
+        )
 
     @classmethod
     def latest_ban(cls, session: Session):
-        return session.query(cls).order_by(cls.game_id.desc()).filter(cls.game_state==GameState.BAN).first()
+        return (
+            session.query(cls)
+            .order_by(cls.game_id.desc())
+            .filter(cls.game_state == GameState.BAN)
+            .first()
+        )
 
     @classmethod
     def latest_draft(cls, session: Session):
-        return session.query(cls).order_by(cls.game_id.desc()).filter(cls.game_state==GameState.DRAFT).first()
-
+        return (
+            session.query(cls)
+            .order_by(cls.game_id.desc())
+            .filter(cls.game_state == GameState.DRAFT)
+            .first()
+        )
 
 
 class GameSettings(models.Base):
     __tablename__ = "game_settings"
-    game_settings_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    game_id: Mapped[int]  = mapped_column(ForeignKey("game.game_id"))
-    
-    drafting_mode: Mapped[DraftingMode] = mapped_column("drafting_mode", Enum(DraftingMode), default=DraftingMode.EXCLUSIVE_POOL)
+    game_settings_id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+    game_id: Mapped[int] = mapped_column(ForeignKey("game.game_id"))
+
+    drafting_mode: Mapped[DraftingMode] = mapped_column(
+        "drafting_mode", Enum(DraftingMode), default=DraftingMode.EXCLUSIVE_POOL
+    )
 
     base_game: Mapped[bool] = mapped_column(Boolean, default=True)
     prophecy_of_kings: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -90,9 +120,12 @@ class GameSettings(models.Base):
 
     game: Mapped["Game"] = relationship("Game", back_populates="game_settings")
 
+
 class Player(models.Base):
     __tablename__ = "player"
     player_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String)
 
-    game_players: Mapped[List["GamePlayer"]] = relationship("GamePlayer", back_populates="player")
+    game_players: Mapped[List["GamePlayer"]] = relationship(
+        "GamePlayer", back_populates="player"
+    )
