@@ -231,8 +231,6 @@ class RatingLogic:
                     emoji = ""
                     if medals:
                         emoji = medals.pop()
-                    elif i == len(players)-1:
-                        emoji = " 😞"
 
                     lines.append(f"{i+1}. {player.name}{emoji}: wins {player.wins}")
                 return "\n".join(lines)
