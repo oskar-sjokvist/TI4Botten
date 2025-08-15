@@ -226,6 +226,8 @@ class PicksOnly(GameMode):
             f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"
         ]
 
+        lines.append("Available factions are:")
+        lines.extend(fs)
         current_drafter = self.controller.current_drafter(session, self.game)
         lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
         return Ok("\n".join(lines))
@@ -321,6 +323,8 @@ class PicksAndBans(GameMode):
         lines = [
             f"State: {self.game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"
         ]
+        lines.append("Available factions are:")
+        lines.extend(fs)
 
         current_drafter = self.controller.current_drafter(session, self.game)
         lines.append(f"<@{current_drafter.player_id}> begins banning. Use !ban.")

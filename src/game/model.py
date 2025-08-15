@@ -113,7 +113,7 @@ class GameSettings(models.Base):
     discordant_stars: Mapped[bool] = mapped_column(Boolean, default=True)
 
     factions_per_player: Mapped[int] = mapped_column(Integer, default=4)
-    bans_per_player: Mapped[int] = mapped_column(Integer, default=2)
+    bans_per_player: Mapped[int] = mapped_column(Integer, default=1)
 
     game: Mapped["Game"] = relationship("Game", back_populates="game_settings")
 

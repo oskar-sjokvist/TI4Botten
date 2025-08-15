@@ -182,14 +182,13 @@ Living rules reference (Prophecy of Kings)
                     return "You are not in this game!"
 
                 draft_mode = draftingmodes.GameMode.create(game)
-                error_message = None
 
                 error_message = draft_mode.draft(session, player, faction)
 
                 if error_message:
                     return error_message
-                else:
-                    return await self._start_game(session, game, player.player.name)
+
+                return self._start_game(session, game, player.player.name)
 
         except Exception as e:
             logging.error(f"Error drafting: {e}")
@@ -208,7 +207,7 @@ Living rules reference (Prophecy of Kings)
             session.commit()
             return Ok(f"Successfully deleted {game.name}")
 
-    async def _start_game(self, session: Session, game: model.Game, name: str) -> str:
+    def _start_game(self, session: Session, game: model.Game, name: str) -> str:
         players_info_lines = []
         for player in game.game_players:
             players_info_lines.append(f"{player.player.name} playing {player.faction}")
