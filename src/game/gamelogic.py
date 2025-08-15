@@ -2,6 +2,7 @@ import Levenshtein
 import logging
 import random
 import re
+import enum
 
 from . import factions as fs
 from . import model
@@ -11,7 +12,7 @@ from . import controller
 from ..typing import *
 
 from datetime import datetime
-from sqlalchemy import inspect, Enum, Boolean, String, Integer
+from sqlalchemy import inspect, Enum, Boolean, String, Integer, select
 from sqlalchemy.orm import Session
 from string import Template
 from typing import Optional, Dict, Any, Iterable, Sequence
@@ -56,7 +57,6 @@ class GameLogic:
             winner=winner, loser=loser
         )
 
-
     _introduction = """These are some resources that can be useful for your game
 - https://www.youtube.com/watch?v=_u2xEap5hBM (Twilight Imperium 4th edition in 32 minutes)
 - https://www.youtube.com/watch?v=gdpW4FBCUuo (Common Twilight Imperium Rules Mistakes 1)
@@ -87,7 +87,9 @@ Living rules reference (Prophecy of Kings)
         game.game_finish_time = datetime.now()
         session.merge(game)
 
-    def __end_game_message(self, game: model.Game, players: Sequence[model.GamePlayer]) -> str:
+    def __end_game_message(
+        self, game: model.Game, players: Sequence[model.GamePlayer]
+    ) -> str:
         lines = [
             f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)"
             for i, p in enumerate(players)
@@ -136,9 +138,7 @@ Living rules reference (Prophecy of Kings)
                 session.commit()
 
                 self.signal.send(None, game_id=game.game_id)
-                return Ok(
-                    msg
-                )
+                return Ok(msg)
             except Exception as e:
                 logging.error(f"Can't finish game: {e}")
                 return Err("Can't finish game. Something went wrong.")
@@ -217,7 +217,8 @@ Living rules reference (Prophecy of Kings)
         session.commit()
         return (
             f"# Game '{game.name}' has started\n"
-            f"\nPlayers:\n{"\n".join(players_info_lines)}\n\n"""
+            f"\nPlayers:\n{"\n".join(players_info_lines)}\n\n"
+            ""
             f"> {GameLogic.__game_start_quote(name)}\n\n{self._introduction}"
         )
 
@@ -270,18 +271,17 @@ Living rules reference (Prophecy of Kings)
     def lobbies(self) -> Result[str]:
         with Session(self.engine) as session:
             try:
-                games = (
-                    session.query(model.Game)
+                games = session.scalars(
+                    select(model.Game)
                     .order_by(model.Game.lobby_create_time.desc())
                     .filter_by(game_state=model.GameState.LOBBY)
-                    .all()
-                )
+                ).all()
                 if not games:
                     return Err("No games found.")
-                lines = []
+                lines = ["Open lobbies:"]
                 for game in games:
                     lines.append(
-                        f"#{game.game_id}: {game.name}. {len(game.game_players)} player(s)."
+                        f"- <#{game.game_id}> {game.name}. {len(game.game_players)} player(s)."
                     )
                 return Ok("\n".join(lines))
             except Exception as e:
@@ -312,7 +312,7 @@ Living rules reference (Prophecy of Kings)
                     "Type !join to join the game. And !start to start the game",
                     f"Players: {player_name}.\n"
                     "Feel free to give some context like where and when you want to play.\n",
-                    "-# Configure the game by using the !config command. Good luck!"
+                    "-# Configure the game by using the !config command. Good luck!",
                 ]
                 return Ok("\n".join(lines))
 
@@ -397,13 +397,12 @@ Living rules reference (Prophecy of Kings)
     def games(self, game_limit: int = 5) -> Result[str]:
         with Session(self.engine) as session:
             try:
-                games = (
-                    session.query(model.Game)
+                games = session.scalars(
+                    select(model.Game)
                     .order_by(model.Game.game_finish_time.desc())
                     .filter_by(game_state=model.GameState.FINISHED)
                     .limit(game_limit)
-                    .all()
-                )
+                ).all()
                 if not games:
                     return Err(f"No games found.")
                 lines = []
@@ -439,7 +438,6 @@ Living rules reference (Prophecy of Kings)
                 for key, dtype in [(col.key, col.type) for col in settings.columns]:
                     if not ("game" in key and "id" in key):
                         valid_keys[key] = dtype
-                        
 
                 if not property or not value:
                     game_settings = session.get(model.GameSettings, game.game_id)
@@ -447,11 +445,16 @@ Living rules reference (Prophecy of Kings)
                     for key, dtype in valid_keys.items():
                         ret += f"* {key}:\n"
                         set_config = getattr(game_settings, key)
+
+                        if isinstance(set_config, enum.Enum):
+                            set_config = set_config.name
+
                         valid_values = get_valid_values(dtype)
                         if not valid_values:
                             ret += f"  - **{set_config}**\n"
                             continue
                         for data in valid_values:
+                            print(set_config)
                             if data == set_config:
                                 ret += f"  - **{data}**\n"
                             else:
