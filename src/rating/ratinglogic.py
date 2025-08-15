@@ -8,6 +8,7 @@ from collections import defaultdict
 from itertools import combinations
 from sqlalchemy import Engine, select, func, text
 from sqlalchemy.orm import Session
+from tabulate import tabulate
 from typing import Tuple
 
 
@@ -197,35 +198,33 @@ class RatingLogic:
             return "Something went wrong."
 
     def ratings(self) -> str:
-        """Retrieve the ratings for all players"""
+        """Retrieve the ratings for all players in a table format"""
         try:
             with Session(self.engine) as session:
-                # Find all players.
-                players = (
-                    session.scalars(
-                        select(model.MatchPlayer).order_by(
-                            model.MatchPlayer.rating.desc()
-                        )
-                    )
-                    .all()
-                )
+                players = session.scalars(
+                    select(model.MatchPlayer).order_by(model.MatchPlayer.rating.desc())
+                ).all()
+
                 if not players:
                     return "No players found."
-                lines = []
-                # Note the spacing.
-                medals = [" 🎖️", " 🏅", " 🥉", " 🥈", " 🥇"]
 
+                # Prepare table data
+                table_data = []
+                medals = ["🥇", "🥈", "🥉", "🏅", "🎖️"]
                 for i, player in enumerate(players):
                     emoji = ""
-                    if medals:
-                        emoji = medals.pop()
+                    if i < len(medals):
+                        emoji = medals[i]
                     elif i == len(players) - 1:
-                        emoji = " 😞"
+                        emoji = "😞"
+                    table_data.append([i + 1, f"{player.name}{emoji}", int(player.rating)])
 
-                    lines.append(
-                        f"{i+1}. {player.name}{emoji}: rating {player.rating:.2f}"
-                    )
-                return "\n".join(lines)
+                # Generate table using tabulate
+                table = tabulate(table_data, headers=["#", "Player", "Rating"], tablefmt="github")
+
+                # Send as Discord code block (triple backticks)
+                return f"```\n{table}\n```"
+
         except Exception as e:
             logging.error(f"ratings: {e}")
             return "Something went wrong."
