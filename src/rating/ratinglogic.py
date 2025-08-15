@@ -6,7 +6,7 @@ from ..game import model as game_model
 from blinker import signal
 from collections import defaultdict
 from itertools import combinations
-from sqlalchemy import Engine, select, func
+from sqlalchemy import Engine, select, func, text
 from sqlalchemy.orm import Session
 from typing import Tuple
 
@@ -183,7 +183,56 @@ class RatingLogic:
                 ).scalars().all()
                 if not players:
                     return "No players found."
-                return "\n".join([f"{i+1}. {player.name}: rating {player.rating:.2f}" for i, player in enumerate(players)])
+                lines = []
+                # Note the spacing.
+                medals = [" 🎖️", " 🏅", " 🥉", " 🥈", " 🥇"]
+
+                for i, player in enumerate(players):
+                    emoji = ""
+                    if medals:
+                        emoji = medals.pop()
+                    elif i == len(players)-1:
+                        emoji = " 😞"
+
+                    lines.append(f"{i+1}. {player.name}{emoji}: rating {player.rating:.2f}")
+                return "\n".join(lines)
         except Exception as e:
             logging.error(f"ratings: {e}")
+            return "Something went wrong."
+
+
+    def wins(self) -> str:
+        try:
+            with Session(self.engine) as session:
+                sq = (
+                    select(game_model.GamePlayer.game_id, func.max(game_model.GamePlayer.points).label("max_points"))
+                    .group_by(game_model.GamePlayer.game_id)
+                    .filter(game_model.GamePlayer.game.has(game_state=game_model.GameState.FINISHED))
+                    .subquery()
+                )
+                stmt = (
+                    select(game_model.Player.name, func.count("*").label("wins")).select_from(game_model.GamePlayer)
+                    .group_by(game_model.Player.player_id)
+                    .join(sq, (sq.c.game_id == game_model.GamePlayer.game_id) & (sq.c.max_points == game_model.GamePlayer.points))
+                    .join(game_model.Player, game_model.Player.player_id == game_model.GamePlayer.player_id)
+                    .order_by(text("wins desc"))
+                )
+                players = session.execute(
+                    stmt
+                ).all()
+                lines = []
+                # Note the spacing.
+                medals = [" 🎖️", " 🏅", " 🥉", " 🥈", " 🥇"]
+
+                for i, player in enumerate(players):
+                    emoji = ""
+                    if medals:
+                        emoji = medals.pop()
+                    elif i == len(players)-1:
+                        emoji = " 😞"
+
+                    lines.append(f"{i+1}. {player.name}{emoji}: wins {player.wins}")
+                return "\n".join(lines)
+        except Exception as e:
+            logging.error(f"wins: {e}")
             return "Something went wrong."

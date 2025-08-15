@@ -194,7 +194,7 @@ Living rules reference (Prophecy of Kings)
         return "\n".join(lines)
 
 
-    async def ban(self, player_id: int,  game_id: int, faction: Optional[str] = None) -> Optional[str]:
+    async def ban(self, player_id: int, game_id: int, faction: Optional[str] = None) -> Optional[str]:
         try:
             with Session(self.engine) as session:
                 game = session.query(model.Game).filter_by(game_id=game_id).first()

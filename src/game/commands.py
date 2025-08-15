@@ -96,7 +96,7 @@ class Game(commands.Cog):
 
 
     @commands.command()
-    async def game(self, ctx: commands.Context, game_id: Optional[int]) -> None:
+    async def info(self, ctx: commands.Context, game_id: Optional[int]) -> None:
         """Fetch game info"""
         if not game_id:
             game_id = self.__game_id(ctx) 
@@ -119,7 +119,7 @@ class Game(commands.Cog):
         match self.logic.lobby(channel.id, ctx.author.id, ctx.author.name, name):
             case Ok(s):
                 await channel.send(s)
-                await ctx.send(f"Created <#{channel.id}> for TI4 Lobby")
+                await ctx.send(f"Created {channel.mention} for TI4 Lobby")
             case Err(s):
                 await ctx.send(s)
 

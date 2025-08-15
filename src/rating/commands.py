@@ -23,6 +23,12 @@ class Rating(commands.Cog):
         await ctx.send(self.logic.stats(ctx.author.id))
 
     @commands.command()
+    async def wins(self, ctx: commands.Context) -> None:
+        """Returns wins leaderboard."""
+        await ctx.send(self.logic.wins())
+
+
+    @commands.command()
     async def leaderboard(self, ctx: commands.Context) -> None:
-        """Returns leaderboard."""
+        """Returns ratings leaderboard."""
         await ctx.send(self.logic.ratings())
