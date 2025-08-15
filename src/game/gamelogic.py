@@ -27,10 +27,10 @@ class GameLogic:
         self.controller = controller.GameController()
 
     __game_start_quotes = [
-        "'In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.'\n-$player",
-        "'The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.'\n-$player",
-        "'Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.'\n-$player",
-        "'Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.'\n-$player",
+        "In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.\n-$player",
+        "The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.\n-$player",
+        "Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.\n-$player",
+        "Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.\n-$player",
     ]
 
     __game_end_quotes = [
@@ -95,7 +95,7 @@ Living rules reference (Prophecy of Kings)
         msg = (
             f"Game '{game.name}' has finished\n\n"
             f"Players:\n{"\n".join(lines)}\n\n"
-            f"{self.__game_end_quote(players[0].player.name, players[-1].player.name)}\n\n"
+            f"> {self.__game_end_quote(players[0].player.name, players[-1].player.name)}\n\n"
             "Wrong result? Rerun the !finish command."
         )
         return "\n".join(lines) + msg
@@ -216,8 +216,9 @@ Living rules reference (Prophecy of Kings)
         session.merge(game)
         session.commit()
         return (
-            f"Game '{game.name}' has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n"
-            f"{GameLogic.__game_start_quote(name)}\n\n{self._introduction}"
+            f"# Game '{game.name}' has started\n"
+            f"\nPlayers:\n{"\n".join(players_info_lines)}\n\n"""
+            f"> {GameLogic.__game_start_quote(name)}\n\n{self._introduction}"
         )
 
     def start(self, factions: fs.Factions, game_id: int) -> Result[str]:
@@ -307,8 +308,11 @@ Living rules reference (Prophecy of Kings)
                 session.commit()
 
                 lines = [
-                    f"Game lobby '{game.name}' created. Type !join to join the game. And !start to start the game",
-                    f"Players: {player_name}. Feel free to give some context like where and when you want to play.",
+                    f"# Game lobby '{game.name}' created\n"
+                    "Type !join to join the game. And !start to start the game",
+                    f"Players: {player_name}.\n"
+                    "Feel free to give some context like where and when you want to play.\n",
+                    "-# Configure the game by using the !config command. Good luck!"
                 ]
                 return Ok("\n".join(lines))
 
@@ -382,8 +386,8 @@ Living rules reference (Prophecy of Kings)
                 session.add(game_player)
                 session.commit()
                 return Ok(
-                    f"{player_name} has joined lobby '{game.name}'. "
-                    "Current number of players {number_of_players+1}. "
+                    "{player_name} has joined lobby. "
+                    f"Current number of players {number_of_players+1}. "
                     "Type !leave to leave the lobby."
                 )
             except Exception as e:
@@ -419,7 +423,7 @@ Living rules reference (Prophecy of Kings)
         """Configure a game session"""
         with Session(self.engine) as session:
             try:
-                game = model.Game.latest_lobby(session)
+                game = session.get(model.Game, game_id)
                 if not game:
                     return Err("No lobby found.")
 
@@ -428,40 +432,34 @@ Living rules reference (Prophecy of Kings)
                         return dtype.enums
                     elif isinstance(dtype, Boolean):
                         return [True, False]
-                    elif isinstance(dtype, String):
-                        return ["String"]
-                    elif isinstance(dtype, Integer):
-                        return ["Integer"]
-                    else:
-                        raise TypeError(f"Unsupported column type: {dtype}")
+                    return None
 
                 settings = inspect(model.GameSettings)
                 valid_keys: Dict[str, Any] = dict()
                 for key, dtype in [(col.key, col.type) for col in settings.columns]:
                     if not ("game" in key and "id" in key):
                         valid_keys[key] = dtype
+                        
 
-                if property == "get":
-                    game_settings = (
-                        session.query(model.GameSettings)
-                        .filter_by(game_id=game.game_id)
-                        .first()
-                    )
-
-                    ret = "Settings:\n"
-                    for key in valid_keys.keys():
-                        ret += f"* {key}: {str(getattr(game_settings, key))}\n"
-                    return Ok(ret)
                 if not property or not value:
-                    ret = "Use 'get' to retrieve current settings.\nValid keys and datatypes:\n"
+                    game_settings = session.get(model.GameSettings, game.game_id)
+                    ret = "Configuration:\n"
                     for key, dtype in valid_keys.items():
                         ret += f"* {key}:\n"
-                        for data in get_valid_values(dtype):
-                            ret += f"\t{data}\n"
-                    return Err(ret)
+                        set_config = getattr(game_settings, key)
+                        valid_values = get_valid_values(dtype)
+                        if not valid_values:
+                            ret += f"  - **{set_config}**\n"
+                            continue
+                        for data in valid_values:
+                            if data == set_config:
+                                ret += f"  - **{data}**\n"
+                            else:
+                                ret += f"  - {data}\n"
+                    return Ok(ret)
 
                 if game.game_state != model.GameState.LOBBY:
-                    return Err("Game is not in lobby.")
+                    return Err("Game is not in lobby. Can't change config now")
 
                 valid_properties = valid_keys.keys()
                 best_prop = GameLogic._closest_match(property, valid_properties)

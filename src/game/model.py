@@ -71,34 +71,6 @@ class Game(models.Base):
         "GameSettings", back_populates="game", cascade="all"
     )
 
-    @classmethod
-    def latest_lobby(cls, session: Session):
-        return (
-            session.query(cls)
-            .order_by(cls.game_id.desc())
-            .filter(cls.game_state == GameState.LOBBY)
-            .first()
-        )
-
-    @classmethod
-    def latest_ban(cls, session: Session):
-        return (
-            session.query(cls)
-            .order_by(cls.game_id.desc())
-            .filter(cls.game_state == GameState.BAN)
-            .first()
-        )
-
-    @classmethod
-    def latest_draft(cls, session: Session):
-        return (
-            session.query(cls)
-            .order_by(cls.game_id.desc())
-            .filter(cls.game_state == GameState.DRAFT)
-            .first()
-        )
-
-
 class GameSettings(models.Base):
     __tablename__ = "game_settings"
     game_id: Mapped[int] = mapped_column(ForeignKey("game.game_id"), primary_key=True)
