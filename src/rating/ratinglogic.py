@@ -18,7 +18,10 @@ class RatingLogic:
         self.engine = engine
         self.k_game = 50 # Boundedness of updates
         self._refresh_ratings()
-        signal("finish").connect(self.update_rating)
+
+        # Let's not auto update the ratings until we allow rollbacks or implement a proper refresh command
+        # I.e. clear the ledger and reset ratings before recalculating the ratings.
+        # signal("finish").connect(self.update_rating)
 
     def update_rating(self, _, game_id: int):
         with Session(self.engine) as session:

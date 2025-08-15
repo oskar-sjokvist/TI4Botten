@@ -23,10 +23,10 @@ class Betting(commands.Cog):
         await ctx.send(self.logic.balance(ctx.author.id, ctx.author.name))
 
     @commands.command()
-    async def payout(self, ctx: commands.Context, game_id: int) -> None:
-        await ctx.send(self.logic.payout(game_id))
+    async def payout(self, ctx: commands.Context) -> None:
+        await ctx.send(self.logic.payout(ctx.channel.id))
             
     @commands.command()
-    async def bet(self, ctx: commands.Context, game_id: int, bet_amount: Optional[int], winner: Optional[str]) -> None:
+    async def bet(self, ctx: commands.Context, bet_amount: Optional[int], winner: Optional[str]) -> None:
         """Places a bet on game_id, for bet amount on player id."""
-        await ctx.send(self.logic.bet(game_id, bet_amount, winner, ctx.author.id, ctx.author.name))
+        await ctx.send(self.logic.bet(ctx.channel.id, bet_amount, winner, ctx.author.id, ctx.author.name))
