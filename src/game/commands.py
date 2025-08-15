@@ -72,7 +72,7 @@ class Game(commands.Cog):
     @commands.command()
     async def draft(self, ctx: commands.Context, *, faction: Optional[str] = None) -> None:
         """Draft your faction."""
-        await ctx.send(await self.logic.draft(ctx, ctx.author.id, self.__game_id(ctx), faction))
+        await ctx.send(await self.logic.draft(ctx.author.id, self.__game_id(ctx), faction))
 
     @commands.command()
     async def start(self, ctx: commands.Context) -> None:

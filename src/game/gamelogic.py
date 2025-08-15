@@ -338,7 +338,7 @@ Living rules reference (Prophecy of Kings)
             return "\n".join(lines)
 
 
-    async def draft(self, ctx: commands.Context, player_id: int,  game_id: int, faction: Optional[str] = None) -> str:
+    async def draft(self, player_id: int,  game_id: int, faction: Optional[str] = None) -> str:
         try:
             with Session(self.engine) as session:
                 game = session.query(model.Game).filter_by(game_id=game_id).first()
@@ -365,7 +365,7 @@ Living rules reference (Prophecy of Kings)
                 if error_message:
                     return error_message
                 else:
-                    return await self._start_game(ctx, session, game, player.player.name)
+                    return await self._start_game(session, game, player.player.name)
 
         except Exception as e:
             logging.error(f"Error drafting: {e}")
@@ -527,9 +527,10 @@ Living rules reference (Prophecy of Kings)
     def start(self, factions : fs.Factions, game_id: int) -> Result[str]:
         try:
             with Session(self.engine) as session:
-                game = self._find_lobby(session, game_id)
-                if isinstance(game, str):
-                    return Err(game)
+                res = self._find_lobby(session, game_id)
+                if isinstance(res, Err):
+                    return res
+                game = res.value
 
                 if game.game_settings.drafting_mode == model.DraftingMode.EXCLUSIVE_POOL:
                     return self.start_exclusive_pool(session, factions, game)
