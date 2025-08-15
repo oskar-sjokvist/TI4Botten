@@ -100,7 +100,7 @@ class BettingLogic:
                 predicted_winner = session.get(game_model.Player, existing_bet.winner)
                 if not predicted_winner:
                     return "Something went wrong."
-                return f"You have a bet placed on {predicted_winner.name} for {existing_bet.bet} Jake coins to win game {game.name} #{game.game_id}"
+                return f"You have a bet placed on {predicted_winner.name} for {existing_bet.bet} Jake coins to win this game."
 
             if not bet_amount:
                 return "Place a bet amount."
@@ -127,4 +127,4 @@ class BettingLogic:
                     session.add(gm)
                     session.merge(bettor)
                     session.commit()
-                    return f"You placed a bet on {player.player.name} for {gm.bet} Jake coins to win game {game.name} #{game.game_id}"
+                    return f"You placed a bet on {player.player.name} for {gm.bet} Jake coins to win this game."
