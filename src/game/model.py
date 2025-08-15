@@ -47,7 +47,7 @@ class GamePlayer(models.Base):
 
 class Game(models.Base):
     __tablename__ = "game"
-    game_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    game_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     game_state: Mapped[GameState] = mapped_column("game_state", Enum(GameState))
     name: Mapped[str] = mapped_column("name")
 

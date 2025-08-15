@@ -82,10 +82,8 @@ Living rules reference (Prophecy of Kings)
             return None
         return best
 
-    def finish(self, is_admin : bool, game_id: Optional[int], all_points: Optional[str]) -> str:
+    def finish(self, is_admin : bool, game_id: int, all_points: Optional[str]) -> str:
         with Session(self.engine) as session:
-            if not game_id:
-                return "Please specify a game id."
             try:
                 game = session.query(model.Game).filter_by(game_id=game_id).first()
                 if not game:
@@ -118,7 +116,7 @@ Living rules reference (Prophecy of Kings)
                 lines = [f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)" for i, p in enumerate(players)]
                 
                 self.signal.send(None, game_id=game.game_id)
-                return f"Game '{game.name}' #{game.game_id} has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{self._game_end_quote(players[0].player.name, players[-1].player.name)}\n\nWrong result? Rerun the !finish command."
+                return f"Game '{game.name}' has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{self._game_end_quote(players[0].player.name, players[-1].player.name)}\n\nWrong result? Rerun the !finish command."
             except Exception as e:
                 logging.error(f"Can't finish game: {e}")
                 return "Can't finish game. Something went wrong."
@@ -197,13 +195,10 @@ Living rules reference (Prophecy of Kings)
         return "\n".join(lines)
 
 
-    async def ban(self, player_id: int,  game_id: Optional[int] = None, faction: Optional[str] = None) -> Optional[str]:
+    async def ban(self, player_id: int,  game_id: int, faction: Optional[str] = None) -> Optional[str]:
         try:
             with Session(self.engine) as session:
-                if game_id is None:
-                    game = model.Game.latest_ban(session)
-                else:
-                    game = session.query(model.Game).filter_by(game_id=game_id).first()
+                game = session.query(model.Game).filter_by(game_id=game_id).first()
                 if not game:
                     return "No game found."
 
@@ -344,13 +339,10 @@ Living rules reference (Prophecy of Kings)
             return "\n".join(lines)
 
 
-    async def draft(self, ctx: commands.Context, player_id: int,  game_id: Optional[int] = None, faction: Optional[str] = None) -> str:
+    async def draft(self, ctx: commands.Context, player_id: int,  game_id: int, faction: Optional[str] = None) -> str:
         try:
             with Session(self.engine) as session:
-                if game_id is None:
-                    game = model.Game.latest_draft(session)
-                else:
-                    game = session.query(model.Game).filter_by(game_id=game_id).first()
+                game = session.query(model.Game).filter_by(game_id=game_id).first()
                 if not game:
                     return "No game found."
                 if game.game_state != model.GameState.DRAFT:
@@ -392,9 +384,9 @@ Living rules reference (Prophecy of Kings)
 
             session.delete(game)
             session.commit()
-            return f"Successfully deleted {game.name} #{game.game_id}"
+            return f"Successfully deleted {game.name}"
 
-    async def _start_game(self, ctx: commands.Context, session: Session, game: model.Game, name: str) -> str:
+    async def _start_game(self, session: Session, game: model.Game, name: str) -> str:
         players_info_lines = []
         for player in game.game_players:
             players_info_lines.append(f"{player.player.name} playing {player.faction}")
@@ -402,13 +394,7 @@ Living rules reference (Prophecy of Kings)
         game.game_state = model.GameState.STARTED
         session.merge(game)
         session.commit()
-        launch = f"Game '{game.name}' #{game.game_id} has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{GameLogic._game_start_quote(name)}"
-        if ctx.guild:
-            channel = await ctx.guild.create_text_channel(game.name)
-            # Send game start message in new channel too
-            await channel.send(launch)
-            await channel.send(self._introduction)
-
+        launch = f"Game '{game.name}' has started\n\nPlayers:\n{"\n".join(players_info_lines)}\n\n{GameLogic._game_start_quote(name)}\n{GameLogic._introduction}"
         return launch
 
     @staticmethod
@@ -467,7 +453,7 @@ Living rules reference (Prophecy of Kings)
         session.merge(game)
         session.commit()
 
-        lines = [f"Game ID: {game.game_id}\nState: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"]
+        lines = [f"State: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}\n\nFactions:\n{"\n".join(factions_lines)}"]
 
         current_drafter = self._current_drafter(session, game)
 
@@ -500,7 +486,7 @@ Living rules reference (Prophecy of Kings)
         session.merge(game)
         session.commit()
 
-        lines = [f"Game ID: {game.game_id}\nState: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"]
+        lines = [f"State: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"]
 
         current_drafter = self._current_drafter(session, game)
         lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
@@ -532,14 +518,14 @@ Living rules reference (Prophecy of Kings)
         session.merge(game)
         session.commit()
 
-        lines = [f"Game ID: {game.game_id}\nState: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"]
+        lines = [f"State: {game.game_state.value}\n\nPlayers (in draft order):\n{"\n".join(players_info_lines)}\n\nSettings:\n{"\n".join(settings)}"]
 
         current_drafter = self._current_drafter(session, game)
         lines.append(f"<@{current_drafter.player_id}> begins banning. Use !ban.")
         return "\n".join(lines)
 
 
-    def start(self, factions : fs.Factions, game_id: Optional[int] = None) -> str:
+    def start(self, factions : fs.Factions, game_id: int) -> str:
         try:
             with Session(self.engine) as session:
                 game = self._find_lobby(session, game_id)
@@ -569,7 +555,7 @@ Living rules reference (Prophecy of Kings)
                     return f"No game found."
 
                 lines = [
-                    f"{game.name} #{game.game_id}",
+                    f"{game.name}",
                     f"Game state: {game.game_state.value}",
                 ]
 
@@ -596,7 +582,7 @@ Living rules reference (Prophecy of Kings)
     def lobbies(self) -> str:
         with Session(self.engine) as session:
             try:
-                games = session.query(model.Game).order_by(model.Game.game_id.desc()).filter_by(game_state=model.GameState.LOBBY).all()
+                games = session.query(model.Game).order_by(model.Game.lobby_create_time.desc()).filter_by(game_state=model.GameState.LOBBY).all()
                 if not games:
                     return f"No games found."
                 lines = []
@@ -607,12 +593,10 @@ Living rules reference (Prophecy of Kings)
                 logging.error(f"Error fetching game data: {e}")
                 return "An error occurred while fetching the game data."
 
-    def lobby(self, player_id: int, player_name: str, name: Optional[str]) -> str:
+    def lobby(self, game_id: int, player_id: int, player_name: str, name: str) -> str:
         with Session(self.engine) as session:
-            if not name:
-                return "Please specify a name for the lobby"
             try:
-                game = model.Game(game_state="LOBBY", name=name)
+                game = model.Game(game_id=game_id, game_state="LOBBY", name=name)
                 session.add(game)
                 session.flush()
                 settings = model.GameSettings(game_id=game.game_id)
@@ -626,26 +610,29 @@ Living rules reference (Prophecy of Kings)
                 session.add(game_player)
                 session.commit()
 
-                return f"Game lobby '{game.name}' created with ID {game.game_id}. Type !join {game.game_id} to join the game. And !start {game.game_id} to start the game"
+
+                lines = [
+                    f"Game lobby '{game.name}' created. Type !join to join the game. And !start to start the game",
+                    f"Players: {player_name}."
+                ]
+                return '\n'.join(lines)
+
             except Exception as e:
                 logging.error(f"Error creating game: {e}")
                 return "An error occurred while creating the game."
 
-    def _find_lobby(self, session: Session, game_id: Optional[int]) -> model.Game|str:
-        if game_id is None:
-            game = model.Game.latest_lobby(session)
-        else:
-            game = session.get(model.Game, game_id)
+    def _find_lobby(self, session: Session, game_id: int) -> model.Game|str:
+        game = session.get(model.Game, game_id)
 
         if game is None:
-            return "No lobby found."
+            return f"No lobby found."
 
         if game.game_state != model.GameState.LOBBY:
             return "Game is not a lobby!"
 
         return game
 
-    def leave(self, game_id: Optional[int], player_id : int) -> str:
+    async def leave(self, ctx: commands.Context, game_id: int, player_id : int) -> str:
         with Session(self.engine) as session:
             try:
                 game = self._find_lobby(session, game_id)
@@ -662,9 +649,10 @@ Living rules reference (Prophecy of Kings)
                 if len(game.game_players) == 0:
                     session.delete(game)
                     session.commit()
+                    await ctx.channel.delete()
                     return f"Removing lobby {game.name} because all players left the lobby."
                 session.commit()
-                return f"{name} has left lobby #{game.game_id}. Current number of players {len(game.game_players)}. Type !join {game.game_id} to join the lobby again."
+                return f"{name} has left lobby. Current number of players {len(game.game_players)}. Type !join to join the lobby again."
 
             except Exception as e:
                 logging.error(f"Error leaving lobby: {e}")
@@ -672,7 +660,7 @@ Living rules reference (Prophecy of Kings)
 
 
 
-    def join(self, game_id : Optional[int], player_id : int, player_name : str) -> str:
+    def join(self, game_id : int, player_id : int, player_name : str) -> str:
         with Session(self.engine) as session:
             try:
                 game = self._find_lobby(session, game_id)
@@ -696,7 +684,7 @@ Living rules reference (Prophecy of Kings)
                 )
                 session.add(game_player)
                 session.commit()
-                return f"{player_name} has joined lobby '{game.name}'. Current number of players {number_of_players+1}. Type !leave {game.game_id} to leave the lobby."
+                return f"{player_name} has joined lobby '{game.name}'. Current number of players {number_of_players+1}. Type !leave to leave the lobby."
             except Exception as e:
                 logging.error(f"Error joining lobby: {e}")
                 return "An error occurred while joining the lobby."
@@ -712,14 +700,14 @@ Living rules reference (Prophecy of Kings)
                 lines = []
                 for game in games:
                     winner = self._winner(session, game)
-                    lines.append(f"#{game.game_id}: {game.name}. Winner {f"{winner.player.name} ({winner.faction})" if winner else "Unknown"}")
+                    lines.append(f"{game.name}. Winner {f"{winner.player.name} ({winner.faction})" if winner else "Unknown"}")
                 return "\n".join(lines)
             except Exception as e:
                 logging.error(f"Error fetching game data: {e}")
                 return "An error occurred while fetching the game data."
 
 
-    def config(self, game_id: Optional[int], property: Optional[str], value: Optional[str]) -> str:
+    def config(self, game_id: int, property: Optional[str], value: Optional[str]) -> str:
         '''Configure a game session'''
         with Session(self.engine) as session:
             try:

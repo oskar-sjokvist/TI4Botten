@@ -22,6 +22,12 @@ class Game(commands.Cog):
         logging.info("Game cog loaded")
 
 
+    def __game_id(self, ctx: commands.Context):
+        # Let's use the channel ID for the game ID.
+        print(ctx.channel.id)
+        return ctx.channel.id
+
+
     @commands.command(name="factions")
     async def random_factions(self, ctx: commands.Context, number: int = 8, *, sources: str = "") -> None:
         """Returns a specified number of random factions."""
@@ -44,36 +50,39 @@ class Game(commands.Cog):
 
 
     @commands.command()
-    async def finish(self, ctx: commands.Context, game_id: Optional[int] = None, *, points: Optional[str] = "") -> None:
+    async def finish(self, ctx: commands.Context, *, points: Optional[str] = "") -> None:
         is_admin = ctx.author.guild_permissions.administrator
-        await ctx.send(self.logic.finish(is_admin , game_id, points))
+        await ctx.send(self.logic.finish(is_admin , self.__game_id(ctx), points))
 
     @commands.command()
-    async def ban(self, ctx: commands.Context, game_id: Optional[int] = None, *, faction: Optional[str] = None) -> None:
+    async def ban(self, ctx: commands.Context, *, faction: Optional[str] = None) -> None:
         """Ban a faction."""
-        await ctx.send(await self.logic.ban(ctx.author.id, game_id, faction))
+        await ctx.send(await self.logic.ban(ctx.author.id, self.__game_id(ctx), faction))
 
     @commands.command()
-    async def draft(self, ctx: commands.Context, game_id: Optional[int] = None, *, faction: Optional[str] = None) -> None:
+    async def draft(self, ctx: commands.Context, *, faction: Optional[str] = None) -> None:
         """Draft your faction."""
-        await ctx.send(await self.logic.draft(ctx, ctx.author.id, game_id, faction))
+        await ctx.send(await self.logic.draft(ctx, ctx.author.id, self.__game_id(ctx), faction))
 
     @commands.command()
-    async def start(self, ctx: commands.Context, game_id: Optional[int] = None) -> None:
+    async def start(self, ctx: commands.Context) -> None:
         """Start the lobby."""
-        await ctx.send(self.logic.start(self.factions, game_id))
+        await ctx.send(self.logic.start(self.factions, self.__game_id(ctx)))
 
     @commands.command()
-    async def cancel(self, ctx: commands.Context, game_id: int) -> None:
+    async def cancel(self, ctx: commands.Context) -> None:
         """Admin command to cancel the game or lobby."""
         if not ctx.author.guild_permissions.administrator:
             await ctx.send("Only admins can cancel games")
             return 
-        await ctx.send(self.logic.cancel(game_id))
+        await ctx.send(self.logic.cancel(self.__game_id(ctx)))
+        await ctx.channel.delete()
 
     @commands.command()
     async def game(self, ctx: commands.Context, game_id: Optional[int]) -> None:
         """Fetch game info"""
+        if not game_id:
+            game_id = self.__game_id(ctx) 
         await ctx.send(self.logic.game(game_id))
 
     @commands.command()
@@ -82,9 +91,12 @@ class Game(commands.Cog):
         await ctx.send(self.logic.games(5))
 
     @commands.command()
-    async def lobby(self, ctx: commands.Context, *, name: Optional[str]) -> None:
+    async def lobby(self, ctx: commands.Context, *, name: str) -> None:
         """Create a lobby."""
-        await ctx.send(self.logic.lobby(ctx.author.id, ctx.author.name, name))
+        if ctx.guild:
+            channel = await ctx.guild.create_text_channel(name)
+        await channel.send(self.logic.lobby(channel.id, ctx.author.id, ctx.author.name, name))
+        await ctx.send(f"Created <#{channel.id}> for TI4 Lobby {name}")
 
     @commands.command()
     async def lobbies(self, ctx: commands.Context) -> None:
@@ -93,20 +105,20 @@ class Game(commands.Cog):
     
 
     @commands.command()
-    async def leave(self, ctx: commands.Context, game_id: Optional[int]) -> None:
+    async def leave(self, ctx: commands.Context) -> None:
         """Leave a lobby."""
         id = ctx.author.id
-        await ctx.send(self.logic.leave(game_id, id))
+        await ctx.send(await self.logic.leave(ctx, self.__game_id(ctx), id))
 
 
     @commands.command()
-    async def join(self, ctx: commands.Context, game_id: Optional[int]) -> None:
+    async def join(self, ctx: commands.Context) -> None:
         """Join a lobby."""
         id = ctx.author.id
         name = ctx.author.name
-        await ctx.send(self.logic.join(game_id, id, name))
+        await ctx.send(self.logic.join(self.__game_id(ctx), id, name))
 
     @commands.command()
-    async def config(self, ctx: commands.Context, game_id: Optional[int], property: Optional[str], value: Optional[str]) -> None:
+    async def config(self, ctx: commands.Context, property: Optional[str], value: Optional[str]) -> None:
         """Configure a lobby."""
-        await ctx.send(self.logic.config(game_id, property, value))
+        await ctx.send(self.logic.config(self.__game_id(ctx), property, value))
