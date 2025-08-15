@@ -5,6 +5,7 @@ import re
 
 from . import factions as fs
 from . import model
+from ..typing import *
 
 from discord.ext import commands
 from datetime import datetime
@@ -15,6 +16,7 @@ from string import Template
 from typing import Optional, Dict, Any, Iterable, List, Tuple
 
 from blinker import signal
+
 
 class GameLogic:
 
@@ -82,29 +84,25 @@ Living rules reference (Prophecy of Kings)
             return None
         return best
 
-    def finish(self, is_admin : bool, game_id: int, all_points: Optional[str]) -> str:
+    def finish(self, is_admin : bool, game_id: int, all_points: Optional[str]) -> Result[str]:
         with Session(self.engine) as session:
             try:
                 game = session.query(model.Game).filter_by(game_id=game_id).first()
                 if not game:
-                    return "Game not found."
-                if is_admin and game.game_state == model.GameState.FINISHED:
+                    return Err("Game not found.")
+                # if is_admin and game.game_state == model.GameState.FINISHED:
                     # Admins can update finished games.
                     pass
                 elif game.game_state != model.GameState.STARTED:
-                    return f"Can't finish game. Game is in {game.game_state.value} state."
+                    return Err(f"Can't finish game. Game is in {game.game_state.value} state.")
 
                 players = self._players_ordered_by_turn(session, game)
                 lines = [p.player.name for p in players]
 
                 if not all_points:
-                    return f"Players\n{"\n".join(lines)}\n\nSpecify the points based on the player order. E.g. !finish game_id 2 10"
-
-                try:
-                    for player, points in zip(players, self._parse_ints(all_points)):
-                        player.points = points
-                except: 
-                    return f"Players\n{"\n".join(lines)}\n\nSpecify the points based on the player order. E.g. !finish game_id 2 10"
+                    return Err(f"Players\n{"\n".join(lines)}\n\nSpecify the points based on the player order. E.g. !finish game_id 2 10")
+                for player, points in zip(players, self._parse_ints(all_points)):
+                    player.points = points
 
                 session.add_all(players)
                 game.game_state = model.GameState.FINISHED
@@ -116,10 +114,11 @@ Living rules reference (Prophecy of Kings)
                 lines = [f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)" for i, p in enumerate(players)]
                 
                 self.signal.send(None, game_id=game.game_id)
-                return f"Game '{game.name}' has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{self._game_end_quote(players[0].player.name, players[-1].player.name)}\n\nWrong result? Rerun the !finish command."
+
+                return Ok(f"Game '{game.name}' has finished\n\nPlayers:\n{"\n".join(lines)}\n\n{self._game_end_quote(players[0].player.name, players[-1].player.name)}\n\nWrong result? Rerun the !finish command.")
             except Exception as e:
                 logging.error(f"Can't finish game: {e}")
-                return "Can't finish game. Something went wrong."
+                return Err("Can't finish game. Something went wrong.")
 
 
     @staticmethod
@@ -419,7 +418,7 @@ Living rules reference (Prophecy of Kings)
 
 
 
-    def start_exclusive_pool(self, session: Session, factions : fs.Factions, game: model.Game) -> str: 
+    def start_exclusive_pool(self, session: Session, factions : fs.Factions, game: model.Game) -> Result[str]: 
 
         settings, sources = GameLogic._get_start_settings(game)
         players = game.game_players
@@ -428,7 +427,7 @@ Living rules reference (Prophecy of Kings)
         factions_per_player = game.game_settings.factions_per_player
         fs = factions.get_random_factions(number_of_players * factions_per_player, ','.join(sources))
         if len(fs) < number_of_players * factions_per_player:
-            return f"There are too many factions selected per player. Max allowed for a {number_of_players} player game is {len(fs)//number_of_players}."
+            return Err(f"There are too many factions selected per player. Max allowed for a {number_of_players} player game is {len(fs)//number_of_players}.")
         fs = [faction.name for faction in fs]
 
         turn_order = random.sample(range(number_of_players), number_of_players)
@@ -458,10 +457,10 @@ Living rules reference (Prophecy of Kings)
         current_drafter = self._current_drafter(session, game)
 
         lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
-        return "\n".join(lines)
+        return Ok("\n".join(lines))
 
 
-    def start_picks_only(self, session: Session, factions : fs.Factions, game: model.Game):
+    def start_picks_only(self, session: Session, factions : fs.Factions, game: model.Game) -> Result[str]:
         
         settings, sources = GameLogic._get_start_settings(game)
         players = game.game_players
@@ -490,10 +489,10 @@ Living rules reference (Prophecy of Kings)
 
         current_drafter = self._current_drafter(session, game)
         lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
-        return "\n".join(lines)
+        return Ok("\n".join(lines))
 
 
-    def start_picks_and_bans(self, session: Session, factions : fs.Factions, game: model.Game):
+    def start_picks_and_bans(self, session: Session, factions : fs.Factions, game: model.Game) -> Result[str]:
 
         settings, sources = GameLogic._get_start_settings(game)
         players = game.game_players
@@ -522,15 +521,15 @@ Living rules reference (Prophecy of Kings)
 
         current_drafter = self._current_drafter(session, game)
         lines.append(f"<@{current_drafter.player_id}> begins banning. Use !ban.")
-        return "\n".join(lines)
+        return Ok("\n".join(lines))
 
 
-    def start(self, factions : fs.Factions, game_id: int) -> str:
+    def start(self, factions : fs.Factions, game_id: int) -> Result[str]:
         try:
             with Session(self.engine) as session:
                 game = self._find_lobby(session, game_id)
                 if isinstance(game, str):
-                    return game
+                    return Err(game)
 
                 if game.game_settings.drafting_mode == model.DraftingMode.EXCLUSIVE_POOL:
                     return self.start_exclusive_pool(session, factions, game)
@@ -539,12 +538,12 @@ Living rules reference (Prophecy of Kings)
                 elif game.game_settings.drafting_mode == model.DraftingMode.PICKS_AND_BANS:
                     return self.start_picks_and_bans(session, factions, game)
                 else:
-                    return f"Drafting mode {game.game_settings.drafting_mode} not supported at the moment"
+                    return Err(f"Drafting mode {game.game_settings.drafting_mode} not supported at the moment")
         except Exception as e:
             logging.error(f"Error fetching game data: {e}")
-            return "An error occurred while fetching the game data."
+            return Err("An error occurred while fetching the game data.")
 
-    def game(self, game_id: Optional[int]) -> str:
+    def game(self, game_id: Optional[int]) -> Result[str]:
         with Session(self.engine) as session:
             try:
                 if game_id is None:
@@ -552,7 +551,7 @@ Living rules reference (Prophecy of Kings)
                 else:
                     game = session.query(model.Game).filter_by(game_id=game_id).first()
                 if not game:
-                    return f"No game found."
+                    return Err(f"No game found.")
 
                 lines = [
                     f"{game.name}",
@@ -573,27 +572,27 @@ Living rules reference (Prophecy of Kings)
                 lines.append("")
 
                 lines.append(self.config(game.game_id, "get", None))
-                return "\n".join(lines)
+                return Ok("\n".join(lines))
             except Exception as e:
                 logging.error(f"!game error: {e}")
-                return "An error occurred while fetching the game data."
+                return Err("An error occurred while fetching the game data.")
 
 
-    def lobbies(self) -> str:
+    def lobbies(self) -> Result[str]:
         with Session(self.engine) as session:
             try:
                 games = session.query(model.Game).order_by(model.Game.lobby_create_time.desc()).filter_by(game_state=model.GameState.LOBBY).all()
                 if not games:
-                    return f"No games found."
+                    return Err("No games found.")
                 lines = []
                 for game in games:
                     lines.append(f"#{game.game_id}: {game.name}. {len(game.game_players)} player(s).")
-                return "\n".join(lines)
+                return Ok("\n".join(lines))
             except Exception as e:
                 logging.error(f"Error fetching game data: {e}")
-                return "An error occurred while fetching the game data."
+                return Err("An error occurred while fetching the game data.")
 
-    def lobby(self, game_id: int, player_id: int, player_name: str, name: str) -> str:
+    def lobby(self, game_id: int, player_id: int, player_name: str, name: str) -> Result[str]:
         with Session(self.engine) as session:
             try:
                 game = model.Game(game_id=game_id, game_state="LOBBY", name=name)
@@ -615,65 +614,64 @@ Living rules reference (Prophecy of Kings)
                     f"Game lobby '{game.name}' created. Type !join to join the game. And !start to start the game",
                     f"Players: {player_name}."
                 ]
-                return '\n'.join(lines)
+                return Ok('\n'.join(lines))
 
             except Exception as e:
                 logging.error(f"Error creating game: {e}")
-                return "An error occurred while creating the game."
+                return Err("An error occurred while creating the game.")
 
-    def _find_lobby(self, session: Session, game_id: int) -> model.Game|str:
+    def _find_lobby(self, session: Session, game_id: int) -> Result[model.Game]:
         game = session.get(model.Game, game_id)
 
         if game is None:
-            return f"No lobby found."
+            return Err("No lobby found.")
 
         if game.game_state != model.GameState.LOBBY:
-            return "Game is not a lobby!"
+            return Err("Game is not a lobby!")
 
-        return game
+        return Ok(game)
 
-    async def leave(self, ctx: commands.Context, game_id: int, player_id : int) -> str:
+    def leave(self, game_id: int, player_id : int) -> Result[str]:
         with Session(self.engine) as session:
             try:
-                game = self._find_lobby(session, game_id)
-                if isinstance(game, str):
-                    return game
+                res = self._find_lobby(session, game_id)
+                if isinstance(res, Err):
+                    return res
+                game = res.value
 
                 gp = session.query(model.GamePlayer).with_parent(game).filter(model.GamePlayer.player_id==player_id).first()
 
                 if gp is None:
-                    return "You are not in this game!"
+                    return Err("You are not in this game!")
 
                 name = gp.player.name
                 session.delete(gp)
                 if len(game.game_players) == 0:
-                    session.delete(game)
-                    session.commit()
-                    await ctx.channel.delete()
-                    return f"Removing lobby {game.name} because all players left the lobby."
+                    return Ok(f"All players have left the lobby. Admin can use !cancel to remove the lobby and channel")
                 session.commit()
-                return f"{name} has left lobby. Current number of players {len(game.game_players)}. Type !join to join the lobby again."
+                return Ok(f"{name} has left lobby. Current number of players {len(game.game_players)}. Type !join to join the lobby again.")
 
             except Exception as e:
                 logging.error(f"Error leaving lobby: {e}")
-                return "An error occurred while leaving the lobby."
+                return Err("An error occurred while leaving the lobby.")
 
 
 
-    def join(self, game_id : int, player_id : int, player_name : str) -> str:
+    def join(self, game_id : int, player_id : int, player_name : str) -> Result[str]:
         with Session(self.engine) as session:
             try:
-                game = self._find_lobby(session, game_id)
-                if isinstance(game, str):
-                    return game
+                res = self._find_lobby(session, game_id)
+                if isinstance(res, Err):
+                    return res
+                game = res.value
 
                 gp = session.query(model.GamePlayer).with_parent(game).filter(model.GamePlayer.player_id==player_id).first()
                 if gp is not None:
-                    return "You are already in this lobby!"
+                    return Err("You are already in this lobby!")
 
                 number_of_players = len(game.game_players) if game.game_players else 0
                 if number_of_players >= 8:
-                    return f"Player limit reached. {number_of_players} have joined the game"
+                    return Err(f"Player limit reached. {number_of_players} have joined the game")
                 
                 
                 player = model.Player(player_id=player_id, name=player_name)
@@ -684,30 +682,30 @@ Living rules reference (Prophecy of Kings)
                 )
                 session.add(game_player)
                 session.commit()
-                return f"{player_name} has joined lobby '{game.name}'. Current number of players {number_of_players+1}. Type !leave to leave the lobby."
+                return Ok(f"{player_name} has joined lobby '{game.name}'. Current number of players {number_of_players+1}. Type !leave to leave the lobby.")
             except Exception as e:
                 logging.error(f"Error joining lobby: {e}")
-                return "An error occurred while joining the lobby."
+                return Err("An error occurred while joining the lobby.")
 
 
 
-    def games(self, game_limit: int = 5) -> str:
+    def games(self, game_limit: int = 5) -> Result[str]:
         with Session(self.engine) as session:
             try:
                 games = session.query(model.Game).order_by(model.Game.game_id.desc()).filter_by(game_state=model.GameState.FINISHED).limit(game_limit).all()
                 if not games:
-                    return f"No games found."
+                    return Err(f"No games found.")
                 lines = []
                 for game in games:
                     winner = self._winner(session, game)
                     lines.append(f"{game.name}. Winner {f"{winner.player.name} ({winner.faction})" if winner else "Unknown"}")
-                return "\n".join(lines)
+                return Ok("\n".join(lines))
             except Exception as e:
                 logging.error(f"Error fetching game data: {e}")
-                return "An error occurred while fetching the game data."
+                return Err("An error occurred while fetching the game data.")
 
 
-    def config(self, game_id: int, property: Optional[str], value: Optional[str]) -> str:
+    def config(self, game_id: int, property: Optional[str], value: Optional[str]) -> Result[str]:
         '''Configure a game session'''
         with Session(self.engine) as session:
             try:
@@ -716,7 +714,7 @@ Living rules reference (Prophecy of Kings)
                 else:
                     game = session.query(model.Game).filter_by(game_id=game_id).first()
                 if not game:
-                    return "No lobby found."
+                    return Err("No lobby found.")
 
                 def get_valid_values(dtype):
                     if isinstance(dtype, Enum):
@@ -742,33 +740,33 @@ Living rules reference (Prophecy of Kings)
                     ret = "Settings:\n"
                     for key in valid_keys.keys():
                         ret += f"* {key}: {str(getattr(game_settings, key))}\n"
-                    return ret
+                    return Ok(ret)
                 if not property or not value:
                     ret = "Use 'get' to retrieve current settings.\nValid keys and datatypes:\n"
                     for key, dtype in valid_keys.items():
                         ret += f"* {key}:\n"
                         for data in get_valid_values(dtype):
                             ret += f"\t{data}\n"
-                    return ret
+                    return Err(ret)
 
                 if game.game_state != model.GameState.LOBBY:
-                    return "Game is not in lobby."
+                    return Err("Game is not in lobby.")
 
                 valid_properties = valid_keys.keys()
                 best_prop = GameLogic._closest_match(property, valid_properties)
                 if not best_prop:
-                    return f"Cannot understand which property you mean. Please check your spelling."
+                    return Err("Cannot understand which property you mean. Please check your spelling.")
                 property = best_prop
 
                 if property not in valid_keys.keys():
-                    return "Property not found."
+                    return Err("Property not found.")
                 
                 dtype = valid_keys[property]
                 if isinstance(dtype, Enum):
                     enum_list = list(dtype.enums)
                     best_value = GameLogic._closest_match(value, enum_list)
                     if not best_value:
-                        return f"Valid values are: {enum_list}"
+                        return Err(f"Valid values are: {enum_list}")
                     new_value = best_value
                 elif isinstance(dtype, Boolean):
                     val = value.lower()
@@ -777,22 +775,22 @@ Living rules reference (Prophecy of Kings)
                     elif val in ["false", "f", "no", "n", "0"]:
                         new_value = False
                     else:
-                        return f"Supply a boolean value."
+                        return Err(f"Supply a boolean value.")
                 elif isinstance(dtype, Integer):
                     if value.isdigit():
                         new_value = int(value)
                     else:
-                        return "Supply a valid integer value"
+                        return Err("Supply a valid integer value")
                 elif isinstance(dtype, String):
                     new_value = value
                 else:
-                    return "Invalid datatype"
+                    return Err("Invalid datatype")
 
                 game_settings = session.query(model.GameSettings).filter_by(game_id=game.game_id).first()
                 setattr(game_settings, property, new_value)
                 session.commit()
-                return f"Set property '{property}' to '{new_value}'"
+                return Ok(f"Set property '{property}' to '{new_value}'")
 
             except Exception as e:
                 logging.error(f"Error configuring lobby: {e}")
-                return "An error occurred while configuring the lobby."
+                return Err("An error occurred while configuring the lobby.")
