@@ -184,7 +184,8 @@ Living rules reference (Prophecy of Kings)
                 player = (
                     session.query(model.GamePlayer)
                     .with_parent(game)
-                    .get(player_id)
+                    .filter_by(game_id=game_id)
+                    .first()
                 )
 
                 if not player:
@@ -355,7 +356,8 @@ Living rules reference (Prophecy of Kings)
                 gp = (
                     session.query(model.GamePlayer)
                     .with_parent(game)
-                    .get(player_id)
+                    .filter_by(game_id=game_id)
+                    .first()
                 )
 
                 if gp is None:
@@ -387,7 +389,8 @@ Living rules reference (Prophecy of Kings)
                 gp = (
                     session.query(model.GamePlayer)
                     .with_parent(game)
-                    .get(player_id)
+                    .filter_by(player_id=player_id)
+                    .first()
                 )
                 if gp is not None:
                     return Err("You are already in this lobby!")
