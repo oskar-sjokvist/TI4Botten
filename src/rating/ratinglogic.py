@@ -41,20 +41,20 @@ class RatingLogic:
         e_ab = 1 / (1 + 10 ** ((a - b) / scale_constant))
         return e_ab, 1 - e_ab
 
-    def _update_game_rating(self, session, game):
+    def __match_player(self, session: Session, game_player : game_model.GamePlayer) -> model.MatchPlayer:
+        p = session.get(model.MatchPlayer, game_player.player_id)
+        if not p:
+            p = model.MatchPlayer(player_id=game_player.player_id, name=game_player.player.name)
+            session.add(p)
+            session.flush()
+        return p
+
+
+    def __deltas(self, session: Session, game: game_model.Game):
         deltas = defaultdict(list)
         for p1, p2 in combinations(game.game_players, 2):
-            a = session.get(model.MatchPlayer, p1.player_id)
-            if not a:
-                a = model.MatchPlayer(player_id=p1.player_id, name=p1.player.name)
-                session.add(a)
-                session.flush()
-
-            b = session.get(model.MatchPlayer, p2.player_id)
-            if not b:
-                b = model.MatchPlayer(player_id=p2.player_id, name=p2.player.name)
-                session.add(b)
-                session.flush()
+            a = self.__match_player(session, p1)
+            b = self.__match_player(session, p2)
 
             e_ab, e_ba = self._expectations(a.rating, b.rating)
             if p1.points < p2.points:
@@ -66,6 +66,12 @@ class RatingLogic:
             else:
                 deltas[p1.player_id].append(0.5 - e_ab)
                 deltas[p2.player_id].append(0.5 - e_ba)
+        return deltas
+
+
+
+    def _update_game_rating(self, session, game):
+        deltas = self.__deltas(session, game)
 
         if len(deltas) <= 1:
             ## Solo game.
@@ -80,16 +86,9 @@ class RatingLogic:
             if outcome is not None:
                 # Already processed this before
                 continue
-            p = session.execute(
-                select(model.MatchPlayer).filter_by(player_id=player.player_id)
-            ).scalar()
-            if not p:
-                p = model.MatchPlayer(
-                    player_id=player.player_id, name=player.player.name
-                )
-                session.add(p)
-                session.flush()
+            p = self.__match_player(session, player)
             delta = sum(deltas[p.player_id]) / (len(deltas) - 1) * self.k_game
+
             ol = model.OutcomeLedger(
                 game_id=game.game_id,
                 player_id=p.player_id,
@@ -101,7 +100,6 @@ class RatingLogic:
             session.add(ol)
 
             p.rating += delta
-
             session.merge(p)
 
     def _refresh_ratings(self):
