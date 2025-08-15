@@ -14,7 +14,7 @@ from datetime import datetime
 from sqlalchemy import inspect, Enum, Boolean, String, Integer
 from sqlalchemy.orm import Session
 from string import Template
-from typing import Optional, Dict, Any, Iterable, List
+from typing import Optional, Dict, Any, Iterable, Sequence
 
 from blinker import signal
 
@@ -87,7 +87,7 @@ Living rules reference (Prophecy of Kings)
         game.game_finish_time = datetime.now()
         session.merge(game)
 
-    def __end_game_message(self, game: model.Game, players: List[model.GamePlayer]) -> str:
+    def __end_game_message(self, game: model.Game, players: Sequence[model.GamePlayer]) -> str:
         lines = [
             f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)"
             for i, p in enumerate(players)
@@ -155,12 +155,7 @@ Living rules reference (Prophecy of Kings)
                 if game.game_state != model.GameState.BAN:
                     return "Game is not in ban stage."
 
-                player = (
-                    session.query(model.GamePlayer)
-                    .with_parent(game)
-                    .filter_by(player_id=player_id)
-                    .first()
-                )
+                player = self.controller.player_from_game(session, game, player_id)
                 if not player:
                     return "You are not in this game!"
 
@@ -181,12 +176,7 @@ Living rules reference (Prophecy of Kings)
                 if game.game_state != model.GameState.DRAFT:
                     return "Game is not in draft stage"
 
-                player = (
-                    session.query(model.GamePlayer)
-                    .with_parent(game)
-                    .filter_by(player_id=player_id)
-                    .first()
-                )
+                player = self.controller.player_from_game(session, game, player_id)
 
                 if not player:
                     return "You are not in this game!"
@@ -244,17 +234,10 @@ Living rules reference (Prophecy of Kings)
             logging.error(f"Error fetching game data: {e}")
             return Err("An error occurred while fetching the game data.")
 
-    def game(self, game_id: Optional[int]) -> Result[str]:
+    def game(self, game_id) -> Result[str]:
         with Session(self.engine) as session:
             try:
-                if game_id is None:
-                    game = (
-                        session.query(model.Game)
-                        .order_by(model.Game.game_id.desc())
-                        .first()
-                    )
-                else:
-                    game = session.query(model.Game).filter_by(game_id=game_id).first()
+                game = session.get(model.Game, game_id)
                 if not game:
                     return Err(f"No game found.")
 
@@ -353,12 +336,7 @@ Living rules reference (Prophecy of Kings)
                     return res
                 game = res.value
 
-                gp = (
-                    session.query(model.GamePlayer)
-                    .with_parent(game)
-                    .filter_by(game_id=game_id)
-                    .first()
-                )
+                gp = self.controller.player_from_game(session, game, player_id)
 
                 if gp is None:
                     return Err("You are not in this game!")
@@ -386,12 +364,7 @@ Living rules reference (Prophecy of Kings)
                     return res
                 game = res.value
 
-                gp = (
-                    session.query(model.GamePlayer)
-                    .with_parent(game)
-                    .filter_by(player_id=player_id)
-                    .first()
-                )
+                gp = self.controller.player_from_game(session, game, player_id)
                 if gp is not None:
                     return Err("You are already in this lobby!")
 
@@ -527,11 +500,7 @@ Living rules reference (Prophecy of Kings)
                 else:
                     return Err("Invalid datatype")
 
-                game_settings = (
-                    session.query(model.GameSettings)
-                    .filter_by(game_id=game.game_id)
-                    .first()
-                )
+                game_settings = session.get(model.GameSettings, game_id)
                 setattr(game_settings, property, new_value)
                 session.commit()
                 return Ok(f"Set property '{property}' to '{new_value}'")
