@@ -571,7 +571,9 @@ Living rules reference (Prophecy of Kings)
                     lines.append(s)
                 lines.append("")
 
-                lines.append(self.config(game.game_id, "get", None))
+                match self.config(game.game_id, "get", None):
+                    case Ok(s):
+                        lines.append(s)
                 return Ok("\n".join(lines))
             except Exception as e:
                 logging.error(f"!game error: {e}")
@@ -612,7 +614,7 @@ Living rules reference (Prophecy of Kings)
 
                 lines = [
                     f"Game lobby '{game.name}' created. Type !join to join the game. And !start to start the game",
-                    f"Players: {player_name}."
+                    f"Players: {player_name}. Feel free to give some context like where and when you want to play."
                 ]
                 return Ok('\n'.join(lines))
 
@@ -646,10 +648,10 @@ Living rules reference (Prophecy of Kings)
 
                 name = gp.player.name
                 session.delete(gp)
+                session.commit()
                 if len(game.game_players) == 0:
                     return Ok(f"All players have left the lobby. Admin can use !cancel to remove the lobby and channel")
-                session.commit()
-                return Ok(f"{name} has left lobby. Current number of players {len(game.game_players)}. Type !join to join the lobby again.")
+                return Ok(f"{name} has left lobby. Current number of players is {len(game.game_players)}. Type !join to join the lobby again.")
 
             except Exception as e:
                 logging.error(f"Error leaving lobby: {e}")
