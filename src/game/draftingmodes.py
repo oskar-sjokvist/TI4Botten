@@ -18,7 +18,8 @@ class GameMode:
         self.game = game
         self.controller = controller.GameController()
 
-    def __get_start_settings(self) -> Tuple[List[str], List[str]]:
+
+    def _get_start_settings(self) -> Tuple[List[str], List[str]]:
         game = self.game
         settings = []
         sources = []
@@ -94,7 +95,7 @@ class ExclusivePool(GameMode):
 
     def start(self, session: Session, factions: fs.Factions) -> Result[str]:
 
-        settings, sources = self.__get_start_settings()
+        settings, sources = self._get_start_settings()
         players = self.game.game_players
         number_of_players = len(players)
 
@@ -180,7 +181,7 @@ class PicksOnly(GameMode):
 
     def start(self, session: Session, factions: fs.Factions) -> Result[str]:
 
-        settings, sources = self.__get_start_settings()
+        settings, sources = self._get_start_settings()
         players = self.game.game_players
         number_of_players = len(players)
 
@@ -271,7 +272,7 @@ class PicksAndBans(GameMode):
         return "\n".join(lines)
 
     def start(self, session: Session, factions: fs.Factions) -> Result[str]:
-        settings, sources = self.__get_start_settings()
+        settings, sources = self._get_start_settings()
         players = self.game.game_players
         number_of_players = len(players)
 
