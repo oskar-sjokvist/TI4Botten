@@ -140,7 +140,7 @@ class RatingLogic:
 
                 lines = [
                     f"Your stats are",
-                    f"Elo rating {mp.rating}",
+                    f"Elo rating {mp.rating:.2f}",
                 ]
                 games = session.execute(
                     select(func.count("*")).select_from(game_model.GamePlayer)
