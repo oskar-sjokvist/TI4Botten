@@ -25,7 +25,6 @@ class Game(commands.Cog):
 
     def __game_id(self, ctx: commands.Context):
         # Let's use the channel ID for the game ID.
-        print(ctx.channel.id)
         return ctx.channel.id
 
 

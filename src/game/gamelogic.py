@@ -372,18 +372,18 @@ Living rules reference (Prophecy of Kings)
             return "Something went wrong"
 
 
-    def cancel(self, game_id: int) -> str:
+    def cancel(self, game_id: int) -> Result[str]:
         with Session(self.engine) as session:
             game = session.get(model.Game, game_id)
             if not game:
-                return f"No such game found"
+                return Err(f"No such game found")
             
             if game.game_state == model.GameState.FINISHED:
-                return f"Game has already finished."
+                return Err(f"Game has already finished.")
 
             session.delete(game)
             session.commit()
-            return f"Successfully deleted {game.name}"
+            return Ok(f"Successfully deleted {game.name}")
 
     async def _start_game(self, session: Session, game: model.Game, name: str) -> str:
         players_info_lines = []
