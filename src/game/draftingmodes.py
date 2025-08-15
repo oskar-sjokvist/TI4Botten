@@ -99,7 +99,7 @@ class ExclusivePool(GameMode):
         players = self.game.game_players
         number_of_players = len(players)
 
-        factions_per_player = self.game.segame_settings.factions_per_player
+        factions_per_player = self.game.game_settings.factions_per_player
         fs = factions.get_random_factions(
             number_of_players * factions_per_player, ','.join(sources))
         if len(fs) < number_of_players * factions_per_player:
