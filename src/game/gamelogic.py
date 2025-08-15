@@ -77,6 +77,10 @@ Living rules reference (Prophecy of Kings)
     def _parse_ints(s):
         return list(map(int, re.findall(r"-?\d+", s)))
 
+
+    # Extract this to a utility module. It's being used everywhere and is generic enough.
+    # Could even be made more generic by extracting a custom key extractor.
+    # E.g. comparing some internal field of the object.
     @staticmethod
     def _closest_match(s : str, ss : Iterable[str], cutoff=0.1) -> str|None :
         best = max(ss, key=lambda c: Levenshtein.ratio(s, c))
