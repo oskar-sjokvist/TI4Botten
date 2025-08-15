@@ -42,14 +42,17 @@ class RatingLogic:
         e_ab = 1 / (1 + 10 ** ((a - b) / scale_constant))
         return e_ab, 1 - e_ab
 
-    def __match_player(self, session: Session, game_player : game_model.GamePlayer) -> model.MatchPlayer:
+    def __match_player(
+        self, session: Session, game_player: game_model.GamePlayer
+    ) -> model.MatchPlayer:
         p = session.get(model.MatchPlayer, game_player.player_id)
         if not p:
-            p = model.MatchPlayer(player_id=game_player.player_id, name=game_player.player.name)
+            p = model.MatchPlayer(
+                player_id=game_player.player_id, name=game_player.player.name
+            )
             session.add(p)
             session.flush()
         return p
-
 
     def __deltas(self, session: Session, game: game_model.Game):
         deltas = defaultdict(list)
@@ -68,8 +71,6 @@ class RatingLogic:
                 deltas[p1.player_id].append(0.5 - e_ab)
                 deltas[p2.player_id].append(0.5 - e_ba)
         return deltas
-
-
 
     def _update_game_rating(self, session, game):
         deltas = self.__deltas(session, game)
@@ -217,10 +218,14 @@ class RatingLogic:
                         emoji = medals[i]
                     elif i == len(players) - 1:
                         emoji = "😞"
-                    table_data.append([i + 1, f"{player.name}{emoji}", int(player.rating)])
+                    table_data.append(
+                        [i + 1, f"{player.name}{emoji}", int(player.rating)]
+                    )
 
                 # Generate table using tabulate
-                table = tabulate(table_data, headers=["#", "Player", "Rating"], tablefmt="github")
+                table = tabulate(
+                    table_data, headers=["#", "Player", "Rating"], tablefmt="github"
+                )
 
                 # Send as Discord code block (triple backticks)
                 return f"```\n{table}\n```"
