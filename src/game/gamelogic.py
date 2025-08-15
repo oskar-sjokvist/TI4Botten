@@ -184,7 +184,7 @@ Living rules reference (Prophecy of Kings)
                 player = (
                     session.query(model.GamePlayer)
                     .with_parent(game)
-                    .filter_by(game_id=game_id)
+                    .filter_by(player_id=player_id)
                     .first()
                 )
 
@@ -447,10 +447,7 @@ Living rules reference (Prophecy of Kings)
         """Configure a game session"""
         with Session(self.engine) as session:
             try:
-                if game_id is None:
-                    game = model.Game.latest_lobby(session)
-                else:
-                    game = session.query(model.Game).filter_by(game_id=game_id).first()
+                game = model.Game.latest_lobby(session)
                 if not game:
                     return Err("No lobby found.")
 
