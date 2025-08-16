@@ -25,17 +25,22 @@ class BettingLogic:
 
     def balance(self, id: int, name) -> str:
         """Returns bettor's current balance."""
-        with Session(self.engine) as session:
-            bettor = session.get(betting_model.Bettor, id)
-            if not bettor:
-                player = session.get(game_model.Player, id)
-                if not player:
-                    player = game_model.Player(player_id=id, name=name)
-                    session.add(player)
-                bettor = betting_model.Bettor(player_id=id)
-                session.add(bettor)
+        try:
+            with Session(self.engine) as session:
+                bettor = session.get(betting_model.Bettor, id)
+                if not bettor:
+                    player = session.get(game_model.Player, id)
+                    if not player:
+                        player = game_model.Player(player_id=id, name=name)
+                        session.add(player)
+                    bettor = betting_model.Bettor(player_id=id)
+                    session.add(bettor)
+                out = f"{bettor.player.name} has {self._balance(session, bettor)} Jake coins."
                 session.commit()
-            return f"{bettor.player.name} has {self._balance(session, bettor)} Jake coins."
+            return out
+        except Exception as e:
+            logging.error(f"balance: {e}")
+            return "Something went wrong."
 
     def payout(self, game_id: int) -> str:
         try:
