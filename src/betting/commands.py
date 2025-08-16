@@ -25,7 +25,8 @@ class Betting(commands.Cog):
 
     @commands.command()
     async def payout(self, ctx: commands.Context) -> None:
-        await ctx.send(self.logic.payout(ctx.channel.id))
+        hej = self.logic.payout(ctx.channel.id)
+        print(hej)
 
     @commands.command()
     async def bet(

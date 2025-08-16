@@ -1,3 +1,4 @@
+import logging
 from . import model as betting_model
 from ..game import model as game_model
 
@@ -22,49 +23,59 @@ class BettingLogic:
 
         return bettor.balance - total_debt
 
-    def balance(self, id: int, name: str) -> str:
+    def balance(self, id: int, name) -> str:
         """Returns bettor's current balance."""
         with Session(self.engine) as session:
             bettor = session.get(betting_model.Bettor, id)
             if not bettor:
-                bettor = betting_model.Bettor(bettor_id=id, name=name)
+                player = session.get(game_model.Player, id)
+                if not player:
+                    player = game_model.Player(player_id=id, name=name)
+                    session.add(player)
+                bettor = betting_model.Bettor(player_id=id)
                 session.add(bettor)
                 session.commit()
             return f"{bettor.player.name} has {self._balance(session, bettor)} Jake coins."
 
     def payout(self, game_id: int) -> str:
-        with Session(self.engine) as session:
-            game = session.get(game_model.Game, game_id)
-            if not game:
-                return "Game not found."
-            if game.game_state != game_model.GameState.FINISHED:
-                return "Game is not yet finished! Can't pay anyone out."
+        try:
+            with Session(self.engine) as session:
+                game = session.get(game_model.Game, game_id)
+                if not game:
+                    return "Game not found."
+                if game.game_state != game_model.GameState.FINISHED:
+                    return "Game is not yet finished! Can't pay anyone out."
 
-            stmt = select(betting_model.GameBet).filter_by(game_id=game.game_id)
-            bettors = session.scalars(stmt).all()
-            winner = (
-                session.query(game_model.GamePlayer)
-                .with_parent(game)
-                .order_by(game_model.GamePlayer.points.desc())
-                .first()
-            )
-            if winner is None:
-                return "Something went wrong"
-            lines = []
-            for game_bettor in bettors:
-                if game_bettor.winner == winner.player_id:
-                    bettor = game_bettor.bettor
-                    bettor.balance += game_bettor.bet
-                    lines.append(f"{bettor.player.name} won {game_bettor.bet} Jake coins!")
-                else:
-                    bettor.balance -= game_bettor.bet
-                    lines.append(f"{bettor.player.name} lost {game_bettor.bet} Jake coins!")
+                stmt = select(betting_model.GameBet).filter_by(game_id=game.game_id)
+                bets = session.scalars(stmt).all()
+                winner = (
+                    session.query(game_model.GamePlayer)
+                    .with_parent(game)
+                    .order_by(game_model.GamePlayer.points.desc())
+                    .first()
+                )
+                if not bets:
+                    return "No bets placed"
+                if winner is None:
+                    return "Something went wrong"
+                lines = []
+                for game_bet in bets:
+                    if game_bet.winner == winner.player_id:
+                        bettor = game_bet.bettor
+                        bettor.balance += game_bet.bet
+                        lines.append(f"{bettor.player.name} won {game_bet.bet} Jake coins!")
+                    else:
+                        bettor.balance -= game_bet.bet
+                        lines.append(f"{bettor.player.name} lost {game_bet.bet} Jake coins!")
 
-                session.merge(bettor)
-                session.delete(game_bettor)
+                    session.merge(bettor)
+                    session.delete(game_bet)
 
-            session.commit()
-            return "\n".join(lines)
+                session.commit()
+                return "\n".join(lines)
+        except Exception as e:
+            logging.error(f"payout: {e}")
+            return "Something went wrong"
 
     def bet(
         self,
@@ -78,7 +89,7 @@ class BettingLogic:
         with Session(self.engine) as session:
             bettor = session.get(betting_model.Bettor, id)
             if not bettor:
-                bettor = betting_model.Bettor(bettor_id=id, name=name)
+                bettor = betting_model.Bettor(player_id=id)
                 session.add(bettor)
             session.commit()
 
@@ -87,16 +98,16 @@ class BettingLogic:
                 return "Game not found."
 
             if bet_amount is None and winner is None:
-                bettors = session.scalars(select(betting_model.GameBet).filter_by(game_id=game.game_id)).all()
+                bets = session.scalars(select(betting_model.GameBet).filter_by(game_id=game.game_id)).all()
                 lines = []
-                for game_bettor in bettors:
+                for game_bet in bets:
                     predicted_winner = session.get(
-                        game_model.Player, game_bettor.winner
+                        game_model.Player, game_bet.winner
                     )
                     if not predicted_winner:
                         return "Something went wrong"
                     lines.append(
-                        f"{bettor.player.name} bets {game_bettor.bet} Jake coins on {predicted_winner.name} to win the game."
+                        f"{bettor.player.name} bets {game_bet.bet} Jake coins on {predicted_winner.name} to win the game."
                     )
                 if lines:
                     return "\n".join(lines)
@@ -132,7 +143,7 @@ class BettingLogic:
                 if winner == player.player.name:
                     gm = betting_model.GameBet(
                         game_id=game.game_id,
-                        bettor_id=bettor.player_id,
+                        player_id=bettor.player_id,
                         winner=player.player_id,
                         bet=bet_amount,
                     )
