@@ -103,6 +103,7 @@ class RatingLogic:
             session.flush()
         return p
 
+    # Rewrite this using relationships now
     def __wins_statement(self):
         sq = (
             select(
