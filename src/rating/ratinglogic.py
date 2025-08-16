@@ -203,7 +203,7 @@ class RatingLogic:
     def player_id_from_name(self, name: str) -> Optional[int]:
         with Session(self.engine) as session:
             return session.scalar(
-                select(model.MatchPlayer.player_id).filter_by(name=name)
+                select(game_model.Player.player_id).filter_by(name=name)
             )
 
     def stats(self, player_id: int) -> Result[Profile]:
