@@ -23,7 +23,8 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 class Bot(commands.Bot):
     def __init__(self, intents: discord.Intents) -> None:
-        engine = create_engine("sqlite:///app.db", echo=True)
+        engine = create_engine("sqlite:///app.db", echo=True, connect_args={"timeout": 15})
+        
 
         # Instantiate all the tables.
         models.Base.metadata.create_all(engine)
