@@ -54,6 +54,37 @@ class RatingLogic:
             session.flush()
         return p
 
+
+    def __wins_statement(self):
+        sq = (
+            select(
+                game_model.GamePlayer.game_id,
+                func.max(game_model.GamePlayer.points).label("max_points"),
+            )
+            .group_by(game_model.GamePlayer.game_id)
+            .filter(
+                game_model.GamePlayer.game.has(
+                    game_state=game_model.GameState.FINISHED
+                )
+            )
+            .subquery()
+        )
+        return (
+            select(game_model.Player.player_id, game_model.Player.name, func.count("*").label("wins"))
+            .select_from(game_model.GamePlayer)
+            .group_by(game_model.Player.player_id)
+            .join(
+                sq,
+                (sq.c.game_id == game_model.GamePlayer.game_id)
+                & (sq.c.max_points == game_model.GamePlayer.points),
+            )
+            .join(
+                game_model.Player,
+                game_model.Player.player_id == game_model.GamePlayer.player_id,
+            )
+            .order_by(text("wins desc"))
+            )
+
     def __deltas(self, session: Session, game: game_model.Game):
         deltas = defaultdict(list)
         for p1, p2 in combinations(game.game_players, 2):
@@ -202,8 +233,10 @@ class RatingLogic:
         """Retrieve the ratings for all players in a table format"""
         try:
             with Session(self.engine) as session:
-                players = session.scalars(
-                    select(model.MatchPlayer).order_by(model.MatchPlayer.rating.desc())
+                sq = self.__wins_statement().subquery()
+                players = session.execute(
+                    select(model.MatchPlayer,sq.c.wins).select_from(model.MatchPlayer).order_by(model.MatchPlayer.rating.desc())
+                    .outerjoin(sq, sq.c.player_id == model.MatchPlayer.player_id)
                 ).all()
 
                 if not players:
@@ -211,20 +244,16 @@ class RatingLogic:
 
                 # Prepare table data
                 table_data = []
-                medals = ["🥇", "🥈", "🥉", "🏅", "🎖️"]
-                for i, player in enumerate(players):
-                    emoji = ""
-                    if i < len(medals):
-                        emoji = medals[i]
-                    elif i == len(players) - 1:
-                        emoji = "😞"
+                for i, row in enumerate(players):
+                    player = row[0]
+                    wins = row[1] if row[1] else 0
                     table_data.append(
-                        [i + 1, f"{player.name}{emoji}", int(player.rating)]
+                        [i + 1, player.name, int(player.rating), wins]
                     )
 
                 # Generate table using tabulate
                 table = tabulate(
-                    table_data, headers=["#", "Player", "Rating"], tablefmt="github"
+                    table_data, headers=["#", "Player", "Rating", "Wins"], tablefmt="double_outline"
                 )
 
                 # Send as Discord code block (triple backticks)
@@ -237,46 +266,21 @@ class RatingLogic:
     def wins(self) -> str:
         try:
             with Session(self.engine) as session:
-                sq = (
-                    select(
-                        game_model.GamePlayer.game_id,
-                        func.max(game_model.GamePlayer.points).label("max_points"),
-                    )
-                    .group_by(game_model.GamePlayer.game_id)
-                    .filter(
-                        game_model.GamePlayer.game.has(
-                            game_state=game_model.GameState.FINISHED
-                        )
-                    )
-                    .subquery()
-                )
-                stmt = (
-                    select(game_model.Player.name, func.count("*").label("wins"))
-                    .select_from(game_model.GamePlayer)
-                    .group_by(game_model.Player.player_id)
-                    .join(
-                        sq,
-                        (sq.c.game_id == game_model.GamePlayer.game_id)
-                        & (sq.c.max_points == game_model.GamePlayer.points),
-                    )
-                    .join(
-                        game_model.Player,
-                        game_model.Player.player_id == game_model.GamePlayer.player_id,
-                    )
-                    .order_by(text("wins desc"))
-                )
-                players = session.execute(stmt).all()
-                lines = []
-                # Note the spacing.
-                medals = [" 🎖️", " 🏅", " 🥉", " 🥈", " 🥇"]
-
+                players = session.execute(self.__wins_statement()).all()
+                # Prepare table data
+                table_data = []
                 for i, player in enumerate(players):
-                    emoji = ""
-                    if medals:
-                        emoji = medals.pop()
+                    table_data.append(
+                        [i + 1, player.name, int(player.wins)]
+                    )
 
-                    lines.append(f"{i+1}. {player.name}{emoji}: wins {player.wins}")
-                return "\n".join(lines)
+                # Generate table using tabulate
+                table = tabulate(
+                    table_data, headers=["#", "Player", "Wins"], tablefmt="double_outline"
+                )
+
+                # Send as Discord code block (triple backticks)
+                return f"```\n{table}\n```"
         except Exception as e:
             logging.error(f"wins: {e}")
             return "Something went wrong."
