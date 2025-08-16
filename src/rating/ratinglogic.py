@@ -3,13 +3,12 @@ import logging
 from . import model as model
 from ..game import model as game_model
 
-from blinker import signal
 from collections import defaultdict
 from itertools import combinations
 from sqlalchemy import Engine, select, func, text
 from sqlalchemy.orm import Session
 from tabulate import tabulate
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 class RatingLogic:
@@ -146,6 +145,11 @@ class RatingLogic:
             for game in games:
                 self._update_game_rating(session, game)
                 session.commit()
+    
+    def player_id_from_name(self, name: str) -> Optional[int]:
+        with Session(self.engine) as session:
+            return session.scalar(select(model.MatchPlayer.player_id)
+                        .filter_by(name=name))
 
     def stats(self, player_id: int) -> str:
         """Retrieve the ratings for all players"""
@@ -169,7 +173,7 @@ class RatingLogic:
                 ).all()
 
                 lines = [
-                    f"Your stats are",
+                    f"{mp.name}'s stats are",
                     f"Elo rating {mp.rating:.2f}",
                 ]
                 games = session.execute(
@@ -182,7 +186,6 @@ class RatingLogic:
                         )
                     )
                 ).scalar()
-                lines.append(f"You have played {games} games")
                 sq = (
                     select(
                         game_model.GamePlayer.game_id,
@@ -208,8 +211,8 @@ class RatingLogic:
                 )
 
                 wins = session.execute(stmt).scalar()
-                lines.append(f"With {wins} wins")
-                lines.append(f"Your favorite factions are")
+                lines.append(f"{mp.name} has played {games} games with {wins} wins")
+                lines.append(f"{mp.name}'s favorite factions are")
                 lines.extend(
                     [f"{p.faction} (played {p.count} time(s))" for p in pp[:3]]
                 )
@@ -222,7 +225,7 @@ class RatingLogic:
                         )
                     )
                 ).scalar()
-                lines.append(f"Average points per game: {pp:.2f}")
+                lines.append(f"They average {pp:.2f} points per game")
 
                 return "\n".join(lines)
         except Exception as e:

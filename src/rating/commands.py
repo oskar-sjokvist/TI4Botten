@@ -5,6 +5,7 @@ from . import ratinglogic
 from discord.ext import commands
 from sqlalchemy import Engine
 
+from typing import Optional
 
 class Rating(commands.Cog):
     """Cog containing rating related commands."""
@@ -17,8 +18,13 @@ class Rating(commands.Cog):
         logging.info("Ratings cog loaded")
 
     @commands.command()
-    async def stats(self, ctx: commands.Context) -> None:
+    async def stats(self, ctx: commands.Context, *, name: Optional[str]) -> None:
         """Returns stats for you."""
+        if name:
+            if id := self.logic.player_id_from_name(name):
+                await ctx.send(self.logic.stats(id))
+                return
+            await ctx.send("Can't find anyone with that name")
         await ctx.send(self.logic.stats(ctx.author.id))
 
     @commands.command()
