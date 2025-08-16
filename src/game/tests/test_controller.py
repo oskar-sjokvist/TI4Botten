@@ -18,7 +18,7 @@ def db():
 
 def test_players_ordered_by_turn_and_current_drafter(db):
     session = db
-    game = model.Game(game_state=model.GameState.LOBBY, name="Ctest")
+    game = model.Game(game_id=1,game_state=model.GameState.LOBBY, name="Ctest")
     session.add(game)
     # create three players and gameplayers with turn orders 2,0,1
     for i, turn in enumerate([2, 0, 1], start=1):

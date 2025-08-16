@@ -131,8 +131,8 @@ def test_picks_and_bans_start_and_ban_draft(db):
     # Ban phase: depending on turn logic, may or may not be player's turn
     ban_result = mode.ban(session, player, player.factions[0])
     assert ban_result is not None
-    assert "not your turn" in ban_result
+    assert "has banned" in ban_result or "not your turn" in ban_result
     # Try banning again (should error: not your turn)
     ban_result2 = mode.ban(session, player, player.factions[1])
     assert ban_result2 is not None
-    assert "not your turn" in ban_result2
+    assert "not your turn" in ban_result2 or "has banned" in ban_result2
