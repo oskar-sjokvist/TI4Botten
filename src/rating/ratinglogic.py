@@ -6,7 +6,7 @@ from ..game import model as game_model
 
 from collections import defaultdict
 from itertools import combinations
-from sqlalchemy import Engine, select, func, text, Row
+from sqlalchemy import Engine, select, func, text, Row, text
 from sqlalchemy.orm import Session
 from tabulate import tabulate
 from typing import Tuple, Optional, List, Sequence
@@ -24,6 +24,8 @@ class Profile:
     favorite_factions: List[Tuple[str, int]]
     points_per_game: float
     thumbnail: str
+    nemesis: Tuple[str, int]|None
+    pinata: Tuple[str, int]|None
 
     def text_view(self) -> str:
         lines = [
@@ -50,6 +52,11 @@ class Profile:
         embed.add_field(name="Average points/game", value=f"{self.points_per_game:.2f}", inline=False)
         favorite_factions = "\n".join([f"{p[0]} (played {p[1]} time(s))" for p in self.favorite_factions[:3]])
         embed.add_field(name="Favorite factions", value=favorite_factions, inline=False)
+
+        if self.nemesis:
+            embed.add_field(name="Nemesis", value=f"{self.nemesis[0]} has beaten you {self.nemesis[1]} times", inline=False)
+        if self.pinata:
+            embed.add_field(name="Piñata", value=f"You have beaten {self.pinata[0]} {self.pinata[1]} times", inline=False)
         if self.thumbnail:
             embed.set_thumbnail(url=self.thumbnail)
         return embed
@@ -133,12 +140,15 @@ class RatingLogic:
         for p1, p2 in combinations(game.game_players, 2):
             a = self.__match_player(session, p1)
             b = self.__match_player(session, p2)
-
             e_ab, e_ba = self._expectations(a.rating, b.rating)
             if p1.points < p2.points:
+                wh = model.WinnerHeadToHead(game_id = game.game_id, loser_id = p1.player_id, winner_id=p2.player_id)
+                session.merge(wh)
                 deltas[p1.player_id].append(0 - e_ab)
                 deltas[p2.player_id].append(1 - e_ba)
             elif p1.points > p2.points:
+                wh = model.WinnerHeadToHead(game_id = game.game_id, loser_id = p2.player_id, winner_id=p1.player_id)
+                session.merge(wh)
                 deltas[p1.player_id].append(1 - e_ab)
                 deltas[p2.player_id].append(0 - e_ba)
             else:
@@ -261,6 +271,18 @@ class RatingLogic:
                         )
                     )
                 )
+                nemesis = session.execute(
+                    select(model.WinnerHeadToHead, func.count("*").label("wins")).select_from(model.WinnerHeadToHead)
+                    .group_by(model.WinnerHeadToHead.winner_id)
+                    .filter_by(loser_id=player_id)
+                    .order_by(text("wins desc"))
+                ).first()
+                pinata = session.execute(
+                    select(model.WinnerHeadToHead, func.count("*").label("losses")).select_from(model.WinnerHeadToHead)
+                    .group_by(model.WinnerHeadToHead.loser_id)
+                    .filter_by(winner_id=player_id)
+                    .order_by(text("losses desc"))
+                ).first()
                 factions: List[Tuple[str,int]] = [(p.faction, p.played_count) for p in pp]
                 return Ok(
                     Profile(
@@ -270,6 +292,8 @@ class RatingLogic:
                         rating=mp.rating,
                         games=games if games else 0,
                         wins=wins if wins else 0,
+                        nemesis=(nemesis[0].winner.player.name, nemesis.wins) if nemesis else None,
+                        pinata=(pinata[0].loser.player.name, pinata.losses) if pinata else None,
                         favorite_factions=factions,
                         points_per_game=float(points_per_game) if points_per_game else 0,
                     )

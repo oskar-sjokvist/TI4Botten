@@ -23,6 +23,7 @@ class OutcomeLedger(models.Base):
     rating_after: Mapped[int] = mapped_column(Integer)
     rating_delta: Mapped[int] = mapped_column(Integer)
 
+
 class MatchPlayer(models.Base):
     __tablename__ = "match_player"
     player_id: Mapped[int] = mapped_column(
@@ -36,7 +37,6 @@ class MatchPlayer(models.Base):
     player: Mapped[game_model.Player] = relationship(
         "Player",
     )
-    
 
 
 class WinnerHeadToHead(models.Base):
@@ -56,7 +56,7 @@ class WinnerHeadToHead(models.Base):
         "MatchPlayer",
         foreign_keys=[winner_id],
     )
-    player_high = relationship(
+    loser = relationship(
         "MatchPlayer",
         foreign_keys=[loser_id],
     )
