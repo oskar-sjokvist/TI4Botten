@@ -257,9 +257,9 @@ Living rules reference (Prophecy of Kings)
                     for player in players:
                         s = player.player.name if player.player.name else "Unknown"
                         if player.faction:
-                            s += f" Faction: {player.faction}"
+                            s += f" as {player.faction}"
                         if player.points:
-                            s += f" Points: {player.points}"
+                            s += f" with {player.points} points."
                     lines.append(s)
                 lines.append("")
 
