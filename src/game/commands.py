@@ -1,5 +1,6 @@
 import logging
 import Levenshtein
+from discord.ext import commands
 
 from . import gamelogic
 from . import factions
@@ -13,10 +14,10 @@ from sqlalchemy import Engine
 class Game(commands.Cog):
     """Cog containing game related commands."""
 
-    def __init__(self, engine: Engine) -> None:
+    def __init__(self, bot: commands.Bot,  engine: Engine,) -> None:
         """Initialize the Commands cog with factions."""
         self.factions = factions.read_factions()
-        self.logic = gamelogic.GameLogic(engine)
+        self.logic = gamelogic.GameLogic(bot,engine)
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -108,7 +109,6 @@ class Game(commands.Cog):
         match self.logic.cancel(self.__game_id(ctx)):
             case Ok(s):
                 await ctx.channel.delete()
-                await ctx.author.send(s)
             case Err(s):
                 await ctx.send(s)
 
@@ -127,15 +127,13 @@ class Game(commands.Cog):
     @commands.command()
     async def lobby(self, ctx: commands.Context, *, name: str) -> None:
         """Create a lobby."""
-        if ctx.guild:
-            channel = await ctx.guild.create_text_channel(name)
-        else:
+        if not ctx.guild:
             await ctx.send("This is a server command")
             return
 
-        match self.logic.lobby(channel.id, ctx.author.id, ctx.author.name, name):
+        channel = await ctx.guild.create_text_channel(name)
+        match await self.logic.lobby(ctx, channel, channel.id, ctx.author.id, ctx.author.name, name):
             case Ok(s):
-                await channel.send(s)
                 await ctx.send(f"Created {channel.mention} for TI4 Lobby")
             case Err(s):
                 await ctx.send(s)
@@ -163,6 +161,12 @@ class Game(commands.Cog):
                 self.logic.join(self.__game_id(ctx), id, name)
             )
         )
+
+
+    @commands.command()
+    async def polls(self, ctx: commands.Context) -> None:
+        await ctx.send("Reading polls...")
+        await ctx.send(self.__string_from_string_result(await self.logic.apply_poll_results(self.__game_id(ctx))))
 
     @commands.command()
     async def config(

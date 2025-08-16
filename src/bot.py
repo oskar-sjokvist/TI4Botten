@@ -29,7 +29,7 @@ class Bot(commands.Bot):
         models.Base.metadata.create_all(engine)
 
         # Pass engine to cogs that need it.
-        self.init_cogs = [Game(engine), Misc(), Betting(engine), Rating(engine)]
+        self.init_cogs = [Game(self, engine), Misc(), Betting(engine), Rating(engine)]
 
         super().__init__(command_prefix="!", intents=intents)
 

@@ -22,15 +22,15 @@ class GameMode:
     def _get_faction_sources(self) ->  str:
         game = self.game
         sources = []
-        if game.game_settings.base_game:
+        if game.game_settings.base_game_factions:
             sources.append("base")
-        if game.game_settings.prophecy_of_kings:
+        if game.game_settings.prophecy_of_kings_factions:
             sources.append("pok")
 
-        if game.game_settings.discordant_stars:
+        if game.game_settings.discordant_stars_factions:
             sources.append("ds")
 
-        if game.game_settings.codex:
+        if game.game_settings.codex_factions:
             sources.append("codex")
         return ",".join(sources)
 

@@ -2,7 +2,7 @@ import enum
 
 from datetime import datetime
 from sqlalchemy import ForeignKey, DateTime, Integer, String, Enum, Boolean, JSON
-from sqlalchemy.orm import Mapped, relationship, Mapped, mapped_column, Session
+from sqlalchemy.orm import Mapped, relationship, Mapped, mapped_column
 from sqlalchemy.sql import func
 from typing import Optional, List
 
@@ -18,10 +18,10 @@ class GameState(enum.Enum):
 
 
 class DraftingMode(enum.Enum):
-    PICKS_ONLY = "Picks only"
-    PICKS_AND_BANS = "Picks and bans"
-    EXCLUSIVE_POOL = "Exclusive drafting pool"
-    MILTY_DRAFT = "Milty draft"
+    PICKS_ONLY = "PICKS_ONLY"
+    PICKS_AND_BANS = "PICKS_AND_BANS"
+    EXCLUSIVE_POOL = "EXCLUSIVE_POOL"
+    MILTY_DRAFT = "MILTY_DRAFT"
 
 
 class GamePlayer(models.Base):
@@ -79,15 +79,22 @@ class GameSettings(models.Base):
         "drafting_mode", Enum(DraftingMode), default=DraftingMode.EXCLUSIVE_POOL
     )
 
-    base_game: Mapped[bool] = mapped_column(Boolean, default=True)
-    prophecy_of_kings: Mapped[bool] = mapped_column(Boolean, default=True)
-    codex: Mapped[bool] = mapped_column(Boolean, default=True)
-    discordant_stars: Mapped[bool] = mapped_column(Boolean, default=True)
+    base_game_factions: Mapped[bool] = mapped_column(Boolean, default=True)
+    prophecy_of_kings_factions: Mapped[bool] = mapped_column(Boolean, default=True)
+    codex_factions: Mapped[bool] = mapped_column(Boolean, default=True)
+    discordant_stars_factions: Mapped[bool] = mapped_column(Boolean, default=True)
 
     factions_per_player: Mapped[int] = mapped_column(Integer, default=4)
     bans_per_player: Mapped[int] = mapped_column(Integer, default=1)
 
     game: Mapped["Game"] = relationship("Game", back_populates="game_settings")
+
+
+class SettingsPoll(models.Base):
+    __tablename__ = "settings_poll"
+    game_id: Mapped[int] = mapped_column(ForeignKey("game.game_id", ondelete="CASCADE"), primary_key=True)
+    message_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    thread_id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
 
 class Player(models.Base):

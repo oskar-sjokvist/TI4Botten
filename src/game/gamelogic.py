@@ -1,7 +1,9 @@
 import Levenshtein
 import logging
+import asyncio
 import random
 import re
+import discord
 import enum
 
 from . import factions as fs
@@ -11,7 +13,8 @@ from . import controller
 
 from ..typing import *
 
-from datetime import datetime
+from discord.ext import commands
+from datetime import datetime, timedelta
 from sqlalchemy import inspect, Enum, Boolean, String, Integer, select
 from sqlalchemy.orm import Session
 from string import Template
@@ -22,7 +25,8 @@ from blinker import signal
 
 class GameLogic:
 
-    def __init__(self, engine):
+    def __init__(self, bot: commands.Bot, engine):
+        self.bot = bot
         self.engine = engine
         self.signal = signal("finish")
         self.controller = controller.GameController()
@@ -288,8 +292,17 @@ Living rules reference (Prophecy of Kings)
                 logging.error(f"Error fetching game data: {e}")
                 return Err("An error occurred while fetching the game data.")
 
-    def lobby(
-        self, game_id: int, player_id: int, player_name: str, name: str
+    def _get_valid_values(self, dtype):
+        if isinstance(dtype, Enum):
+            return dtype.enums
+        elif isinstance(dtype, Boolean):
+            return [True, False]
+        elif isinstance(dtype, Integer):
+            return list(range(1,6))
+        return []
+
+    async def lobby(
+        self, ctx: commands.Context, channel: discord.TextChannel, game_id: int, player_id: int, player_name: str, name: str
     ) -> Result[str]:
         with Session(self.engine) as session:
             try:
@@ -305,7 +318,6 @@ Living rules reference (Prophecy of Kings)
                     player_id=player_id,
                 )
                 session.add(game_player)
-                session.commit()
 
                 lines = [
                     f"# Game lobby '{game.name}' created\n"
@@ -314,7 +326,29 @@ Living rules reference (Prophecy of Kings)
                     "Feel free to give some context like where and when you want to play.\n",
                     "-# Configure the game by using the !config command. Good luck!",
                 ]
-                return Ok("\n".join(lines))
+                await channel.send("\n".join(lines))
+                settings = inspect(model.GameSettings)
+                valid_keys: Dict[str, Any] = dict()
+                for key, dtype in [(col.key, col.type) for col in settings.columns]:
+                    if not ("game" in key and "id" in key):
+                        valid_keys[key] = dtype
+                thread = await channel.create_thread(name="Configuration", type=discord.ChannelType.public_thread)
+                messages = []
+                for k,v in valid_keys.items():
+                    poll = discord.Poll(question=k, duration=timedelta(hours=24))
+                    for opt in self._get_valid_values(v):
+                        if isinstance(opt, enum.Enum):
+                            opt = opt.name
+                        poll.add_answer(text=str(opt))
+                    messages.append(thread.send(poll=poll))
+
+                awaited_messages = await asyncio.gather(*messages)
+                for message in awaited_messages:
+                    settings_poll = model.SettingsPoll(message_id=message.id, game_id=game_id, thread_id=thread.id)
+                    session.add(settings_poll)
+                await channel.send("Type !polls to apply the results of the polls to the configuration")
+                session.commit()
+                return Ok("")
 
             except Exception as e:
                 logging.error(f"Error creating game: {e}")
@@ -442,6 +476,7 @@ Living rules reference (Prophecy of Kings)
                 if not property or not value:
                     game_settings = session.get(model.GameSettings, game.game_id)
                     ret = "Configuration:\n"
+                    ret += "Use !config factions_per_player 5 to update a setting for example."
                     for key, dtype in valid_keys.items():
                         ret += f"* {key}:\n"
                         set_config = getattr(game_settings, key)
@@ -454,7 +489,6 @@ Living rules reference (Prophecy of Kings)
                             ret += f"  - **{set_config}**\n"
                             continue
                         for data in valid_values:
-                            print(set_config)
                             if data == set_config:
                                 ret += f"  - **{data}**\n"
                             else:
@@ -508,3 +542,41 @@ Living rules reference (Prophecy of Kings)
             except Exception as e:
                 logging.error(f"Error configuring lobby: {e}")
                 return Err("An error occurred while configuring the lobby.")
+
+    async def apply_poll_results(self, game_id: int) -> Result[str]:
+        with Session(self.engine) as session:
+            try:
+                messages = session.scalars(
+                    select(model.SettingsPoll)
+                    .filter_by(game_id=game_id)
+                ).all()
+                lines = ["Poll results are:"]
+                polls = []
+
+                if not messages:
+                    return Err("Polls can not be found")
+
+                thread = self.bot.get_channel(messages[0].thread_id)
+                if not isinstance(thread, discord.Thread):
+                    return Err("Polls can not be found")
+                msgs = await asyncio.gather(*[thread.fetch_message(message.message_id) for message in messages])
+
+                for msg in msgs:
+                    if not msg.poll:
+                        continue
+                    poll = msg.poll
+                    answer = max(poll.answers, key=lambda c: c.vote_count)
+                    lines.append(f"{poll.question}: {answer.text} with {answer.vote_count}")
+
+                    game_settings = session.get(model.GameSettings, game_id)
+
+                    # Coerce the poll answer into the type we want.
+                    t = type(getattr(game_settings, poll.question))
+                    setattr(game_settings, poll.question, t(answer.text))
+
+                lines.append("See !config for the updated values.")
+                session.commit()
+                return Ok("\n".join(lines))
+            except Exception as e:
+                logging.error(f"Error fetching polls data: {e}")
+                return Err("An error occurred while fetching the game data.")
