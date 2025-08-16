@@ -288,8 +288,8 @@ class RatingLogic:
                         rating=mp.rating,
                         games=games if games else 0,
                         wins=wins if wins else 0,
-                        nemesis=(nemesis[0].winner.player.name, nemesis.wins) if nemesis else None,
-                        pinata=(pinata[0].loser.player.name, pinata.losses) if pinata else None,
+                        nemesis=(nemesis.WinnerHeadToHead.winner.player.name, nemesis.wins) if nemesis else None,
+                        pinata=(pinata.WinnerHeadToHead.loser.player.name, pinata.losses) if pinata else None,
                         favorite_factions=factions,
                         points_per_game=float(points_per_game) if points_per_game else 0,
                     )
