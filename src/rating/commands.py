@@ -30,7 +30,7 @@ class Rating(commands.Cog):
 
         match self.logic.stats(id):
             case Ok(s):
-                await ctx.send(s.text_view())
+                await ctx.send(embed=s.card_view())
             case Err(s):
                 await ctx.send(s)
 

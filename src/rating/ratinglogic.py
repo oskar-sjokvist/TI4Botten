@@ -1,4 +1,5 @@
 import logging
+import discord
 
 from . import model as model
 from ..game import model as game_model
@@ -34,6 +35,20 @@ class Profile:
         lines.append(f"They average {self.points_per_game:.2f} points per game")
         return "\n".join(lines)
 
+    def card_view(self) -> discord.Embed:
+        embed = discord.Embed(
+            title=f"Stats Profile",
+            color=discord.Color.blue()
+        )
+
+        embed.set_author(name=self.name)
+        embed.add_field(name="Rating", value=f"{self.rating:.2f}", inline=True)
+        embed.add_field(name="Games", value=self.games, inline=True)
+        embed.add_field(name="Wins", value=self.wins, inline=True)
+        embed.add_field(name="Average points/game", value=f"{self.points_per_game:.2f}", inline=False)
+        favorite_factions = "\n".join([f"{p[0]} (played {p[1]} time(s))" for p in self.favorite_factions[:3]])
+        embed.add_field(name="Favorite factions", value=favorite_factions, inline=False)
+        return embed
 
 class RatingLogic:
     """Cog containing rating related commands."""
