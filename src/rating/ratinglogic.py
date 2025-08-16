@@ -118,7 +118,8 @@ class RatingLogic:
         )
         return (
             select(
-                game_model.GamePlayer,
+                game_model.Player.player_id,
+                game_model.Player.name,
                 func.count("*").label("wins"),
             )
             .select_from(game_model.GamePlayer)
@@ -127,6 +128,10 @@ class RatingLogic:
                 sq,
                 (sq.c.game_id == game_model.GamePlayer.game_id)
                 & (sq.c.max_points == game_model.GamePlayer.points),
+            )
+            .join(
+                game_model.Player,
+                game_model.Player.player_id == game_model.GamePlayer.player_id,
             )
             .order_by(text("wins desc"))
         )
