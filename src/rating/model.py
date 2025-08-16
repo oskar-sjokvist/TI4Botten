@@ -39,24 +39,24 @@ class MatchPlayer(models.Base):
     
 
 
-class HeadToHead(models.Base):
-    __tablename__ = "head_to_head"
+class WinnerHeadToHead(models.Base):
+    __tablename__ = "winner_head_to_head"
     game_id: Mapped[int] = mapped_column(
         ForeignKey("game.game_id", ondelete="CASCADE"), primary_key=True
     )
-    # Normalized means player_low has lower player id than player_high.
-    player_low_id: Mapped[int] = mapped_column(
+
+    winner_id: Mapped[int] = mapped_column(
         ForeignKey("match_player.player_id", ondelete="CASCADE"), primary_key=True
     )
-    player_high_id: Mapped[int] = mapped_column(
+    loser_id: Mapped[int] = mapped_column(
         ForeignKey("match_player.player_id", ondelete="CASCADE"), primary_key=True
     )
 
-    player_low: Mapped[MatchPlayer] = relationship(
+    winner: Mapped[MatchPlayer] = relationship(
         "MatchPlayer",
-        foreign_keys=[player_low_id],
+        foreign_keys=[winner_id],
     )
     player_high = relationship(
         "MatchPlayer",
-        foreign_keys=[player_high_id],
+        foreign_keys=[loser_id],
     )
