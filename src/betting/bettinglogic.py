@@ -89,6 +89,10 @@ class BettingLogic:
         with Session(self.engine) as session:
             bettor = session.get(betting_model.Bettor, id)
             if not bettor:
+                player = session.get(game_model.Player, id)
+                if not player:
+                    player = game_model.Player(player_id=id, name=name)
+                    session.add(player)
                 bettor = betting_model.Bettor(player_id=id)
                 session.add(bettor)
             session.commit()

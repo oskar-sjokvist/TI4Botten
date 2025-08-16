@@ -24,12 +24,9 @@ def test_balance_new_bettor(db):
 
 
 def test_balance_existing_bettor(db):
-    session, logic = db
-    bettor = betting_model.Bettor(bettor_id=2, name="Bob", balance=100)
-    session.add(bettor)
-    session.commit()
+    _, logic = db
     result = logic.balance(2, "Bob")
-    assert "Bob has 100 Jake coins." in result
+    assert "Bob has 1000 Jake coins." in result
 
 
 def test_bet_game_not_found(db):
@@ -68,8 +65,9 @@ def test_bet_too_much(db):
     )
     session.add(game)
     session.commit()
-    bettor = betting_model.Bettor(bettor_id=1, name="Alice", balance=5)
-    session.add(bettor)
+    player = game_model.Player(player_id=1, name="Alice")
+    bettor = betting_model.Bettor(player_id=1, balance=5)
+    session.add_all([player,bettor])
     session.commit()
     result = logic.bet(1, 10, "Alice", 1, "Alice")
     assert "You are trying to bet more than you have." in result
@@ -82,8 +80,9 @@ def test_bet_negative(db):
     )
     session.add(game)
     session.commit()
-    bettor = betting_model.Bettor(bettor_id=1, name="Alice", balance=100)
-    session.add(bettor)
+    player = game_model.Player(player_id=1, name="Alice")
+    bettor = betting_model.Bettor(player_id=1, balance=100)
+    session.add_all([player,bettor])
     session.commit()
     result = logic.bet(1, -5, "Alice", 1, "Alice")
     assert "Nice try" in result
@@ -95,14 +94,15 @@ def test_bet_success(db):
     game = game_model.Game(
         game_id=1, name="TestGame", game_state=game_model.GameState.DRAFT
     )
-    player = game_model.Player(player_id=1, name="Alice")
+    player1 = game_model.Player(player_id=1, name="Alice")
+    player2 = game_model.Player(player_id=2, name="Bob")
     session.add(game)
-    session.add(player)
+    session.add_all([player1, player2])
     session.commit()
     gp = game_model.GamePlayer(game_id=1, player_id=1)
     session.add(gp)
     session.commit()
-    bettor = betting_model.Bettor(bettor_id=2, name="Bob", balance=100)
+    bettor = betting_model.Bettor(player_id=2, balance=100)
     session.add(bettor)
     session.commit()
     result = logic.bet(1, 10, "Alice", 2, "Bob")
@@ -132,13 +132,12 @@ def test_payout_success(db):
     game = game_model.Game(
         game_id=1, name="TestGame", game_state=game_model.GameState.FINISHED
     )
-    player = game_model.Player(player_id=1, name="Alice")
+    player1 = game_model.Player(player_id=1, name="Alice")
+    player2 = game_model.Player(player_id=2, name="Bob")
     gp = game_model.GamePlayer(game_id=1, player_id=1, points=10)
-    bettor = betting_model.Bettor(bettor_id=2, name="Bob", balance=100)
-    session.add_all([game, player, gp, bettor])
-    session.flush()
-    bet = betting_model.GameBettor(game_id=1, bettor_id=2, winner=1, bet=10)
-    session.add(bet)
+    bettor = betting_model.Bettor(player_id=2, balance=100)
+    bet = betting_model.GameBet(game_id=1, player_id=2, winner=1, bet=10)
+    session.add_all([game, player1, player2, gp, bettor, bet])
     session.commit()
     result = logic.payout(1)
     assert "Bob won 10 Jake coins!" in result
