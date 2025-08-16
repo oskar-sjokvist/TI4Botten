@@ -3,7 +3,6 @@ import discord
 
 from . import model as model
 from ..game import model as game_model
-from . import card
 
 from collections import defaultdict
 from itertools import combinations
