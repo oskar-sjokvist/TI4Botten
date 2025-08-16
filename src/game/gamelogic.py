@@ -452,7 +452,7 @@ Living rules reference (Prophecy of Kings)
     def config(
         self, game_id: int, property: Optional[str], value: Optional[str]
     ) -> Result[str]:
-        """Configure a game session"""
+        """Configure a game session. For example !config factions_per_player 5. !config to show current settings."""
         with Session(self.engine) as session:
             try:
                 game = session.get(model.Game, game_id)
@@ -475,7 +475,6 @@ Living rules reference (Prophecy of Kings)
                 if not property or not value:
                     game_settings = session.get(model.GameSettings, game.game_id)
                     ret = "Configuration:\n"
-                    ret += "Use !config factions_per_player 5 to update a setting for example.\n"
                     for key, dtype in valid_keys.items():
                         ret += f"* {key}:\n"
                         set_config = getattr(game_settings, key)
