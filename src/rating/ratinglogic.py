@@ -90,7 +90,7 @@ class RatingLogic:
         p = session.get(model.MatchPlayer, game_player.player_id)
         if not p:
             p = model.MatchPlayer(
-                player_id=game_player.player_id, name=game_player.player.name
+                player_id=game_player.player_id,
             )
             session.add(p)
             session.flush()
@@ -265,7 +265,7 @@ class RatingLogic:
                 return Ok(
                     Profile(
                         thumbnail=mp.thumbnail_url,
-                        name=mp.name,
+                        name=mp.player.name,
                         description=mp.description,
                         rating=mp.rating,
                         games=games if games else 0,
@@ -298,7 +298,7 @@ class RatingLogic:
                 for i, row in enumerate(players):
                     player = row[0]
                     wins = row[1] if row[1] else 0
-                    table_data.append([i + 1, player.name, int(player.rating), wins])
+                    table_data.append([i + 1, player.player.name, int(player.rating), wins])
 
                 # Generate table using tabulate
                 table = tabulate(

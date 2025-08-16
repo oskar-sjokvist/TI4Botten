@@ -16,7 +16,7 @@ class BettingLogic:
     @staticmethod
     def _balance(session: Session, bettor: betting_model.Bettor) -> int:
         session.flush()
-        stmt = select(betting_model.GameBettor).filter_by(bettor_id=bettor.bettor_id)
+        stmt = select(betting_model.GameBet).filter_by(player_id=bettor.player_id)
         debts = session.execute(stmt).all()
         total_debt = sum([debt.bet for debt in debts])
 
@@ -30,7 +30,7 @@ class BettingLogic:
                 bettor = betting_model.Bettor(bettor_id=id, name=name)
                 session.add(bettor)
                 session.commit()
-            return f"{bettor.name} has {self._balance(session, bettor)} Jake coins."
+            return f"{bettor.player.name} has {self._balance(session, bettor)} Jake coins."
 
     def payout(self, game_id: int) -> str:
         with Session(self.engine) as session:
@@ -40,7 +40,7 @@ class BettingLogic:
             if game.game_state != game_model.GameState.FINISHED:
                 return "Game is not yet finished! Can't pay anyone out."
 
-            stmt = select(betting_model.GameBettor).filter_by(game_id=game.game_id)
+            stmt = select(betting_model.GameBet).filter_by(game_id=game.game_id)
             bettors = session.scalars(stmt).all()
             winner = (
                 session.query(game_model.GamePlayer)
@@ -53,14 +53,12 @@ class BettingLogic:
             lines = []
             for game_bettor in bettors:
                 if game_bettor.winner == winner.player_id:
-                    bettor = session.get(betting_model.Bettor, game_bettor.bettor_id)
-                    if bettor is None:
-                        return "Something went wrong"
+                    bettor = game_bettor.bettor
                     bettor.balance += game_bettor.bet
-                    lines.append(f"{bettor.name} won {game_bettor.bet} Jake coins!")
+                    lines.append(f"{bettor.player.name} won {game_bettor.bet} Jake coins!")
                 else:
                     bettor.balance -= game_bettor.bet
-                    lines.append(f"{bettor.name} lost {game_bettor.bet} Jake coins!")
+                    lines.append(f"{bettor.player.name} lost {game_bettor.bet} Jake coins!")
 
                 session.merge(bettor)
                 session.delete(game_bettor)
@@ -89,7 +87,7 @@ class BettingLogic:
                 return "Game not found."
 
             if bet_amount is None and winner is None:
-                bettors = session.scalars(select(betting_model.GameBettor).filter_by(game_id=game.game_id)).all()
+                bettors = session.scalars(select(betting_model.GameBet).filter_by(game_id=game.game_id)).all()
                 lines = []
                 for game_bettor in bettors:
                     predicted_winner = session.get(
@@ -98,7 +96,7 @@ class BettingLogic:
                     if not predicted_winner:
                         return "Something went wrong"
                     lines.append(
-                        f"{bettor.name} bets {game_bettor.bet} Jake coins on {predicted_winner.name} to win the game."
+                        f"{bettor.player.name} bets {game_bettor.bet} Jake coins on {predicted_winner.name} to win the game."
                     )
                 if lines:
                     return "\n".join(lines)
@@ -107,7 +105,7 @@ class BettingLogic:
                 return "You can only place bets on games in draft state"
 
             existing_bet = session.get(
-                betting_model.GameBettor, (game_id, bettor.bettor_id)
+                betting_model.GameBet, (game_id, bettor.player_id)
             )
 
             if existing_bet:
@@ -132,9 +130,9 @@ class BettingLogic:
             players = session.scalars(stmt).all()
             for player in players:
                 if winner == player.player.name:
-                    gm = betting_model.GameBettor(
+                    gm = betting_model.GameBet(
                         game_id=game.game_id,
-                        bettor_id=bettor.bettor_id,
+                        bettor_id=bettor.player_id,
                         winner=player.player_id,
                         bet=bet_amount,
                     )

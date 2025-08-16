@@ -1,9 +1,10 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, DateTime, Enum, Float, String, Integer
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey, DateTime, Float, String, Integer
+from sqlalchemy.orm import Mapped, relationship, mapped_column
 
 from .. import models
+from ..game import model as game_model
 
 
 # Bookkeeping table.
@@ -13,7 +14,7 @@ class OutcomeLedger(models.Base):
         ForeignKey("game.game_id", ondelete="CASCADE"), primary_key=True
     )
     player_id: Mapped[int] = mapped_column(
-        ForeignKey("player.player_id"), primary_key=True
+        ForeignKey("player.player_id", ondelete="CASCADE"), primary_key=True
     )
 
     match_time: Mapped[datetime] = mapped_column(DateTime)
@@ -25,12 +26,37 @@ class OutcomeLedger(models.Base):
 class MatchPlayer(models.Base):
     __tablename__ = "match_player"
     player_id: Mapped[int] = mapped_column(
-        ForeignKey("player.player_id"), primary_key=True
+        ForeignKey("player.player_id", ondelete="CASCADE"), primary_key=True
     )
 
-    name: Mapped[str] = mapped_column(String)
-
     rating: Mapped[float] = mapped_column(Float, default=1500)
-
     thumbnail_url: Mapped[str] = mapped_column(String, default="")
     description: Mapped[str] = mapped_column(String, default="")
+    
+    player: Mapped[game_model.Player] = relationship(
+        "Player",
+    )
+    
+
+
+class HeadToHead(models.Base):
+    __tablename__ = "head_to_head"
+    game_id: Mapped[int] = mapped_column(
+        ForeignKey("game.game_id", ondelete="CASCADE"), primary_key=True
+    )
+    # Normalized means player_low has lower player id than player_high.
+    player_low_id: Mapped[int] = mapped_column(
+        ForeignKey("match_player.player_id", ondelete="CASCADE"), primary_key=True
+    )
+    player_high_id: Mapped[int] = mapped_column(
+        ForeignKey("match_player.player_id", ondelete="CASCADE"), primary_key=True
+    )
+
+    player_low: Mapped[MatchPlayer] = relationship(
+        "MatchPlayer",
+        foreign_keys=[player_low_id],
+    )
+    player_high = relationship(
+        "MatchPlayer",
+        foreign_keys=[player_high_id],
+    )
