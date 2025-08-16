@@ -43,3 +43,13 @@ class Rating(commands.Cog):
     async def leaderboard(self, ctx: commands.Context) -> None:
         """Returns ratings leaderboard."""
         await ctx.send(self.logic.ratings())
+
+    @commands.command()
+    async def picture(self, ctx: commands.Context, *, url: str) -> None:
+        """Set a profile picture using an https url."""
+        await ctx.send(self.logic.set_pic(ctx.author.id, url))
+
+    @commands.command()
+    async def description(self, ctx: commands.Context, *, description: str) -> None:
+        """Set a profile description."""
+        await ctx.send(self.logic.set_description(ctx.author.id, description))

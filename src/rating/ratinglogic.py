@@ -17,11 +17,13 @@ from dataclasses import dataclass
 @dataclass
 class Profile:
     name: str
+    description: str
     rating: float
     games: int
     wins: int
     favorite_factions: List[Tuple[str, int]]
     points_per_game: float
+    thumbnail: str
 
     def text_view(self) -> str:
         lines = [
@@ -36,17 +38,19 @@ class Profile:
 
     def card_view(self) -> discord.Embed:
         embed = discord.Embed(
-            title=f"Stats Profile",
+            title=f"{self.name}'s Profile",
+            description=self.description,
             color=discord.Color.blue()
         )
 
-        embed.set_author(name=self.name)
         embed.add_field(name="Rating", value=f"{self.rating:.2f}", inline=True)
         embed.add_field(name="Games", value=self.games, inline=True)
         embed.add_field(name="Wins", value=self.wins, inline=True)
         embed.add_field(name="Average points/game", value=f"{self.points_per_game:.2f}", inline=False)
         favorite_factions = "\n".join([f"{p[0]} (played {p[1]} time(s))" for p in self.favorite_factions[:3]])
         embed.add_field(name="Favorite factions", value=favorite_factions, inline=False)
+        if self.thumbnail:
+            embed.set_thumbnail(url=self.thumbnail)
         return embed
 
 class RatingLogic:
@@ -259,7 +263,9 @@ class RatingLogic:
                 factions: List[Tuple[str,int]] = [(p.faction, p.played_count) for p in pp]
                 return Ok(
                     Profile(
+                        thumbnail=mp.thumbnail_url,
                         name=mp.name,
+                        description=mp.description,
                         rating=mp.rating,
                         games=games if games else 0,
                         wins=wins if wins else 0,
@@ -327,4 +333,34 @@ class RatingLogic:
                 return f"```\n{table}\n```"
         except Exception as e:
             logging.error(f"wins: {e}")
+            return "Something went wrong."
+
+    def set_pic(self, player_id: int, url:str) -> str:
+        if not url.startswith("https://"):
+            return "Start the URL with https://"
+        try:
+            with Session(self.engine) as session:
+                mp = session.get(model.MatchPlayer, player_id)
+                if not mp:
+                    mp = model.MatchPlayer(player_id=player_id)
+                mp.thumbnail_url=url
+                session.merge(mp)
+                session.commit()
+            return "Successfully set profile picture."
+        except Exception as e:
+            logging.error(f"set_pic: {e}")
+            return "Something went wrong."
+
+    def set_description(self, player_id: int, description:str) -> str:
+        try:
+            with Session(self.engine) as session:
+                mp = session.get(model.MatchPlayer, player_id)
+                if not mp:
+                    mp = model.MatchPlayer(player_id=player_id)
+                mp.description = description
+                session.merge(mp)
+                session.commit()
+            return "Successfully updated description."
+        except Exception as e:
+            logging.error(f"set_description: {e}")
             return "Something went wrong."
