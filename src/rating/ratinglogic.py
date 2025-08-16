@@ -46,6 +46,7 @@ class Profile:
         embed.add_field(name="Rating", value=f"{self.rating:.2f}", inline=True)
         embed.add_field(name="Games", value=self.games, inline=True)
         embed.add_field(name="Wins", value=self.wins, inline=True)
+        embed.add_field(name="Win rate", value=f"{self.wins/self.games*100:.2f}%" if self.games !=0 else "N/A", inline=True)
         embed.add_field(name="Average points/game", value=f"{self.points_per_game:.2f}", inline=False)
         favorite_factions = "\n".join([f"{p[0]} (played {p[1]} time(s))" for p in self.favorite_factions[:3]])
         embed.add_field(name="Favorite factions", value=favorite_factions, inline=False)

@@ -32,10 +32,10 @@ class GameLogic:
         self.controller = controller.GameController()
 
     __game_start_quotes = [
-        "In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.\n-$player",
-        "The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.\n-$player",
-        "Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.\n-$player",
-        "Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.\n-$player",
+        "> In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.\n> -$player",
+        "> The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.\n> -$player",
+        "> Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.\n> -$player",
+        "> Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.\n> -$player",
     ]
 
     __game_end_quotes = [
@@ -222,8 +222,7 @@ Living rules reference (Prophecy of Kings)
         return (
             f"# Game '{game.name}' has started\n"
             f"\nPlayers:\n{"\n".join(players_info_lines)}\n\n"
-            ""
-            f"> {GameLogic.__game_start_quote(name)}\n\n{self._introduction}"
+            f"{GameLogic.__game_start_quote(name)}\n\n{self._introduction}"
         )
 
     def start(self, factions: fs.Factions, game_id: int) -> Result[str]:
@@ -476,7 +475,7 @@ Living rules reference (Prophecy of Kings)
                 if not property or not value:
                     game_settings = session.get(model.GameSettings, game.game_id)
                     ret = "Configuration:\n"
-                    ret += "Use !config factions_per_player 5 to update a setting for example."
+                    ret += "Use !config factions_per_player 5 to update a setting for example.\n"
                     for key, dtype in valid_keys.items():
                         ret += f"* {key}:\n"
                         set_config = getattr(game_settings, key)

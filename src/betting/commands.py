@@ -31,7 +31,7 @@ class Betting(commands.Cog):
     async def bet(
         self, ctx: commands.Context, bet_amount: Optional[int], winner: Optional[str]
     ) -> None:
-        """Places a bet on game_id, for bet amount on player id."""
+        """Places a bet for bet amount on player. Usage !bet {amount} {player}"""
         await ctx.send(
             self.logic.bet(
                 ctx.channel.id, bet_amount, winner, ctx.author.id, ctx.author.name
