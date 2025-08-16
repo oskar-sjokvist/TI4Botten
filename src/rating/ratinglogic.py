@@ -54,9 +54,9 @@ class Profile:
         embed.add_field(name="Favorite factions", value=favorite_factions, inline=False)
 
         if self.nemesis:
-            embed.add_field(name="Nemesis", value=f"{self.nemesis[0]} has beaten you {self.nemesis[1]} times", inline=False)
+            embed.add_field(name="Nemesis", value=f"{self.nemesis[0]} has beaten you {self.nemesis[1]} time(s)", inline=False)
         if self.pinata:
-            embed.add_field(name="Piñata", value=f"You have beaten {self.pinata[0]} {self.pinata[1]} times", inline=False)
+            embed.add_field(name="Piñata", value=f"You have beaten {self.pinata[0]} {self.pinata[1]} time(s)", inline=False)
         if self.thumbnail:
             embed.set_thumbnail(url=self.thumbnail)
         return embed
@@ -117,8 +117,7 @@ class RatingLogic:
         )
         return (
             select(
-                game_model.Player.player_id,
-                game_model.Player.name,
+                game_model.GamePlayer,
                 func.count("*").label("wins"),
             )
             .select_from(game_model.GamePlayer)
@@ -127,10 +126,6 @@ class RatingLogic:
                 sq,
                 (sq.c.game_id == game_model.GamePlayer.game_id)
                 & (sq.c.max_points == game_model.GamePlayer.points),
-            )
-            .join(
-                game_model.Player,
-                game_model.Player.player_id == game_model.GamePlayer.player_id,
             )
             .order_by(text("wins desc"))
         )
