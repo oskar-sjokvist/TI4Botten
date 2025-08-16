@@ -2,13 +2,37 @@ import logging
 
 from . import model as model
 from ..game import model as game_model
+from . import card
 
 from collections import defaultdict
 from itertools import combinations
-from sqlalchemy import Engine, select, func, text
+from sqlalchemy import Engine, select, func, text, Row
 from sqlalchemy.orm import Session
 from tabulate import tabulate
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List, Sequence
+from ..typing import *
+from dataclasses import dataclass
+
+
+@dataclass
+class Profile:
+    name: str
+    rating: float
+    games: int
+    wins: int
+    favorite_factions: List[Tuple[str, int]]
+    points_per_game: float
+
+    def text_view(self) -> str:
+        lines = [
+            f"{self.name}'s stats are",
+            f"Elo rating {self.rating:.2f}",
+            f"{self.name} has played {self.games} games with {self.wins} wins",
+            f"{self.name}'s favorite factions are",
+        ]
+        lines.extend([f"{p[0]} (played {p[1]} time(s))" for p in self.favorite_factions[:3]])
+        lines.append(f"They average {self.points_per_game:.2f} points per game")
+        return "\n".join(lines)
 
 
 class RatingLogic:
@@ -53,7 +77,6 @@ class RatingLogic:
             session.flush()
         return p
 
-
     def __wins_statement(self):
         sq = (
             select(
@@ -62,14 +85,16 @@ class RatingLogic:
             )
             .group_by(game_model.GamePlayer.game_id)
             .filter(
-                game_model.GamePlayer.game.has(
-                    game_state=game_model.GameState.FINISHED
-                )
+                game_model.GamePlayer.game.has(game_state=game_model.GameState.FINISHED)
             )
             .subquery()
         )
         return (
-            select(game_model.Player.player_id, game_model.Player.name, func.count("*").label("wins"))
+            select(
+                game_model.Player.player_id,
+                game_model.Player.name,
+                func.count("*").label("wins"),
+            )
             .select_from(game_model.GamePlayer)
             .group_by(game_model.Player.player_id)
             .join(
@@ -82,7 +107,7 @@ class RatingLogic:
                 game_model.Player.player_id == game_model.GamePlayer.player_id,
             )
             .order_by(text("wins desc"))
-            )
+        )
 
     def __deltas(self, session: Session, game: game_model.Game):
         deltas = defaultdict(list)
@@ -145,13 +170,14 @@ class RatingLogic:
             for game in games:
                 self._update_game_rating(session, game)
                 session.commit()
-    
+
     def player_id_from_name(self, name: str) -> Optional[int]:
         with Session(self.engine) as session:
-            return session.scalar(select(model.MatchPlayer.player_id)
-                        .filter_by(name=name))
+            return session.scalar(
+                select(model.MatchPlayer.player_id).filter_by(name=name)
+            )
 
-    def stats(self, player_id: int) -> str:
+    def stats(self, player_id: int) -> Result[Profile]:
         """Retrieve the ratings for all players"""
         try:
             with Session(self.engine) as session:
@@ -161,8 +187,8 @@ class RatingLogic:
                     mp = session.merge(model.MatchPlayer(player_id=player_id))
                     session.commit()
 
-                pp = session.execute(
-                    select(game_model.GamePlayer.faction, func.count("*"))
+                pp: Sequence[Row[Tuple[str|None, int]]] = session.execute(
+                    select(game_model.GamePlayer.faction, func.count("*").label("played_count"))
                     .group_by(game_model.GamePlayer.faction)
                     .filter_by(player_id=player_id)
                     .filter(
@@ -172,10 +198,6 @@ class RatingLogic:
                     )
                 ).all()
 
-                lines = [
-                    f"{mp.name}'s stats are",
-                    f"Elo rating {mp.rating:.2f}",
-                ]
                 games = session.execute(
                     select(func.count("*"))
                     .select_from(game_model.GamePlayer)
@@ -211,12 +233,7 @@ class RatingLogic:
                 )
 
                 wins = session.execute(stmt).scalar()
-                lines.append(f"{mp.name} has played {games} games with {wins} wins")
-                lines.append(f"{mp.name}'s favorite factions are")
-                lines.extend(
-                    [f"{p.faction} (played {p.count} time(s))" for p in pp[:3]]
-                )
-                pp = session.execute(
+                points_per_game = session.scalar(
                     select(func.sum(game_model.GamePlayer.points) / func.count("*"))
                     .filter_by(player_id=player_id)
                     .filter(
@@ -224,13 +241,21 @@ class RatingLogic:
                             game_state=game_model.GameState.FINISHED
                         )
                     )
-                ).scalar()
-                lines.append(f"They average {pp:.2f} points per game")
-
-                return "\n".join(lines)
+                )
+                factions: List[Tuple[str,int]] = [(p.faction, p.played_count) for p in pp]
+                return Ok(
+                    Profile(
+                        name=mp.name,
+                        rating=mp.rating,
+                        games=games if games else 0,
+                        wins=wins if wins else 0,
+                        favorite_factions=factions,
+                        points_per_game=float(points_per_game) if points_per_game else 0,
+                    )
+                )
         except Exception as e:
             logging.error(f"stats: {e}")
-            return "Something went wrong."
+            return Err("Something went wrong.")
 
     def ratings(self) -> str:
         """Retrieve the ratings for all players in a table format"""
@@ -238,7 +263,9 @@ class RatingLogic:
             with Session(self.engine) as session:
                 sq = self.__wins_statement().subquery()
                 players = session.execute(
-                    select(model.MatchPlayer,sq.c.wins).select_from(model.MatchPlayer).order_by(model.MatchPlayer.rating.desc())
+                    select(model.MatchPlayer, sq.c.wins)
+                    .select_from(model.MatchPlayer)
+                    .order_by(model.MatchPlayer.rating.desc())
                     .outerjoin(sq, sq.c.player_id == model.MatchPlayer.player_id)
                 ).all()
 
@@ -250,13 +277,13 @@ class RatingLogic:
                 for i, row in enumerate(players):
                     player = row[0]
                     wins = row[1] if row[1] else 0
-                    table_data.append(
-                        [i + 1, player.name, int(player.rating), wins]
-                    )
+                    table_data.append([i + 1, player.name, int(player.rating), wins])
 
                 # Generate table using tabulate
                 table = tabulate(
-                    table_data, headers=["#", "Player", "Rating", "Wins"], tablefmt="double_outline"
+                    table_data,
+                    headers=["#", "Player", "Rating", "Wins"],
+                    tablefmt="double_outline",
                 )
 
                 # Send as Discord code block (triple backticks)
@@ -273,13 +300,13 @@ class RatingLogic:
                 # Prepare table data
                 table_data = []
                 for i, player in enumerate(players):
-                    table_data.append(
-                        [i + 1, player.name, int(player.wins)]
-                    )
+                    table_data.append([i + 1, player.name, int(player.wins)])
 
                 # Generate table using tabulate
                 table = tabulate(
-                    table_data, headers=["#", "Player", "Wins"], tablefmt="double_outline"
+                    table_data,
+                    headers=["#", "Player", "Wins"],
+                    tablefmt="double_outline",
                 )
 
                 # Send as Discord code block (triple backticks)

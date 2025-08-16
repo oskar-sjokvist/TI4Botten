@@ -5,6 +5,7 @@ from . import ratinglogic
 from discord.ext import commands
 from sqlalchemy import Engine
 
+from ..typing import *
 from typing import Optional
 
 class Rating(commands.Cog):
@@ -20,12 +21,18 @@ class Rating(commands.Cog):
     @commands.command()
     async def stats(self, ctx: commands.Context, *, name: Optional[str]) -> None:
         """Returns stats for you."""
+        id = ctx.author.id
         if name:
-            if id := self.logic.player_id_from_name(name):
-                await ctx.send(self.logic.stats(id))
+            id = self.logic.player_id_from_name(name)
+            if not id:
+                await ctx.send("Can't find anyone with that name")
                 return
-            await ctx.send("Can't find anyone with that name")
-        await ctx.send(self.logic.stats(ctx.author.id))
+
+        match self.logic.stats(id):
+            case Ok(s):
+                await ctx.send(s.text_view())
+            case Err(s):
+                await ctx.send(s)
 
     @commands.command()
     async def wins(self, ctx: commands.Context) -> None:
