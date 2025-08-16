@@ -14,10 +14,14 @@ from sqlalchemy import Engine
 class Game(commands.Cog):
     """Cog containing game related commands."""
 
-    def __init__(self, bot: commands.Bot,  engine: Engine,) -> None:
+    def __init__(
+        self,
+        bot: commands.Bot,
+        engine: Engine,
+    ) -> None:
         """Initialize the Commands cog with factions."""
         self.factions = factions.read_factions()
-        self.logic = gamelogic.GameLogic(bot,engine)
+        self.logic = gamelogic.GameLogic(bot, engine)
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -67,6 +71,7 @@ class Game(commands.Cog):
     async def finish(
         self, ctx: commands.Context, *, points: Optional[str] = ""
     ) -> None:
+        """Finish the game. Usage !finish {list_of_points} where the order is the turn order of the players."""
         is_admin = ctx.author.guild_permissions.administrator
         out = self.__string_from_string_result(
             self.logic.finish(is_admin, self.__game_id(ctx), points)
@@ -132,7 +137,9 @@ class Game(commands.Cog):
             return
 
         channel = await ctx.guild.create_text_channel(name)
-        match await self.logic.lobby(ctx, channel, channel.id, ctx.author.id, ctx.author.name, name):
+        match await self.logic.lobby(
+            ctx, channel, channel.id, ctx.author.id, ctx.author.name, name
+        ):
             case Ok(s):
                 await ctx.send(f"Created {channel.mention} for TI4 Lobby")
             case Err(s):
@@ -162,11 +169,15 @@ class Game(commands.Cog):
             )
         )
 
-
     @commands.command()
     async def polls(self, ctx: commands.Context) -> None:
+        """Apply the results of the polls to the game."""
         await ctx.send("Reading polls...")
-        await ctx.send(self.__string_from_string_result(await self.logic.apply_poll_results(self.__game_id(ctx))))
+        await ctx.send(
+            self.__string_from_string_result(
+                await self.logic.apply_poll_results(self.__game_id(ctx))
+            )
+        )
 
     @commands.command()
     async def config(
