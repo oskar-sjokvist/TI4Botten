@@ -35,6 +35,7 @@ class BettingLogic:
                         session.add(player)
                     bettor = betting_model.Bettor(player_id=id)
                     session.add(bettor)
+                    session.flush()
                 out = f"{bettor.player.name} has {self._balance(session, bettor)} Jake coins."
                 session.commit()
             return out
