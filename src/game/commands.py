@@ -137,10 +137,9 @@ class Game(commands.Cog):
             return
 
         channel = await ctx.guild.create_text_channel(name)
-        match await self.logic.lobby(
-            ctx, channel, channel.id, ctx.author.id, ctx.author.name, name
-        ):
+        match await self.logic.lobby(channel, channel.id, ctx.author.id, ctx.author.name, name):
             case Ok(s):
+                await channel.send(s)
                 await ctx.send(f"Created {channel.mention} for TI4 Lobby")
             case Err(s):
                 await ctx.send(s)

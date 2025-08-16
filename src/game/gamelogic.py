@@ -104,7 +104,7 @@ Living rules reference (Prophecy of Kings)
             f"> {self.__game_end_quote(players[0].player.name, players[-1].player.name)}\n\n"
             "Wrong result? Rerun the !finish command."
         )
-        return "\n".join(lines) + msg
+        return msg
 
     def finish(
         self, is_admin: bool, game_id: int, all_points: Optional[str]
@@ -301,7 +301,7 @@ Living rules reference (Prophecy of Kings)
         return []
 
     async def lobby(
-        self, ctx: commands.Context, channel: discord.TextChannel, game_id: int, player_id: int, player_name: str, name: str
+        self, channel: discord.TextChannel, game_id: int, player_id: int, player_name: str, name: str
     ) -> Result[str]:
         with Session(self.engine) as session:
             try:
@@ -318,14 +318,6 @@ Living rules reference (Prophecy of Kings)
                 )
                 session.add(game_player)
 
-                lines = [
-                    f"# Game lobby '{game.name}' created\n"
-                    "Type !join to join the game. And !start to start the game",
-                    f"Players: {player_name}.\n"
-                    "Feel free to give some context like where and when you want to play.\n",
-                    "-# Configure the game by using the !config command. Good luck!",
-                ]
-                await channel.send("\n".join(lines))
                 settings = inspect(model.GameSettings)
                 valid_keys: Dict[str, Any] = dict()
                 for key, dtype in [(col.key, col.type) for col in settings.columns]:
@@ -345,9 +337,16 @@ Living rules reference (Prophecy of Kings)
                 for message in awaited_messages:
                     settings_poll = model.SettingsPoll(message_id=message.id, game_id=game_id, thread_id=thread.id)
                     session.add(settings_poll)
-                await channel.send("Type !polls to apply the results of the polls to the configuration")
                 session.commit()
-                return Ok("")
+                lines = [
+                    f"# Game lobby '{game.name}' created\n"
+                    "Type !join to join the game. And !start to start the game",
+                    f"Players: {player_name}.\n"
+                    "Feel free to give some context like where and when you want to play.\n",
+                    "-# Configure the game by using the !config command. Good luck!",
+                    "Type !polls to apply the results of the polls to the configuration",
+                ]
+                return Ok("\n".join(lines))
 
             except Exception as e:
                 logging.error(f"Error creating game: {e}")
