@@ -102,7 +102,7 @@ Living rules reference (Prophecy of Kings)
             f"Game '{game.name}' has finished\n\n"
             f"Players:\n{"\n".join(lines)}\n\n"
             f"> {self.__game_end_quote(players[0].player.name, players[-1].player.name)}\n\n"
-            "Wrong result? Rerun the !finish command."
+            "Wrong result? Rerun the !finish command. Run !update_ratings once your results are final"
         )
         return msg
 

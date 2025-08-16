@@ -55,8 +55,13 @@ class Rating(commands.Cog):
         await ctx.send(self.logic.set_description(ctx.author.id, description))
 
     @commands.command()
-    async def update_rating(self, ctx: commands.Context) -> None:
-        """Admin command to update the ratings based on a finished game."""
+    async def update_ratings(self, ctx: commands.Context) -> None:
+        """Admin command to update the ratings on a finished game."""
         if not ctx.author.guild_permissions.administrator:
             await ctx.send("Admin only command")
-        await ctx.send(self.logic.update_rating(None, ctx.channel.id))
+        try:
+            self.logic.update_rating(None, ctx.channel.id)
+            await ctx.send("Ratings updated")
+        except Exception as e:
+            logging.error(f"update_rating: {e}")
+            await ctx.send("Something went wrong")

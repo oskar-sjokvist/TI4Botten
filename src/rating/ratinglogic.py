@@ -165,7 +165,7 @@ class RatingLogic:
             return
 
         for player in game.game_players:
-            outcome = session.get(model.OutcomeLedger,game_id=game.game_id, player_id=player.player_id)
+            outcome = session.get(model.OutcomeLedger, (game.game_id, player.player_id))
             if outcome is not None:
                 # Already processed this before
                 continue
