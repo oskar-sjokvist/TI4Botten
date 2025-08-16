@@ -53,3 +53,10 @@ class Rating(commands.Cog):
     async def description(self, ctx: commands.Context, *, description: str) -> None:
         """Set a profile description."""
         await ctx.send(self.logic.set_description(ctx.author.id, description))
+
+    @commands.command()
+    async def update_rating(self, ctx: commands.Context) -> None:
+        """Admin command to update the ratings based on a finished game."""
+        if not ctx.author.guild_permissions.administrator:
+            await ctx.send("Admin only command")
+        await ctx.send(self.logic.update_rating(None, ctx.channel.id))
