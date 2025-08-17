@@ -409,8 +409,10 @@ Living rules reference (Prophecy of Kings)
                         f"Player limit reached. {number_of_players} have joined the game"
                     )
 
-                player = model.Player(player_id=player_id, name=player_name)
-                session.merge(player)
+                player = session.get(model.Player, player_id)
+                if not player:
+                    player = model.Player(player_id=player_id, name=player_name)
+                    session.add(player)
                 game_player = model.GamePlayer(
                     game_id=game.game_id,
                     player_id=player_id,

@@ -30,7 +30,7 @@ def register(engine) -> None:
                 except LookupError:
                     return
 
-                # Increment or create PlayerProgress counter
+                # Increment or create games_won counter
                 counter_key = "games_won"
                 up = session.get(achievements_model.PlayerProgress, (winner.player_id, counter_key))
                 if up is None:
@@ -40,7 +40,7 @@ def register(engine) -> None:
                     up.value = (up.value or 0) + 1
                     session.merge(up)
 
-                # Increment or create played counter
+                # Increment or create games_played counter
                 counter_key = "games_played"
                 for player in game.game_players:
                     up = session.get(achievements_model.PlayerProgress, (player.player_id, counter_key))
@@ -123,6 +123,7 @@ def reconcile(engine) -> None:
 
     try:
         with Session(engine) as session:
+            reconcile_games(session)
             reconcile_wins(session)
             session.commit()
     except Exception as e:
