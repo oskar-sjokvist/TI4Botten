@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
@@ -67,23 +67,48 @@ class AchievementChecker:
             "target": int(target),
         }
 
-    def _rule_points(self, session: Session, rule, player_id):
-        operation = rule.get("op")
+    # Not fully implemented
+    def _rule_finish(self, session: Session, rule, player_id):
         target = rule.get("target")
-        if not operation or target is None:
-            return {"achieved": False, "message": "Invalid point rule (missing opt or target)"}
+        if target is None:
+            return {"achieved": False, "message": "Invalid point rule (missing target)"}
 
-        match operation:
-            case "lte":
-            stmt = (
-                select(func.count("*")).select_from(game_model.GamePlayer)
-                .filter_by(player_id=player_id)
-                .filter( >= rule.get("target"))
+        stmt = (
+            select(
+                game_model.GamePlayer,
+                func.count("*").label("played"),
+            ).select_from(game_model.GamePlayer).group_by(game_model.GamePlayer.player_id)
+            .join(game_model.GamePlayer.game)
+            .where(
+                game_model.GamePlayer.player_id == player_id,
+                game_model.Game.game_state==game_model.GameState.FINISHED,
             )
+        )
+
+        filter = rule.get("filter")
+        if "points" in filter:
+            f = filter["points"]
+            match f["op"]:
+                case "lte":
+                    stmt = stmt.filter(game_model.GamePlayer.points <= f.get("target"))
+                case _:
+                    return {"achieved": False, "message": "unsupported operation"}
+
+
+        c = session.execute(stmt).one_or_none()
+        if not c:
+            return {
+                "achieved": False,
+                "already_unlocked": False,
+                "current": 0,
+                "target": int(target),
+            }
+            
+        current = c.played
+        target = rule.get("target")
         return {
-            "achieved": achieved,
+            "achieved": current >= target,
             "already_unlocked": False,
-            "opponent": opponent_name,
             "current": current,
             "target": int(target),
         }
@@ -131,8 +156,8 @@ class AchievementChecker:
 
                 if rtype == "head_to_head":
                     return self._rule_head_to_head(session, rule, player_id)
-                if rtype == "points":
-                    return self._rule_points(session, player_Id)
+                if rtype == "finish":
+                    return self._rule_finish(session, rule, player_id)
 
                 # Unknown or unsupported rule types
                 return {"achieved": False, "message": f"Unsupported rule type: {rtype}"}

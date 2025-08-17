@@ -62,6 +62,8 @@ def reconcile_games(session: Session):
             game_model.GamePlayer.player_id,
             func.count("*").label("played"),
         ).group_by(game_model.GamePlayer.player_id)
+        .join(game_model.GamePlayer.game)
+        .where(game_model.Game.game_state==game_model.GameState.FINISHED)
     )
     rows = session.execute(stmt).all()
 
