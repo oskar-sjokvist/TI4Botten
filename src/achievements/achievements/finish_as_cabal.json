@@ -1,0 +1,16 @@
+{
+  "achievement_id": "67f0562c-7b8a-11f0-ac71-8ae8ef96ea67",
+  "key": "finish_as_cabal",
+  "version": 1,
+  "name": "It Feeds on Carrion",
+  "description": "Finish a game as Vuil'Raith Cabal",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "The Vuil’Raith Cabal"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

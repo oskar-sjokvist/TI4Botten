@@ -1,0 +1,16 @@
+{
+  "achievement_id": "e6c144ba-7b8b-11f0-9f09-8ae8ef96ea67",
+  "key": "finish_as_mentak",
+  "version": 1,
+  "name": "Space Pirates",
+  "description": "Finish a game as The Mentak Coalition",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "The Mentak Coalition"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

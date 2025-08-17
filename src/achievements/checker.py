@@ -93,7 +93,9 @@ class AchievementChecker:
                     stmt = stmt.filter(game_model.GamePlayer.points <= f.get("target"))
                 case _:
                     return {"achieved": False, "message": "unsupported operation"}
-
+        if "play_as_faction" in filter:
+            f = filter["play_as_faction"]
+            stmt = stmt.filter(game_model.GamePlayer.faction == f)
 
         c = session.execute(stmt).one_or_none()
         if not c:
