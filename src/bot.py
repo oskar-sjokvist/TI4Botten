@@ -5,6 +5,7 @@ from .game.commands import Game
 from .misc.commands import Misc
 from .rating.commands import Rating
 from .betting.commands import Betting
+from .achievements.commands import Achievements
 
 from discord.ext import commands
 from sqlalchemy import create_engine
@@ -30,7 +31,7 @@ class Bot(commands.Bot):
         models.Base.metadata.create_all(engine)
 
         # Pass engine to cogs that need it.
-        self.init_cogs = [Game(self, engine), Misc(), Betting(engine), Rating(engine)]
+        self.init_cogs = [Game(self, engine), Misc(), Betting(engine), Rating(engine), Achievements(engine)]
 
         super().__init__(command_prefix="!", intents=intents)
 

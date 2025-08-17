@@ -1,0 +1,14 @@
+{
+  "achievement_id": "4ea0de8e-7b72-11f0-b283-8ae8ef96ea69",
+  "key": "win_10_games",
+  "version": 1,
+  "name": "Rising Star",
+  "description": "Win 2 games.",
+  "rule_json": {
+    "type": "counter",
+    "counter_key": "games_won",
+    "target": 2
+  },
+  "points": 50,
+  "is_active": true
+}
