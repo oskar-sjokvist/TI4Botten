@@ -8,7 +8,7 @@ from . import model
 from ..game import model as game_model
 from .checker import AchievementChecker
 
-from typing import Sequence, List
+from typing import Sequence, List, Optional
 
 @dataclass
 class LockedAchievement:
@@ -118,3 +118,9 @@ class AchievementsLogic:
         except Exception as e:
             logging.error(f"achievements: {e}")
             return "Something went wrong."
+
+    def player_id_from_name(self, name: str) -> Optional[int]:
+        with Session(self.engine) as session:
+            return session.scalar(
+                select(game_model.Player.player_id).filter_by(name=name)
+            )

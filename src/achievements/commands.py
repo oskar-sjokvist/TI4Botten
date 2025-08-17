@@ -7,6 +7,7 @@ from . import listener as achievements_listener
 from discord.ext import commands
 from sqlalchemy import Engine
 
+from typing import Optional
 from ..typing import *
 
 
@@ -33,6 +34,16 @@ class Achievements(commands.Cog):
 
 
     @commands.command()
-    async def achievements(self, ctx: commands.Context) -> None:
+    async def achievements(self, ctx: commands.Context, *, name: Optional[str]) -> None:
+        """Type !achievements to view your achievements or !achievements {name} to view someone else's."""
+        if name:
+            id = self.logic.player_id_from_name(name)
+            if id:
+                await ctx.send(self.logic.achievements(id, name))
+                return
+            await ctx.send("Could not find that player")
+            return
+            
+            
         await ctx.send(self.logic.achievements(ctx.author.id, ctx.author.name))
 
