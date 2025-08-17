@@ -34,5 +34,5 @@ class Achievements(commands.Cog):
 
     @commands.command()
     async def achievements(self, ctx: commands.Context) -> None:
-        await ctx.send(self.logic.achievements(ctx.author.id))
+        await ctx.send(self.logic.achievements(ctx.author.id, ctx.author.name))
 

@@ -38,8 +38,9 @@ class AchievementsLogic:
             achieved = self.checker.check(ach, player_id)
             # The return type for check should be updated.
             # This is an ad-hoc check for errors.
-            if hasattr(achieved, "already_unlocked"):
-                logging.error(achieved["message"])
+            if "already_unlocked" not in achieved:
+                if "message" in achieved:
+                    logging.error(achieved["message"])
                 continue
             if achieved["already_unlocked"]:
                 continue
@@ -61,7 +62,7 @@ class AchievementsLogic:
                 
 
 
-    def achievements(self, player_id: int) -> str:
+    def achievements(self, player_id: int, player_name) -> str:
         """Return a human-readable list of unlocked and locked achievements for player_id."""
         try:
             with Session(self.engine) as session:
@@ -85,7 +86,7 @@ class AchievementsLogic:
                 # Load player progress counters
                 player = session.get(game_model.Player, player_id)
                 if not player:
-                    player = game_model.Player(player_id=player_id)
+                    player = game_model.Player(player_id=player_id, name=player_name)
                     session.add(player)
                 lines = [f"Achievements for player {player.name}:"]
                 
