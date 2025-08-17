@@ -418,7 +418,7 @@ Living rules reference (Prophecy of Kings)
                 session.add(game_player)
                 session.commit()
                 return Ok(
-                    "{player_name} has joined lobby. "
+                    f"{player_name} has joined lobby. "
                     f"Current number of players {number_of_players+1}. "
                     "Type !leave to leave the lobby."
                 )
