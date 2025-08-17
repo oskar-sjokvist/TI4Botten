@@ -1,0 +1,17 @@
+{
+  "achievement_id": "83fa369c-7b82-11f0-9ad8-8ae8ef96ea69",
+  "key": "finish_with_3_or_fewer_points",
+  "version": 1,
+  "name": "I'm only here for space battles.",
+  "description": "Finish with three or fewer points",
+  "rule_json": {
+    "type": "points",
+    "with": {
+      "op": "lte",
+      "target": 3
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

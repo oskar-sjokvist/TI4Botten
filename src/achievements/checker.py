@@ -30,6 +30,66 @@ class AchievementChecker:
         row = session.get(achievements_model.PlayerProgress, (player_id, counter_key))
         return int(row.value) if row is not None and getattr(row, "value", None) is not None else 0
 
+    def _rule_head_to_head(self, session: Session, rule, player_id):
+        # rule expects: opponent_name (str) and target (int)
+        opponent_name = rule.get("opponent_name")
+        target = rule.get("target")
+        if not opponent_name or target is None:
+            return {"achieved": False, "message": "Invalid head_to_head rule (missing opponent_name or target)"}
+
+        # Resolve opponent player_id via game Player table
+        opponent_player = session.scalar(
+            select(game_model.Player).filter_by(name=opponent_name)
+        )
+        if not opponent_player:
+            return {"achieved": False, "message": f"Opponent not found: {opponent_name}"}
+
+        # Map to MatchPlayer id (MatchPlayer.player_id references player.player_id)
+        opponent_mp = session.scalar(
+            select(rating_model.MatchPlayer).filter_by(player_id=opponent_player.player_id)
+        )
+        if not opponent_mp:
+            # No match_player entry -> zero wins against them
+            current = 0
+        else:
+            # Count WinnerHeadToHead rows where winner_id == player_id and loser_id == opponent_mp.player_id
+            cnt = session.execute(
+                select(rating_model.WinnerHeadToHead).filter_by(winner_id=player_id, loser_id=opponent_mp.player_id)
+            ).all()
+            current = len(cnt)
+
+        achieved = int(current) >= int(target)
+        return {
+            "achieved": achieved,
+            "already_unlocked": False,
+            "opponent": opponent_name,
+            "current": current,
+            "target": int(target),
+        }
+
+    def _rule_points(self, session: Session, rule, player_id):
+        operation = rule.get("op")
+        target = rule.get("target")
+        if not operation or target is None:
+            return {"achieved": False, "message": "Invalid point rule (missing opt or target)"}
+
+        match operation:
+            case "lte":
+            stmt = (
+                select(func.count("*")).select_from(game_model.GamePlayer)
+                .filter_by(player_id=player_id)
+                .filter( >= rule.get("target"))
+            )
+        return {
+            "achieved": achieved,
+            "already_unlocked": False,
+            "opponent": opponent_name,
+            "current": current,
+            "target": int(target),
+        }
+
+
+    ## Fix this disgusting return type.
     def check(self, achievement: achievements_model.Achievement, player_id: int) -> Dict[str, Any]:
         """Evaluate whether `player_id` satisfies `achievement`'s rule_json.
 
@@ -70,41 +130,9 @@ class AchievementChecker:
                     }
 
                 if rtype == "head_to_head":
-                    # rule expects: opponent_name (str) and target (int)
-                    opponent_name = rule.get("opponent_name")
-                    target = rule.get("target")
-                    if not opponent_name or target is None:
-                        return {"achieved": False, "message": "Invalid head_to_head rule (missing opponent_name or target)"}
-
-                    # Resolve opponent player_id via game Player table
-                    opponent_player = session.scalar(
-                        select(game_model.Player).filter_by(name=opponent_name)
-                    )
-                    if not opponent_player:
-                        return {"achieved": False, "message": f"Opponent not found: {opponent_name}"}
-
-                    # Map to MatchPlayer id (MatchPlayer.player_id references player.player_id)
-                    opponent_mp = session.scalar(
-                        select(rating_model.MatchPlayer).filter_by(player_id=opponent_player.player_id)
-                    )
-                    if not opponent_mp:
-                        # No match_player entry -> zero wins against them
-                        current = 0
-                    else:
-                        # Count WinnerHeadToHead rows where winner_id == player_id and loser_id == opponent_mp.player_id
-                        cnt = session.execute(
-                            select(rating_model.WinnerHeadToHead).filter_by(winner_id=player_id, loser_id=opponent_mp.player_id)
-                        ).all()
-                        current = len(cnt)
-
-                    achieved = int(current) >= int(target)
-                    return {
-                        "achieved": achieved,
-                        "already_unlocked": False,
-                        "opponent": opponent_name,
-                        "current": current,
-                        "target": int(target),
-                    }
+                    return self._rule_head_to_head(session, rule, player_id)
+                if rtype == "points":
+                    return self._rule_points(session, player_Id)
 
                 # Unknown or unsupported rule types
                 return {"achieved": False, "message": f"Unsupported rule type: {rtype}"}

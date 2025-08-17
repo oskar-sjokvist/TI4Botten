@@ -11,10 +11,7 @@ from ..game import model as game_model
 
 
 def register(engine) -> None:
-    """Connect to the game finish signal and update counters when a game finishes.
-
-    This will increment the 'games_won' counter for the winning player in PlayerProgress.
-    """
+    """Connect to the game finish signal and update counters when a game finishes."""
 
     def _on_finish(sender, game_id: int):
         try:
