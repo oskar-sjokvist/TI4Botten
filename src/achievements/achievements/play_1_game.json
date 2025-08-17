@@ -1,0 +1,14 @@
+{
+  "achievement_id": "338b10c2-7b7e-11f0-a6e3-8ae8ef96ea69",
+  "key": "play_1_game",
+  "version": 1,
+  "name": "Vill du spela ett brädspel i 10 timmar?",
+  "description": "Play 1 game",
+  "rule_json": {
+    "type": "counter",
+    "counter_key": "games_played",
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

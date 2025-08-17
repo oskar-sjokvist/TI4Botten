@@ -97,7 +97,6 @@ class AchievementChecker:
                         ).all()
                         current = len(cnt)
 
-                    print(">>>>>>>> JAKE", current, target)
                     achieved = int(current) >= int(target)
                     return {
                         "achieved": achieved,
@@ -110,5 +109,5 @@ class AchievementChecker:
                 # Unknown or unsupported rule types
                 return {"achieved": False, "message": f"Unsupported rule type: {rtype}"}
         except Exception as e:  # pragma: no cover - surface DB/runtime errors
-            logging.exception("Error while checking achievement rule")
+            logging.error(f"Error while checking achievement rule {e}")
             return {"achieved": False, "message": "error while evaluating rule"}

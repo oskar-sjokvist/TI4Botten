@@ -30,17 +30,26 @@ def register(engine) -> None:
                 except LookupError:
                     return
 
-                player_id = winner.player_id
-
                 # Increment or create PlayerProgress counter
                 counter_key = "games_won"
-                up = session.get(achievements_model.PlayerProgress, (player_id, counter_key))
+                up = session.get(achievements_model.PlayerProgress, (winner.player_id, counter_key))
                 if up is None:
-                    up = achievements_model.PlayerProgress(player_id=player_id, counter_key=counter_key, value=1)
+                    up = achievements_model.PlayerProgress(player_id=winner.player_id, counter_key=counter_key, value=1)
                     session.add(up)
                 else:
                     up.value = (up.value or 0) + 1
                     session.merge(up)
+
+                # Increment or create played counter
+                counter_key = "games_played"
+                for player in game.game_players:
+                    up = session.get(achievements_model.PlayerProgress, (player.player_id, counter_key))
+                    if up is None:
+                        up = achievements_model.PlayerProgress(player_id=player.player_id, counter_key=counter_key, value=1)
+                        session.add(up)
+                    else:
+                        up.value = (up.value or 0) + 1
+                        session.merge(up)
 
                 # Commit the increment
                 session.commit()
@@ -48,6 +57,22 @@ def register(engine) -> None:
             logging.exception("Error handling game finish for achievements: %s", e)
 
     signal("finish").connect(_on_finish)
+
+
+def reconcile_games(session: Session):
+    stmt = (
+        select(
+            game_model.GamePlayer.player_id,
+            func.count("*").label("played"),
+        ).group_by(game_model.GamePlayer.player_id)
+    )
+    rows = session.execute(stmt).all()
+
+    session.execute(delete(achievements_model.PlayerProgress).where(achievements_model.PlayerProgress.counter_key == "games_played"))
+
+    for player_id, played in rows:
+        up = achievements_model.PlayerProgress(player_id=player_id, counter_key="games_played", value=int(played))
+        session.add(up)
 
 
 def reconcile_wins(session: Session):
@@ -152,20 +177,10 @@ def load_achievements(engine, dir_path: str | None = None) -> None:
                     logging.warning("Skipping invalid achievement file %s: missing key/name/description", fp)
                     continue
 
-                # Try to find existing by achievement_id, else by key+version
-                ach = None
-                if achievement_id:
-                    ach = session.get(achievements_model.Achievement, achievement_id)
+                ach = session.get(achievements_model.Achievement, achievement_id)
+
 
                 if ach is None:
-                    ach = session.scalars(
-                        select(achievements_model.Achievement).filter_by(key=key, version=version)
-                    ).first()
-
-                if ach is None:
-                    # Create a deterministic id if not provided
-                    if not achievement_id:
-                        achievement_id = f"{key}_v{version}"
                     ach = achievements_model.Achievement(
                         achievement_id=achievement_id,
                         key=key,
@@ -177,16 +192,17 @@ def load_achievements(engine, dir_path: str | None = None) -> None:
                         is_active=is_active,
                     )
                     session.add(ach)
-                else:
-                    # Update fields
-                    ach.key = key
-                    ach.version = version
-                    ach.name = name
-                    ach.description = description
-                    ach.rule_json = rule_json
-                    ach.points = points
-                    ach.is_active = is_active
-                    session.merge(ach)
+                    continue
+
+                # Update fields
+                ach.key = key
+                ach.version = version
+                ach.name = name
+                ach.description = description
+                ach.rule_json = rule_json
+                ach.points = points
+                ach.is_active = is_active
+                session.merge(ach)
 
             session.commit()
     except Exception as e:

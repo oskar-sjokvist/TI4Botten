@@ -1,0 +1,14 @@
+{
+  "achievement_id": "6c2582a0-7b7e-11f0-a02f-8ae8ef96ea69",
+  "key": "play_10_games",
+  "version": 1,
+  "name": "Ska vi spela igen om en månad?",
+  "description": "Play 10 games",
+  "rule_json": {
+    "type": "counter",
+    "counter_key": "games_played",
+    "target": 10
+  },
+  "points": 500,
+  "is_active": true
+}
