@@ -4,6 +4,7 @@ from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 
 from . import model as achievements_model
+from ..game import model as game_model
 
 
 class AchievementsLogic:
@@ -42,7 +43,11 @@ class AchievementsLogic:
                 ).all()
                 progress_map = {p.counter_key: p.value for p in progress_rows}
 
-                lines = [f"Achievements for player {player_id}:"]
+                player = session.get(game_model.Player, player_id)
+                if not player:
+                    player = game_model.Player(player_id=player_id)
+                    session.add(player)
+                lines = [f"Achievements for player {player.name}:"]
 
                 # Unlocked list
                 if unlocked:
