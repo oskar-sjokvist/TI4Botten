@@ -1,0 +1,13 @@
+{
+  "achievement_id": "a815cc06-7b98-11f0-8623-8ae8ef96ea67",
+  "key": "jan",
+  "version": 1,
+  "name": "Mmmm. Det är jag som är Jan",
+  "description": "Var Jan",
+  "rule_json": {
+    "type": "player",
+    "target": "Jan"
+  },
+  "points": 50,
+  "is_active": true
+}

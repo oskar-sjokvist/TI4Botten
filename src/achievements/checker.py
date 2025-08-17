@@ -71,7 +71,7 @@ class AchievementChecker:
     def _rule_finish(self, session: Session, rule, player_id):
         target = rule.get("target")
         if target is None:
-            return {"achieved": False, "message": "Invalid point rule (missing target)"}
+            return {"achieved": False, "message": "Invalid finish rule (missing target)"}
 
         stmt = (
             select(
@@ -115,6 +115,22 @@ class AchievementChecker:
             "target": int(target),
         }
 
+    # Not fully implemented
+    def _rule_player(self, session: Session, rule, player_id):
+        target = rule.get("target")
+        if target is None:
+            return {"achieved": False, "message": "Invalid player rule (missing target)"}
+
+        player = session.get(game_model.GamePlayer, player_id)
+        if not player:
+            return {"achieved": False, "message": "Player not found"}
+
+        return {
+            "achieved": player.player.name == target,
+            "already_unlocked": False,
+        }
+
+
 
     ## Fix this disgusting return type.
     def check(self, achievement: achievements_model.Achievement, player_id: int) -> Dict[str, Any]:
@@ -140,6 +156,7 @@ class AchievementChecker:
                 rule = (achievement.rule_json or {}) if getattr(achievement, "rule_json", None) is not None else {}
                 rtype = rule.get("type")
 
+                # Refactor this like we do for drafting modes.
                 if rtype == "counter":
                     counter_key = rule.get("counter_key")
                     target = rule.get("target")
@@ -155,11 +172,12 @@ class AchievementChecker:
                         "current": current,
                         "target": int(target),
                     }
-
                 if rtype == "head_to_head":
                     return self._rule_head_to_head(session, rule, player_id)
                 if rtype == "finish":
                     return self._rule_finish(session, rule, player_id)
+                if rtype == "player":
+                    return self._rule_player(session, rule, player_id)
 
                 # Unknown or unsupported rule types
                 return {"achieved": False, "message": f"Unsupported rule type: {rtype}"}

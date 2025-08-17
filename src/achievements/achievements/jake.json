@@ -1,0 +1,13 @@
+{
+  "achievement_id": "9b219476-7b98-11f0-8623-8ae8ef96ea67",
+  "key": "jake",
+  "version": 1,
+  "name": "Det är jag som är Jake",
+  "description": "Var Kuben",
+  "rule_json": {
+    "type": "player",
+    "target": "Kuben"
+  },
+  "points": 50,
+  "is_active": true
+}
