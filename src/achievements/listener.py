@@ -174,7 +174,6 @@ def load_achievements(engine, dir_path: str | None = None) -> None:
       - rule_json
       - points (optional)
       - is_active (optional)
-      - from_date (optional)
 
     Existing achievements with the same achievement_id will be updated. If achievement_id
     is not provided we try to match by (key, version) and otherwise create a new id.
