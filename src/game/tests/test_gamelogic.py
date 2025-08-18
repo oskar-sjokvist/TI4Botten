@@ -215,10 +215,13 @@ def test_finish_game_flow(db):
         session.add(gp)
     session.commit()
     result = logic.finish(False, game.game_id, "10 5 7").value
-    assert "has finished" in result
-    assert "10 point(s)" in result
-    assert "5 point(s)" in result
-    assert "7 point(s)" in result
+    # finish returns an Embed
+    embed = result
+    # message begins with a players summary
+    assert "Players:" in embed.description
+    assert "10 point(s)" in embed.description
+    assert "5 point(s)" in embed.description
+    assert "7 point(s)" in embed.description
 
 
 def test_games_summary(db):
@@ -236,8 +239,10 @@ def test_games_summary(db):
         session.commit()
 
     result = logic.games().value
-    assert "Winner" in result
-    assert "FactionA" in result
-    assert "G1" in result
-    assert "G2" in result
-    assert "G3" in result
+    # games returns an Embed
+    embed = result
+    assert "Winner" in embed.description
+    assert "FactionA" in embed.description
+    assert "G1" in embed.description
+    assert "G2" in embed.description
+    assert "G3" in embed.description

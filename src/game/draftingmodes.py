@@ -78,7 +78,7 @@ class ExclusivePool(GameMode):
         if not faction:
             return Ok(discord.Embed(
                 title="Available Factions",
-                description=f"Your available factions are:\n{"\n".join(player.factions)}",
+                description=f"Your available factions are:\n{"\n".join(player.factions)}".replace('"\\n"', "'\\n'"),
                 color=discord.Color.blue()
             ))
 
