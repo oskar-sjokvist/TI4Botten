@@ -111,7 +111,7 @@ class RatingLogic:
                 func.max(game_model.GamePlayer.points).label("max_points"),
             )
             .group_by(game_model.GamePlayer.game_id)
-            .filter(
+            .where(
                 game_model.GamePlayer.game.has(game_state=game_model.GameState.FINISHED)
             )
             .subquery()
@@ -217,7 +217,7 @@ class RatingLogic:
                     select(game_model.GamePlayer.faction, func.count("*").label("played_count"))
                     .group_by(game_model.GamePlayer.faction)
                     .filter_by(player_id=player_id)
-                    .filter(
+                    .where(
                         game_model.GamePlayer.game.has(
                             game_state=game_model.GameState.FINISHED
                         )
@@ -228,7 +228,7 @@ class RatingLogic:
                     select(func.count("*"))
                     .select_from(game_model.GamePlayer)
                     .filter_by(player_id=player_id)
-                    .filter(
+                    .where(
                         game_model.GamePlayer.game.has(
                             game_state=game_model.GameState.FINISHED
                         )
@@ -240,7 +240,7 @@ class RatingLogic:
                         func.max(game_model.GamePlayer.points).label("max_points"),
                     )
                     .group_by(game_model.GamePlayer.game_id)
-                    .filter(
+                    .where(
                         game_model.GamePlayer.game.has(
                             game_state=game_model.GameState.FINISHED
                         )
@@ -262,7 +262,7 @@ class RatingLogic:
                 points_per_game = session.scalar(
                     select(func.sum(game_model.GamePlayer.points) / func.count("*"))
                     .filter_by(player_id=player_id)
-                    .filter(
+                    .where(
                         game_model.GamePlayer.game.has(
                             game_state=game_model.GameState.FINISHED
                         )

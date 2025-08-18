@@ -77,11 +77,13 @@ class AchievementChecker:
             select(
                 game_model.GamePlayer,
                 func.count("*").label("played"),
-            ).select_from(game_model.GamePlayer).group_by(game_model.GamePlayer.player_id)
-            .join(game_model.GamePlayer.game)
+            )
+            .group_by(game_model.GamePlayer.player_id)
             .where(
                 game_model.GamePlayer.player_id == player_id,
-                game_model.Game.game_state==game_model.GameState.FINISHED,
+                game_model.GamePlayer.game.has(
+                    game_state=game_model.GameState.FINISHED
+                )
             )
         )
 
@@ -90,12 +92,12 @@ class AchievementChecker:
             f = filter["points"]
             match f["op"]:
                 case "lte":
-                    stmt = stmt.filter(game_model.GamePlayer.points <= f.get("target"))
+                    stmt = stmt.where(game_model.GamePlayer.points <= f.get("target"))
                 case _:
                     return {"achieved": False, "message": "unsupported operation"}
         if "play_as_faction" in filter:
             f = filter["play_as_faction"]
-            stmt = stmt.filter(game_model.GamePlayer.faction == f)
+            stmt = stmt.where(game_model.GamePlayer.faction == f)
 
         c = session.execute(stmt).one_or_none()
         if not c:
@@ -115,18 +117,17 @@ class AchievementChecker:
             "target": int(target),
         }
 
-    # Not fully implemented
     def _rule_player(self, session: Session, rule, player_id):
         target = rule.get("target")
         if target is None:
             return {"achieved": False, "message": "Invalid player rule (missing target)"}
 
-        player = session.get(game_model.GamePlayer, player_id)
+        player = session.get(game_model.Player, player_id)
         if not player:
             return {"achieved": False, "message": "Player not found"}
 
         return {
-            "achieved": player.player.name == target,
+            "achieved": player.name == target,
             "already_unlocked": False,
         }
 

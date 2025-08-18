@@ -34,16 +34,19 @@ class Achievements(commands.Cog):
 
 
     @commands.command()
-    async def achievements(self, ctx: commands.Context, *, name: Optional[str]) -> None:
-        """Type !achievements to view your achievements or !achievements {name} to view someone else's."""
-        if name:
-            id = self.logic.player_id_from_name(name)
-            if id:
-                await ctx.send(self.logic.achievements(id, name))
-                return
-            await ctx.send("Could not find that player")
-            return
-            
-            
-        await ctx.send(self.logic.achievements(ctx.author.id, ctx.author.name))
+    async def achievements(self, ctx: commands.Context, *, name_input: Optional[str]) -> None:
+            """Type !achievements to view your achievements or !achievements {name} to view someone else's."""
+            id, name = ctx.author.id, ctx.author.name
+            if name_input:
+                id = self.logic.player_id_from_name(name_input)
+                if not id:
+                    await ctx.send("Could not find that player")
+                    return
+                
+                
+            match self.logic.achievements(id, name):
+                case Ok(s):
+                    await ctx.send(s.string_view())
+                case Err(s):
+                    await ctx.send(s)
 
