@@ -40,8 +40,8 @@ class PlayerAchievements:
                 lines.append(f"-# ({u.points} pts) {u.description}")
                 if u.unlocked_count == 1:
                     lines.append(f"-# Only you have this achievement")
-                if u.unlocked_count > 2:
-                    lines.append(f"-# unlocked by {u.unlocked_count-1} other players")
+                if u.unlocked_count > 1:
+                    lines.append(f"-# unlocked by {u.unlocked_count-1} other player{"s" if u.unlocked_count > 2 else ""}")
         else:
             lines.append("### Unlocked (0): None")
 
