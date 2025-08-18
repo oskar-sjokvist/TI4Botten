@@ -32,10 +32,10 @@ class GameLogic:
         self.controller = controller.GameController()
 
     __game_start_quotes = [
-        "> In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.\n> -$player",
-        "> The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.\n> -$player",
-        "> Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.\n> -$player",
-        "> Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.\n> -$player",
+        ">> In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.\n -$player",
+        ">> The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.\n -$player",
+        ">> Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.\n -$player",
+        ">> Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.\n -$player",
     ]
 
     __game_end_quotes = [
@@ -101,7 +101,7 @@ Living rules reference (Prophecy of Kings)
         msg = (
             f"Game '{game.name}' has finished\n\n"
             f"Players:\n{"\n".join(lines)}\n\n"
-            f"> {self.__game_end_quote(players[0].player.name, players[-1].player.name)}\n\n"
+            f"{self.__game_end_quote(players[0].player.name, players[-1].player.name)}\n\n"
             "Wrong result? Rerun the !finish command. Run !update_ratings once your results are final"
         )
         return msg
