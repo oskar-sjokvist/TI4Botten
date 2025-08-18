@@ -49,7 +49,7 @@ class PlayerAchievements:
                 lines.append(f"- {l.name}{progress}")
                 lines.append(f"-# ({l.points} pts) {l.description}")
                 if l.unlocked_count > 0:
-                    lines.append(f"-# unlocked by {l.unlocked_count} other players")
+                    lines.append(f"-# unlocked by {l.unlocked_count} other players{"s" if l.unlocked_count > 1 else ""}")
         else:
             lines.append("### Locked (0): None")
         return "\n".join(lines)
@@ -117,8 +117,6 @@ class AchievementsLogic:
                     )
                     
                 ).all()
-
-
 
                 locked = self.update_achievements_and_obtain_locked(session, locked_achievements, player_id)
                 pa = session.scalars(
