@@ -130,10 +130,13 @@ class Game(commands.Cog):
         await ctx.send(self.__string_from_string_result(self.logic.games(5)))
 
     @commands.command()
-    async def lobby(self, ctx: commands.Context, *, name: str) -> None:
+    async def lobby(self, ctx: commands.Context, *, name: Optional[str]) -> None:
         """Create a lobby."""
         if not ctx.guild:
             await ctx.send("This is a server command")
+            return
+        if not name:
+            await ctx.send("Specify a lobby name")
             return
 
         channel = await ctx.guild.create_text_channel(name)

@@ -63,5 +63,5 @@ class Rating(commands.Cog):
             self.logic.update_rating(None, ctx.channel.id)
             await ctx.send("Ratings updated")
         except Exception as e:
-            logging.error(f"update_rating: {e}")
+            logging.exception("update_rating")
             await ctx.send("Something went wrong")

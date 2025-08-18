@@ -40,7 +40,7 @@ class BettingLogic:
                 session.commit()
             return out
         except Exception as e:
-            logging.error(f"balance: {e}")
+            logging.exception("balance")
             return "Something went wrong."
 
     def payout(self, game_id: int) -> str:
@@ -80,7 +80,7 @@ class BettingLogic:
                 session.commit()
                 return "\n".join(lines)
         except Exception as e:
-            logging.error(f"payout: {e}")
+            logging.exception("payout")
             return "Something went wrong"
 
     def bet(

@@ -296,7 +296,7 @@ class RatingLogic:
                     )
                 )
         except Exception as e:
-            logging.error(f"stats: {e}")
+            logging.exception(f"stats")
             return Err("Something went wrong.")
 
     def ratings(self) -> str:
@@ -332,7 +332,7 @@ class RatingLogic:
                 return f"```\n{table}\n```"
 
         except Exception as e:
-            logging.error(f"ratings: {e}")
+            logging.exception(f"ratings")
             return "Something went wrong."
 
     def wins(self) -> str:
@@ -354,7 +354,7 @@ class RatingLogic:
                 # Send as Discord code block (triple backticks)
                 return f"```\n{table}\n```"
         except Exception as e:
-            logging.error(f"wins: {e}")
+            logging.exception("wins")
             return "Something went wrong."
 
     def set_pic(self, player_id: int, url:str) -> str:
@@ -370,7 +370,7 @@ class RatingLogic:
                 session.commit()
             return "Successfully set profile picture."
         except Exception as e:
-            logging.error(f"set_pic: {e}")
+            logging.exception("set_pic")
             return "Something went wrong."
 
     def set_description(self, player_id: int, description:str) -> str:
@@ -384,5 +384,5 @@ class RatingLogic:
                 session.commit()
             return "Successfully updated description."
         except Exception as e:
-            logging.error(f"set_description: {e}")
+            logging.exception("set_description")
             return "Something went wrong."

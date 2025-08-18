@@ -144,7 +144,7 @@ Living rules reference (Prophecy of Kings)
                 self.signal.send(None, game_id=game.game_id)
                 return Ok(msg)
             except Exception as e:
-                logging.error(f"Can't finish game: {e}")
+                logging.exception("Can't finish game")
                 return Err("Can't finish game. Something went wrong.")
 
     async def ban(
@@ -166,7 +166,7 @@ Living rules reference (Prophecy of Kings)
                 return draftingmodes.GameMode.create(game).ban(session, player, faction)
 
         except Exception as e:
-            logging.error(f"Error drafting: {e}")
+            logging.exception("Error drafting")
             return "Something went wrong"
 
     async def draft(
@@ -195,7 +195,7 @@ Living rules reference (Prophecy of Kings)
                 return self._start_game(session, game, player.player.name)
 
         except Exception as e:
-            logging.error(f"Error drafting: {e}")
+            logging.exception("Error drafting")
             return "Something went wrong"
 
     def cancel(self, game_id: int) -> Result[str]:
@@ -235,7 +235,7 @@ Living rules reference (Prophecy of Kings)
                 return draftingmodes.GameMode.create(game).start(session, factions)
 
         except Exception as e:
-            logging.error(f"Error fetching game data: {e}")
+            logging.exception("Error fetching game data")
             return Err("An error occurred while fetching the game data.")
 
     def game(self, game_id) -> Result[str]:
@@ -268,7 +268,7 @@ Living rules reference (Prophecy of Kings)
                         lines.append(s)
                 return Ok("\n".join(lines))
             except Exception as e:
-                logging.error(f"!game error: {e}")
+                logging.exception("!game error")
                 return Err("An error occurred while fetching the game data.")
 
     def lobbies(self) -> Result[str]:
@@ -288,7 +288,7 @@ Living rules reference (Prophecy of Kings)
                     )
                 return Ok("\n".join(lines))
             except Exception as e:
-                logging.error(f"Error fetching game data: {e}")
+                logging.exception("Error fetching game data")
                 return Err("An error occurred while fetching the game data.")
 
     def _get_valid_values(self, dtype):
@@ -303,54 +303,56 @@ Living rules reference (Prophecy of Kings)
     async def lobby(
         self, channel: discord.TextChannel, game_id: int, player_id: int, player_name: str, name: str
     ) -> Result[str]:
-        with Session(self.engine) as session:
-            try:
-                game = model.Game(game_id=game_id, game_state="LOBBY", name=name)
-                session.add(game)
-                session.flush()
-                settings = model.GameSettings(game_id=game.game_id)
-                session.add(settings)
-                player = model.Player(player_id=player_id, name=player_name)
-                session.merge(player)
-                game_player = model.GamePlayer(
-                    game_id=game.game_id,
-                    player_id=player_id,
-                )
-                session.add(game_player)
+        try:
+            with Session(self.engine) as session:
+                    game = model.Game(game_id=game_id, game_state="LOBBY", name=name)
+                    session.add(game)
+                    session.flush()
+                    settings = model.GameSettings(game_id=game.game_id)
+                    session.add(settings)
+                    player = model.Player(player_id=player_id, name=player_name)
+                    session.merge(player)
+                    game_player = model.GamePlayer(
+                        game_id=game.game_id,
+                        player_id=player_id,
+                    )
+                    session.add(game_player)
 
-                settings = inspect(model.GameSettings)
-                valid_keys: Dict[str, Any] = dict()
-                for key, dtype in [(col.key, col.type) for col in settings.columns]:
-                    if not ("game" in key and "id" in key):
-                        valid_keys[key] = dtype
-                thread = await channel.create_thread(name="Configuration", type=discord.ChannelType.public_thread)
-                messages = []
-                for k,v in valid_keys.items():
-                    poll = discord.Poll(question=k, duration=timedelta(hours=24))
-                    for opt in self._get_valid_values(v):
-                        if isinstance(opt, enum.Enum):
-                            opt = opt.name
-                        poll.add_answer(text=str(opt))
-                    messages.append(thread.send(poll=poll))
+                    settings = inspect(model.GameSettings)
+                    valid_keys: Dict[str, Any] = dict()
+                    for key, dtype in [(col.key, col.type) for col in settings.columns]:
+                        if not ("game" in key and "id" in key):
+                            valid_keys[key] = dtype
+                    thread = await channel.create_thread(name="Configuration", type=discord.ChannelType.public_thread)
+                    session.commit()
 
-                awaited_messages = await asyncio.gather(*messages)
-                for message in awaited_messages:
-                    settings_poll = model.SettingsPoll(message_id=message.id, game_id=game_id, thread_id=thread.id)
-                    session.add(settings_poll)
-                session.commit()
-                lines = [
-                    f"# Game lobby '{game.name}' created\n"
-                    "Type !join to join the game. And !start to start the game",
-                    f"Players: {player_name}.\n"
-                    "Feel free to give some context like where and when you want to play.\n",
-                    "-# Configure the game by using the !config command. Good luck!",
-                    "Type !polls to apply the results of the polls to the configuration",
-                ]
-                return Ok("\n".join(lines))
+            messages = []
+            for k,v in valid_keys.items():
+                poll = discord.Poll(question=k, duration=timedelta(hours=24))
+                for opt in self._get_valid_values(v):
+                    if isinstance(opt, enum.Enum):
+                        opt = opt.name
+                    poll.add_answer(text=str(opt))
+                messages.append(await thread.send(poll=poll))
 
-            except Exception as e:
-                logging.error(f"Error creating game: {e}")
-                return Err("An error occurred while creating the game.")
+            with Session(self.engine) as session:
+                    for message in messages:
+                        settings_poll = model.SettingsPoll(message_id=message.id, game_id=game_id, thread_id=thread.id)
+                        session.add(settings_poll)
+                    lines = [
+                        f"# Game lobby created\n"
+                        "Type !join to join the game. And !start to start the game",
+                        f"Players: {player_name}.\n"
+                        "Feel free to give some context like where and when you want to play.\n",
+                        "-# Configure the game by using the !config command. Good luck!",
+                        "Type !polls to apply the results of the polls to the configuration",
+                    ]
+                    session.commit()
+                    return Ok("\n".join(lines))
+
+        except Exception as e:
+            logging.exception("Error creating game")
+            return Err("An error occurred while creating the game.")
 
     def _find_lobby(self, session: Session, game_id: int) -> Result[model.Game]:
         game = session.get(model.Game, game_id)
@@ -388,7 +390,7 @@ Living rules reference (Prophecy of Kings)
                 )
 
             except Exception as e:
-                logging.error(f"Error leaving lobby: {e}")
+                logging.exception("Error leaving lobby")
                 return Err("An error occurred while leaving the lobby.")
 
     def join(self, game_id: int, player_id: int, player_name: str) -> Result[str]:
@@ -425,7 +427,7 @@ Living rules reference (Prophecy of Kings)
                     "Type !leave to leave the lobby."
                 )
             except Exception as e:
-                logging.error(f"Error joining lobby: {e}")
+                logging.exception("Error joining lobby")
                 return Err("An error occurred while joining the lobby.")
 
     def games(self, game_limit: int = 5) -> Result[str]:
@@ -447,7 +449,7 @@ Living rules reference (Prophecy of Kings)
                     )
                 return Ok("\n".join(lines))
             except Exception as e:
-                logging.error(f"Error fetching game data: {e}")
+                logging.exception("Error fetching game data")
                 return Err("An error occurred while fetching the game data.")
 
     def config(
@@ -539,7 +541,7 @@ Living rules reference (Prophecy of Kings)
                 return Ok(f"Set property '{property}' to '{new_value}'")
 
             except Exception as e:
-                logging.error(f"Error configuring lobby: {e}")
+                logging.exception("Error configuring lobby")
                 return Err("An error occurred while configuring the lobby.")
 
     async def apply_poll_results(self, game_id: int) -> Result[str]:
@@ -577,5 +579,5 @@ Living rules reference (Prophecy of Kings)
                 session.commit()
                 return Ok("\n".join(lines))
             except Exception as e:
-                logging.error(f"Error fetching polls data: {e}")
+                logging.exception("Error fetching polls data")
                 return Err("An error occurred while fetching the game data.")

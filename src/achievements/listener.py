@@ -51,7 +51,7 @@ def register(engine) -> None:
                 # Commit the increment
                 session.commit()
         except Exception as e:
-            logging.exception("Error handling game finish for achievements: %s", e)
+            logging.exception("Error handling game finish for achievements")
 
     signal("finish").connect(_on_finish)
 
@@ -126,7 +126,7 @@ def reconcile(engine) -> None:
             reconcile_wins(session)
             session.commit()
     except Exception as e:
-        logging.exception("Error reconciling achievements counters: %s", e)
+        logging.exception("Error reconciling achievements counters")
 
 
 def load_achievements(engine, dir_path: str | None = None) -> None:
@@ -161,7 +161,7 @@ def load_achievements(engine, dir_path: str | None = None) -> None:
                 try:
                     data = json.loads(fp.read_text(encoding="utf-8"))
                 except Exception as e:
-                    logging.exception("Failed to parse achievement file %s: %s", fp, e)
+                    logging.exception("Failed to parse achievement file %s", fp)
                     continue
 
                 achievement_id = data.get("achievement_id")
@@ -206,4 +206,4 @@ def load_achievements(engine, dir_path: str | None = None) -> None:
 
             session.commit()
     except Exception as e:
-        logging.exception("Error loading achievement JSON files: %s", e)
+        logging.exception("Error loading achievement JSON files")

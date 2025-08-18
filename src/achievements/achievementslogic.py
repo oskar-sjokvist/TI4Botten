@@ -7,7 +7,7 @@ from datetime import datetime
 
 from . import model
 from ..game import model as game_model
-from .checker import AchievementChecker
+from .checker import *
 
 from typing import Sequence, List, Optional
 from ..typing import *
@@ -76,26 +76,26 @@ class AchievementsLogic:
     def update_achievements_and_obtain_locked(self, session: Session, all_ach: Sequence[model.Achievement], player_id: int) -> List[Achievement]:
         locked = []
         for ach in all_ach:
-            achieved = self.checker.check(ach, player_id)
-            if "already_unlocked" not in achieved:
-                if "message" in achieved:
-                    logging.error(achieved["message"])
-                continue
-            if achieved['achieved']:
-                session.add(model.PlayerAchievement(
-                    achievement_id=ach.achievement_id,
-                    player_id=player_id,
-                    awarded_by="automation"
-                ))
-            else:
-                locked.append(Achievement(
-                        name = ach.name,
-                        points = ach.points,
-                        current = achieved.get("current"),
-                        target = achieved.get("target"),
-                        unlocked_count = len(ach.player_unlocks),
-                        description = ach.description,
+            match(self.checker.check(ach, player_id)):
+                case str(s):
+                    logging.error(f"Achievement check failed: {s}")
+                case Achieved():
+                    session.add(model.PlayerAchievement(
+                        achievement_id=ach.achievement_id,
+                        player_id=player_id,
+                        awarded_by="automation"
                     ))
+                case Unlocked():
+                    logging.exception(f"Achievement already unlocked: {ach.name}")
+                case Locked(current, target):
+                    locked.append(Achievement(
+                            name = ach.name,
+                            points = ach.points,
+                            current = current,
+                            target = target,
+                            unlocked_count = len(ach.player_unlocks),
+                            description = ach.description,
+                        ))
         session.flush()
         return locked
                 

@@ -17,12 +17,12 @@ def main():
         with open(".token", "r") as f:
             token = f.read().strip()
     except FileNotFoundError:
-        logging.error(
+        logging.exception(
             ".token file not found. Please provide your Discord bot token in a .token file."
         )
         sys.exit(1)
     except Exception as e:
-        logging.error(f"Failed to read .token file: {e}")
+        logging.exception("Failed to read .token file")
         sys.exit(1)
 
     logging.info("Starting bot...")
@@ -34,7 +34,7 @@ def main():
     try:
         bot.run(token)
     except Exception as e:
-        logging.error(f"Bot encountered an error: {e}")
+        logging.exception("Bot encountered an error")
         sys.exit(1)
 
 
