@@ -46,7 +46,7 @@ class Achievements(commands.Cog):
                 
             match self.logic.achievements(id, name):
                 case Ok(s):
-                    await ctx.send(s.string_view())
+                    await ctx.send(embed=s.embed_view())
                 case Err(s):
                     await ctx.send(s)
 

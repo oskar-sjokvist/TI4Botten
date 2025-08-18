@@ -3,6 +3,7 @@ from __future__ import annotations
 # TODO: Clean up code here, make it more DRY
 
 import random
+import discord
 
 from . import model, controller
 from . import gamelogic
@@ -11,7 +12,7 @@ from ..typing import *
 
 from itertools import batched
 from sqlalchemy.orm import Session, attributes
-from typing import Optional, List, Tuple
+from typing import Optional
 
 
 class GameMode:
@@ -50,7 +51,7 @@ class GameMode:
     ) -> Optional[str]:
         return f"Mode {self.game.game_settings.drafting_mode} not implemented yet."
 
-    def start(self, session: Session, factions: fs.Factions) -> Result[str]:
+    def start(self, session: Session, factions: fs.Factions) -> Result[discord.Embed]:
         return Err(
             f"Drafting mode {self.game.game_settings.drafting_mode} not supported at the moment"
         )
@@ -60,26 +61,36 @@ class GameMode:
     ) -> Optional[str]:
         return f"Drafting mode {self.game.game_settings.drafting_mode} does not support bans"
 
+class GameStarted:
+    pass
 
 class ExclusivePool(GameMode):
     def draft(
         self, session: Session, player: model.GamePlayer, faction: Optional[str]
-    ) -> Optional[str]:
+    ) -> Result[discord.Embed|GameStarted]:
         if player.faction:
-            return f"You have drafted {player.faction}"
+            return Ok(discord.Embed(
+                title="Faction Drafted",
+                description=f"You have drafted {player.faction}",
+                color=discord.Color.green()
+            ))
 
         if not faction:
-            return f"Your available factions are:\n{"\n".join(player.factions)}"
+            return Ok(discord.Embed(
+                title="Available Factions",
+                description=f"Your available factions are:\n{"\n".join(player.factions)}",
+                color=discord.Color.blue()
+            ))
 
         current_drafter = self.controller.current_drafter(session, self.game)
 
         if self.game.turn != player.turn_order:
-            return f"It is not your turn to draft! It is {current_drafter.player.name}'s turn"
+            return Err(f"It is not your turn to draft! It is {current_drafter.player.name}'s turn")
 
         # Extract this out to shared utils.
         best = gamelogic.GameLogic._closest_match(faction, player.factions)
         if not best:
-            return f"You can't draft faction {faction}. Check your spelling or available factions."
+            return Err(f"You can't draft faction {faction}. Check your spelling or available factions.")
 
         player.faction = best
         self.game.turn += 1
@@ -88,14 +99,18 @@ class ExclusivePool(GameMode):
         session.merge(player)
         lines = [f"{player.player.name} has selected {player.faction}."]
         if self.game.turn == len(self.game.game_players):
-            return None
+            return Ok(GameStarted())
         session.commit()
         current_drafter = self.controller.current_drafter(session, self.game)
         lines.append(f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
 
-        return "\n".join(lines)
+        return Ok(discord.Embed(
+            title="Next Drafter",
+            description=f"Next drafter is <@{current_drafter.player_id}>. Use !draft.",
+            color=discord.Color.blue()
+        ))
 
-    def start(self, session: Session, factions: fs.Factions) -> Result[str]:
+    def start(self, session: Session, factions: fs.Factions) -> Result[discord.Embed]:
 
         players = self.game.game_players
         number_of_players = len(players)
@@ -143,8 +158,11 @@ class ExclusivePool(GameMode):
         current_drafter = self.controller.current_drafter(session, self.game)
 
         lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
-        return Ok("\n".join(lines))
-
+        return Ok(discord.Embed(
+            title="🎲 Drafting Phase",
+            description="\n".join(lines),
+            color=discord.Color.blue()
+        ))
 
 class PicksOnly(GameMode):
     def draft(
@@ -190,7 +208,7 @@ class PicksOnly(GameMode):
         lines.append(f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
         return "\n".join(lines)
 
-    def start(self, session: Session, factions: fs.Factions) -> Result[str]:
+    def start(self, session: Session, factions: fs.Factions) -> Result[discord.Embed]:
         players = self.game.game_players
         number_of_players = len(players)
 
@@ -222,7 +240,11 @@ class PicksOnly(GameMode):
         lines.extend(fs)
         current_drafter = self.controller.current_drafter(session, self.game)
         lines.append(f"<@{current_drafter.player_id}> begins drafting. Use !draft.")
-        return Ok("\n".join(lines))
+        return Ok(discord.Embed(
+            title="🛡️ Drafting Started!",
+            description="\n".join(lines),
+            color=discord.Color.green()
+        ))
 
 
 class PicksAndBans(GameMode):
@@ -287,7 +309,7 @@ class PicksAndBans(GameMode):
         lines.append(f"Next drafter is <@{current_drafter.player_id}>. Use !draft.")
         return "\n".join(lines)
 
-    def start(self, session: Session, factions: fs.Factions) -> Result[str]:
+    def start(self, session: Session, factions: fs.Factions) -> Result[discord.Embed]:
         players = self.game.game_players
         number_of_players = len(players)
 
@@ -319,7 +341,11 @@ class PicksAndBans(GameMode):
 
         current_drafter = self.controller.current_drafter(session, self.game)
         lines.append(f"<@{current_drafter.player_id}> begins banning. Use !ban.")
-        return Ok("\n".join(lines))
+        return Ok(discord.Embed(
+            title="🛡️ Banning Started!",
+            description="\n".join(lines),
+            color=discord.Color.green()
+        ))
 
     def ban(
         self, session: Session, player: model.GamePlayer, faction: Optional[str]

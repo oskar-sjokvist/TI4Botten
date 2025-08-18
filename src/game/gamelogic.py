@@ -32,21 +32,21 @@ class GameLogic:
         self.controller = controller.GameController()
 
     __game_start_quotes = [
-        ">> In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.\n -$player",
-        ">> The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.\n -$player",
-        ">> Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.\n -$player",
-        ">> Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.\n -$player",
+        "> In the ashes of Mecatol Rex, the galaxy trembles. Ancient rivalries stir, alliances are whispered in shadow, and war fleets awaken from slumber. The throne is empty… but not for long.\n> -$player",
+        "> The age of peace is over. Steel will be our currency, blood our tribute. Let the weak hide behind treaties — we will claim the stars themselves.\n> -$player",
+        "> Our fleets are in position. Every planet is a resource, every neighbour a pawn. The throne will be ours… through persuasion or annihilation.\n> -$player",
+        "> Attention, denizens of the galaxy: the Lazax are no more. The throne stands vacant. May the worthy rise… and the unworthy perish.\n> -$player",
     ]
 
     __game_end_quotes = [
-        "The galaxy falls silent. The throne is claimed by $winner, and a new era begins.",
-        "From the ruins of war, a ruler emerges. $winner's will shall shape the stars.",
-        "The council is dissolved. All voices bow to $winner — the new master of Mecatol Rex.",
-        "War fleets drift like shadows, but $winner's banner flies above them all.",
-        "The game is over. The galaxy belongs to $winner, bold enough to take it.",
-        "Power is not given; it is seized. Today, history remembers $winner.",
-        "In the wake of conquest, the galaxy is remade in $winner's image.",
-        "The war for Mecatol Rex has ended — but the scars of $loser will never fade.",
+        "> The galaxy falls silent. The throne is claimed by $winner, and a new era begins.",
+        "> From the ruins of war, a ruler emerges. $winner's will shall shape the stars.",
+        "> The council is dissolved. All voices bow to $winner — the new master of Mecatol Rex.",
+        "> War fleets drift like shadows, but $winner's banner flies above them all.",
+        "> The game is over. The galaxy belongs to $winner, bold enough to take it.",
+        "> Power is not given; it is seized. Today, history remembers $winner.",
+        "> In the wake of conquest, the galaxy is remade in $winner's image.",
+        "> The war for Mecatol Rex has ended — but the scars of $loser will never fade.",
     ]
 
     @staticmethod
@@ -91,24 +91,43 @@ Living rules reference (Prophecy of Kings)
         game.game_finish_time = datetime.now()
         session.merge(game)
 
+
+    def __start_lobby_message(self, player: model.Player) -> discord.Embed:
+        msg = (
+            f"Players:\n{player.name}\n\n"
+            "-# Feel free to give some context like where and when you want to play.\n"
+            "-# Configure the game by using the !config command.\n"
+            "-# Type !polls to apply the results of the polls to the configuration"
+            "Get ready for the game!"
+        )
+        return discord.Embed(
+            title="🛡️ Lobby Started!",
+            description=msg,
+            color=discord.Color.green()
+        )
+
     def __end_game_message(
-        self, game: model.Game, players: Sequence[model.GamePlayer]
-    ) -> str:
+        self, players: Sequence[model.GamePlayer]
+    ) -> discord.Embed:
         lines = [
             f"{i+1}. {p.player.name} played {p.faction} and finished with {p.points} point(s)"
             for i, p in enumerate(players)
         ]
+        
         msg = (
-            f"Game '{game.name}' has finished\n\n"
             f"Players:\n{"\n".join(lines)}\n\n"
-            f"{self.__game_end_quote(players[0].player.name, players[-1].player.name)}\n\n"
+            f"{self.__game_end_quote(players[0].player.name, players[-1].player.name)}\n\n\n"
             "Wrong result? Rerun the !finish command. Run !update_ratings once your results are final"
         )
-        return msg
+        return discord.Embed(
+            title="💡 Game has finished!",
+            description=msg,
+            color=discord.Color.blue()
+        )
 
     def finish(
         self, is_admin: bool, game_id: int, all_points: Optional[str]
-    ) -> Result[str]:
+    ) -> Result[discord.Embed]:
         with Session(self.engine) as session:
             try:
                 game = session.get(model.Game, game_id)
@@ -138,7 +157,7 @@ Living rules reference (Prophecy of Kings)
 
                 self.__finish_game(session, game)
                 players = self.controller.players_ordered_by_points(session, game)
-                msg = self.__end_game_message(game, players)
+                msg = self.__end_game_message(players)
                 session.commit()
 
                 self.signal.send(None, game_id=game.game_id)
@@ -171,34 +190,39 @@ Living rules reference (Prophecy of Kings)
 
     async def draft(
         self, player_id: int, game_id: int, faction: Optional[str] = None
-    ) -> str:
+    ) -> Result[discord.Embed]:
         try:
             with Session(self.engine) as session:
                 game = session.get(model.Game, game_id)
                 if not game:
-                    return "No game found."
+                    return Err("No game found.")
                 if game.game_state != model.GameState.DRAFT:
-                    return "Game is not in draft stage"
+                    return Err("Game is not in draft stage.")
 
                 player = self.controller.player_from_game(session, game, player_id)
 
                 if not player:
-                    return "You are not in this game!"
+                    return Err("You are not in this game!")
 
                 draft_mode = draftingmodes.GameMode.create(game)
 
-                error_message = draft_mode.draft(session, player, faction)
+                match draft_mode.draft(session, player, faction):
+                    case Ok(embed_or_game_started):
+                        match embed_or_game_started:
+                            case draftingmodes.GameStarted():
+                                return Ok(self._start_game(session, game))
+                            case discord.Embed():
+                                return Ok(embed_or_game_started)
+                    case Err(error_message):
+                        return Err(error_message)
+                return Err("Unknown error during drafting")
 
-                if error_message:
-                    return error_message
-
-                return self._start_game(session, game, player.player.name)
 
         except Exception as e:
             logging.exception("Error drafting")
-            return "Something went wrong"
+            return Err("Something went wrong")
 
-    def cancel(self, game_id: int) -> Result[str]:
+    def cancel(self, game_id: int) -> Result[discord.Embed]:
         with Session(self.engine) as session:
             game = session.get(model.Game, game_id)
             if not game:
@@ -209,9 +233,14 @@ Living rules reference (Prophecy of Kings)
 
             session.delete(game)
             session.commit()
-            return Ok(f"Successfully deleted {game.name}")
+            return Ok(discord.Embed(
+                title="🗑️ Game Deleted",
+                description=f"Successfully deleted game {game.name}",
+                color=discord.Color.red()
+            ))
 
-    def _start_game(self, session: Session, game: model.Game, name: str) -> str:
+
+    def _start_game(self, session: Session, game: model.Game) -> discord.Embed:
         players_info_lines = []
         for player in game.game_players:
             players_info_lines.append(f"{player.player.name} playing {player.faction}")
@@ -219,13 +248,13 @@ Living rules reference (Prophecy of Kings)
         game.game_state = model.GameState.STARTED
         session.merge(game)
         session.commit()
-        return (
-            f"# Game '{game.name}' has started\n"
-            f"\nPlayers:\n{"\n".join(players_info_lines)}\n\n"
-            f"{GameLogic.__game_start_quote(name)}\n\n{self._introduction}"
+        return discord.Embed(
+            title="💡 Game has started!",
+            description=f"\nPlayers:\n{"\n".join(players_info_lines)}\n\n",
+            color=discord.Color.blue()
         )
 
-    def start(self, factions: fs.Factions, game_id: int) -> Result[str]:
+    def start(self, factions: fs.Factions, game_id: int) -> Result[discord.Embed]:
         try:
             with Session(self.engine) as session:
                 res = self._find_lobby(session, game_id)
@@ -238,7 +267,7 @@ Living rules reference (Prophecy of Kings)
             logging.exception("Error fetching game data")
             return Err("An error occurred while fetching the game data.")
 
-    def game(self, game_id) -> Result[str]:
+    def game(self, game_id) -> Result[discord.Embed]:
         with Session(self.engine) as session:
             try:
                 game = session.get(model.Game, game_id)
@@ -265,8 +294,13 @@ Living rules reference (Prophecy of Kings)
 
                 match self.config(game.game_id, "get", None):
                     case Ok(s):
-                        lines.append(s)
-                return Ok("\n".join(lines))
+                        if s.description:
+                            lines.append(s.description)
+                return Ok(discord.Embed(
+                    title="📜 Game Information",
+                    description="\n".join(lines),
+                    color=discord.Color.blue()
+                ))
             except Exception as e:
                 logging.exception("!game error")
                 return Err("An error occurred while fetching the game data.")
@@ -302,7 +336,7 @@ Living rules reference (Prophecy of Kings)
 
     async def lobby(
         self, channel: discord.TextChannel, game_id: int, player_id: int, player_name: str, name: str
-    ) -> Result[str]:
+    ) -> Result[discord.Embed]:
         try:
             with Session(self.engine) as session:
                     game = model.Game(game_id=game_id, game_state="LOBBY", name=name)
@@ -310,8 +344,10 @@ Living rules reference (Prophecy of Kings)
                     session.flush()
                     settings = model.GameSettings(game_id=game.game_id)
                     session.add(settings)
-                    player = model.Player(player_id=player_id, name=player_name)
-                    session.merge(player)
+                    player = session.get(model.Player, player_id)
+                    if not player:
+                        player = model.Player(player_id=player_id, name=player_name)
+                        session.merge(player)
                     game_player = model.GamePlayer(
                         game_id=game.game_id,
                         player_id=player_id,
@@ -324,10 +360,14 @@ Living rules reference (Prophecy of Kings)
                         if not ("game" in key and "id" in key):
                             valid_keys[key] = dtype
                     thread = await channel.create_thread(name="Configuration", type=discord.ChannelType.public_thread)
+                    embed = self.__start_lobby_message(player)
                     session.commit()
 
             messages = []
             for k,v in valid_keys.items():
+                # Unnecessary poll.
+                if "codex" in k:
+                    continue
                 poll = discord.Poll(question=k, duration=timedelta(hours=24))
                 for opt in self._get_valid_values(v):
                     if isinstance(opt, enum.Enum):
@@ -339,16 +379,8 @@ Living rules reference (Prophecy of Kings)
                     for message in messages:
                         settings_poll = model.SettingsPoll(message_id=message.id, game_id=game_id, thread_id=thread.id)
                         session.add(settings_poll)
-                    lines = [
-                        f"# Game lobby created\n"
-                        "Type !join to join the game. And !start to start the game",
-                        f"Players: {player_name}.\n"
-                        "Feel free to give some context like where and when you want to play.\n",
-                        "-# Configure the game by using the !config command. Good luck!",
-                        "Type !polls to apply the results of the polls to the configuration",
-                    ]
                     session.commit()
-                    return Ok("\n".join(lines))
+                    return Ok(embed)
 
         except Exception as e:
             logging.exception("Error creating game")
@@ -430,7 +462,7 @@ Living rules reference (Prophecy of Kings)
                 logging.exception("Error joining lobby")
                 return Err("An error occurred while joining the lobby.")
 
-    def games(self, game_limit: int = 5) -> Result[str]:
+    def games(self, game_limit: int = 5) -> Result[discord.Embed]:
         with Session(self.engine) as session:
             try:
                 games = session.scalars(
@@ -447,14 +479,18 @@ Living rules reference (Prophecy of Kings)
                     lines.append(
                         f"{game.name}. Winner {f"{winner.player.name} ({winner.faction})" if winner else "Unknown"}"
                     )
-                return Ok("\n".join(lines))
+                return Ok(discord.Embed(
+                    title="📜 Recent Games",
+                    description="\n".join(lines),
+                    color=discord.Color.blue()
+                ))
             except Exception as e:
                 logging.exception("Error fetching game data")
                 return Err("An error occurred while fetching the game data.")
 
     def config(
         self, game_id: int, property: Optional[str], value: Optional[str]
-    ) -> Result[str]:
+    ) -> Result[discord.Embed]:
         """Configure a game session. For example !config factions_per_player 5. !config to show current settings."""
         with Session(self.engine) as session:
             try:
@@ -494,7 +530,11 @@ Living rules reference (Prophecy of Kings)
                                 ret += f"  - **{data}**\n"
                             else:
                                 ret += f"  - {data}\n"
-                    return Ok(ret)
+                    return Ok(discord.Embed(
+                        title="🛡️ Game Configuration",
+                        description=ret,
+                        color=discord.Color.blue()
+                    ))
 
                 if game.game_state != model.GameState.LOBBY:
                     return Err("Game is not in lobby. Can't change config now")
@@ -538,7 +578,11 @@ Living rules reference (Prophecy of Kings)
                 game_settings = session.get(model.GameSettings, game_id)
                 setattr(game_settings, property, new_value)
                 session.commit()
-                return Ok(f"Set property '{property}' to '{new_value}'")
+                return Ok(discord.Embed(
+                    title="🛡️ Game Configuration Updated",
+                    description=f"Set property '{property}' to '{new_value}'",
+                    color=discord.Color.green()
+                ))
 
             except Exception as e:
                 logging.exception("Error configuring lobby")

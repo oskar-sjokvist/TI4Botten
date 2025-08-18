@@ -1,4 +1,5 @@
 import logging
+import discord
 
 from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
@@ -28,6 +29,15 @@ class PlayerAchievements:
     name: str
     locked: List[Achievement]
     unlocked: List[Achievement]
+
+    def embed_view(self) -> discord.Embed:
+        embed = discord.Embed(
+            title=f"Achievements for player {self.name}",
+            color=discord.Color.blue()
+        )
+        for u in self.unlocked:
+            embed.add_field(name=u.name, value=f"Unlocked at {u.unlocked_time}\n({u.points} pts) {u.description}", inline=False)
+        return embed
 
     # This doesn't scale well. Add a pagination embed soon.
     def string_view(self):

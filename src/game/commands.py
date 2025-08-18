@@ -1,15 +1,16 @@
 import logging
+from unittest import case
 import Levenshtein
-from discord.ext import commands
+import discord
 
 from . import gamelogic
 from . import factions
 from ..typing import *
 
+from discord.ext import commands
 from typing import Optional
 from discord.ext import commands
 from sqlalchemy import Engine
-
 
 class Game(commands.Cog):
     """Cog containing game related commands."""
@@ -22,6 +23,18 @@ class Game(commands.Cog):
         """Initialize the Commands cog with factions."""
         self.factions = factions.read_factions()
         self.logic = gamelogic.GameLogic(bot, engine)
+
+    async def __send_embed_or_pretty_err(self, ctx: commands.Context, result: Result[discord.Embed]) -> None:
+        match result:
+            case Ok(embed):
+                await ctx.send(embed=embed) 
+            case Err(s):
+                embed = discord.Embed(
+                    title="❌ Error",
+                    description=s,
+                    color=discord.Color.red()
+                )
+                await ctx.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -73,10 +86,7 @@ class Game(commands.Cog):
     ) -> None:
         """Finish the game. Usage !finish {list_of_points} where the order is the turn order of the players."""
         is_admin = ctx.author.guild_permissions.administrator
-        out = self.__string_from_string_result(
-            self.logic.finish(is_admin, self.__game_id(ctx), points)
-        )
-        await ctx.send(out)
+        await self.__send_embed_or_pretty_err(ctx, self.logic.finish(is_admin, self.__game_id(ctx), points))
 
     @commands.command()
     async def ban(
@@ -92,28 +102,28 @@ class Game(commands.Cog):
         self, ctx: commands.Context, *, faction: Optional[str] = None
     ) -> None:
         """Draft your faction."""
-        await ctx.send(
-            await self.logic.draft(ctx.author.id, self.__game_id(ctx), faction)
-        )
+        await self.__send_embed_or_pretty_err(ctx, await self.logic.draft(ctx.author.id, self.__game_id(ctx), faction))
 
     @commands.command()
     async def start(self, ctx: commands.Context) -> None:
         """Start the lobby."""
-        out = self.__string_from_string_result(
-            self.logic.start(self.factions, self.__game_id(ctx))
-        )
-        await ctx.send(out)
+        await self.__send_embed_or_pretty_err(ctx, self.logic.start(self.factions, self.__game_id(ctx)))
 
     @commands.command()
     async def cancel(self, ctx: commands.Context) -> None:
         """Admin command to cancel the game or lobby."""
-        if not ctx.author.guild_permissions.administrator:
-            await ctx.send("Only admins can cancel games")
-            return
+        match ctx.author:
+            case discord.Member():
+                if not ctx.author.guild_permissions.administrator:
+                    await ctx.send("Only admins can cancel games")
+            case _:
+                return
 
         match self.logic.cancel(self.__game_id(ctx)):
             case Ok(s):
-                await ctx.channel.delete()
+                match ctx.channel:
+                    case discord.TextChannel():
+                        await ctx.channel.delete()
             case Err(s):
                 await ctx.send(s)
 
@@ -122,27 +132,37 @@ class Game(commands.Cog):
         """Fetch game info"""
         if not game_id:
             game_id = self.__game_id(ctx)
-        await ctx.send(self.__string_from_string_result(self.logic.game(game_id)))
+        await self.__send_embed_or_pretty_err(ctx, self.logic.game(game_id))
 
     @commands.command()
     async def games(self, ctx: commands.Context) -> None:
         """Fetches 5 latest games."""
-        await ctx.send(self.__string_from_string_result(self.logic.games(5)))
+        await self.__send_embed_or_pretty_err(ctx, self.logic.games(5))
 
     @commands.command()
     async def lobby(self, ctx: commands.Context, *, name: Optional[str]) -> None:
         """Create a lobby."""
         if not ctx.guild:
-            await ctx.send("This is a server command")
+            embed = discord.Embed(
+                title="❌ Error",
+                description="This is a server command",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
             return
         if not name:
-            await ctx.send("Specify a lobby name")
+            embed = discord.Embed(
+                title="❌ Error",
+                description="Specify a lobby name",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
             return
 
         channel = await ctx.guild.create_text_channel(name)
         match await self.logic.lobby(channel, channel.id, ctx.author.id, ctx.author.name, name):
             case Ok(s):
-                await channel.send(s)
+                await channel.send(embed=s)
                 await ctx.send(f"Created {channel.mention} for TI4 Lobby")
             case Err(s):
                 await ctx.send(s)
@@ -186,8 +206,4 @@ class Game(commands.Cog):
         self, ctx: commands.Context, property: Optional[str], value: Optional[str]
     ) -> None:
         """Configure a lobby."""
-        await ctx.send(
-            self.__string_from_string_result(
-                self.logic.config(self.__game_id(ctx), property, value)
-            )
-        )
+        await self.__send_embed_or_pretty_err(ctx, self.logic.config(self.__game_id(ctx), property, value))
