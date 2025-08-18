@@ -1,0 +1,14 @@
+{
+  "achievement_id": "a2b1f0e0-0004-11f1-0000-000000000004",
+  "key": "win_10_games",
+  "version": 1,
+  "name": "Conqueror",
+  "description": "Win 10 games",
+  "rule_json": {
+    "type": "counter",
+    "counter_key": "games_won",
+    "target": 10
+  },
+  "points": 1000,
+  "is_active": true
+}

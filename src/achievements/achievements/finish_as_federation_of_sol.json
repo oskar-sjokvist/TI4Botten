@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f0000000-0000-4000-8000-000000000011",
+  "key": "finish_as_federation_of_sol",
+  "version": 1,
+  "name": "Sol Survivor",
+  "description": "Finish a game while playing as The Federation of Sol",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "The Federation of Sol"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

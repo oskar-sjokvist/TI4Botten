@@ -1,0 +1,17 @@
+{
+  "achievement_id": "81fcad18-7bd5-11f0-946d-8ae8ef96ea67",
+  "key": "pappaledigt",
+  "version": 1,
+  "name": "Pappaledigt",
+  "description": "Finish game with Kuben after 2025-01-01",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "player": "Kuben",
+      "finish_date_after": "2025-01-01"
+    },
+    "target": 1
+  },
+  "points": 20,
+  "is_active": true
+}

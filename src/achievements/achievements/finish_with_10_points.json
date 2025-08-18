@@ -1,0 +1,19 @@
+{
+  "achievement_id": "a2b1f0e0-0007-11f1-0000-000000000007",
+  "key": "finish_with_gte_10",
+  "version": 1,
+  "name": "Mighty General",
+  "description": "Finish a game with 10 or more points",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "points": {
+        "op": "gte",
+        "target": 10
+      }
+    },
+    "target": 1
+  },
+  "points": 300,
+  "is_active": true
+}

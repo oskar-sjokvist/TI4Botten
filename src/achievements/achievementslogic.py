@@ -7,9 +7,10 @@ from datetime import datetime
 
 from . import model
 from ..game import model as game_model
-from .checker import *
+from .checker import AchievementChecker
 
 from typing import Sequence, List, Optional
+from .achievementtype import *
 from ..typing import *
 
 @dataclass
@@ -28,6 +29,7 @@ class PlayerAchievements:
     locked: List[Achievement]
     unlocked: List[Achievement]
 
+    # This doesn't scale well. Add a pagination embed soon.
     def string_view(self):
         lines = [f"## Achievements for player {self.name}:"]
 
@@ -42,26 +44,22 @@ class PlayerAchievements:
                     lines.append(f"-# unlocked by {u.unlocked_count-1} other players")
         else:
             lines.append("### Unlocked (0): None")
-        if self.locked:
-            lines.append(f"### Locked ({len(self.locked)}):")
-            for l in self.locked:
-                progress = f" - Progress ({l.current}/{l.target})" if l.current and l.target else ""
-                lines.append(f"- {l.name}{progress}")
-                lines.append(f"-# ({l.points} pts) {l.description}")
-                if l.unlocked_count > 0:
-                    lines.append(f"-# unlocked by {l.unlocked_count} other players{"s" if l.unlocked_count > 1 else ""}")
-        else:
-            lines.append("### Locked (0): None")
+
+        # if self.locked:
+        #     lines.append(f"### Locked ({len(self.locked)}):")
+        #     for l in self.locked:
+        #         progress = f" - Progress ({l.current}/{l.target})" if l.current and l.target else ""
+        #         lines.append(f"- {l.name}{progress}")
+        #         lines.append(f"-# ({l.points} pts) {l.description}")
+        #         if l.unlocked_count > 0:
+        #             lines.append(f"-# unlocked by {l.unlocked_count} other players{"s" if l.unlocked_count > 1 else ""}")
+        # else:
+        #     lines.append("### Locked (0): None")
         return "\n".join(lines)
 
 
 class AchievementsLogic:
-    """Simple logic around achievements.
-
-    Currently supports listing achievements for a player and showing progress
-    for counter-based achievement rules. The command handlers expect
-    a synchronous method that returns a string message.
-    """
+    """Logic around achievements."""
 
     def __init__(self, engine: Engine) -> None:
         self.engine = engine
@@ -70,7 +68,6 @@ class AchievementsLogic:
             ps = session.scalars(select(game_model.Player))
             for p in ps:
                 self.achievements(p.player_id, p.name)
-
 
 
     def update_achievements_and_obtain_locked(self, session: Session, all_ach: Sequence[model.Achievement], player_id: int) -> List[Achievement]:
@@ -88,6 +85,8 @@ class AchievementsLogic:
                 case Unlocked():
                     logging.exception(f"Achievement already unlocked: {ach.name}")
                 case Locked(current, target):
+                    info = f"Achievement locked: {ach.name} (Progress: {current}/{target})"
+                    logging.info(info)
                     locked.append(Achievement(
                             name = ach.name,
                             points = ach.points,

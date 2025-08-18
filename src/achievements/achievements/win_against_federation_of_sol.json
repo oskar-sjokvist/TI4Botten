@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f0000000-0000-4000-8000-000000000013",
+  "key": "win_against_federation_of_sol",
+  "version": 1,
+  "name": "Beat Sol",
+  "description": "Win a game where The Federation of Sol was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Federation of Sol"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

@@ -1,0 +1,14 @@
+{
+  "achievement_id": "a2b1f0e0-0009-11f1-0000-000000000009",
+  "key": "beat_jake_3",
+  "version": 1,
+  "name": "Jake Slayer",
+  "description": "Defeat Jake head-to-head 3 times",
+  "rule_json": {
+    "type": "head_to_head",
+    "opponent_name": "Jake",
+    "target": 3
+  },
+  "points": 250,
+  "is_active": true
+}

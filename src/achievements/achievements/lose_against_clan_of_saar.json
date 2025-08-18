@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f0000000-0000-4000-8000-000000000044",
+  "key": "lose_against_clan_of_saar",
+  "version": 1,
+  "name": "Lost to Saar",
+  "description": "Lose a game where The Clan of Saar was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Clan of Saar"
+    },
+    "target": 1
+  },
+  "points": 25,
+  "is_active": true
+}

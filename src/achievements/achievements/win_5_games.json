@@ -1,0 +1,14 @@
+{
+  "achievement_id": "a2b1f0e0-0002-11f1-0000-000000000002",
+  "key": "win_5_games",
+  "version": 1,
+  "name": "Dominant",
+  "description": "Win 5 games",
+  "rule_json": {
+    "type": "counter",
+    "counter_key": "games_won",
+    "target": 5
+  },
+  "points": 300,
+  "is_active": true
+}

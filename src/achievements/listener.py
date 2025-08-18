@@ -48,6 +48,17 @@ def register(engine) -> None:
                         up.value = (up.value or 0) + 1
                         session.merge(up)
 
+                # Increment or create points_total counter
+                counter_key = "points_total"
+                for player in game.game_players:
+                    up = session.get(achievements_model.PlayerProgress, (player.player_id, counter_key))
+                    if up is None:
+                        up = achievements_model.PlayerProgress(player_id=player.player_id, counter_key=counter_key, value=player.points)
+                        session.add(up)
+                    else:
+                        up.value = (up.value or 0) + player.points
+                        session.merge(up)
+
                 # Commit the increment
                 session.commit()
         except Exception as e:
@@ -61,6 +72,7 @@ def reconcile_games(session: Session):
         select(
             game_model.GamePlayer.player_id,
             func.count("*").label("played"),
+            func.sum(game_model.GamePlayer.points).label("points"),
         ).group_by(game_model.GamePlayer.player_id)
         .join(game_model.GamePlayer.game)
         .where(game_model.Game.game_state==game_model.GameState.FINISHED)
@@ -68,11 +80,31 @@ def reconcile_games(session: Session):
     rows = session.execute(stmt).all()
 
     session.execute(delete(achievements_model.PlayerProgress).where(achievements_model.PlayerProgress.counter_key == "games_played"))
+    session.execute(delete(achievements_model.PlayerProgress).where(achievements_model.PlayerProgress.counter_key == "points_total"))
 
-    for player_id, played in rows:
+    for player_id, played, points in rows:
         up = achievements_model.PlayerProgress(player_id=player_id, counter_key="games_played", value=int(played))
-        session.add(up)
+        pt = achievements_model.PlayerProgress(player_id=player_id, counter_key="points_total", value=int(points))
+        session.add_all([up, pt])
 
+def reconcile_achievements(session: Session):
+    """Recompute the 'achievements_unlocked' counter"""
+    stmt = (
+        select(
+            achievements_model.PlayerAchievement.player_id,
+            func.count("*").label("unlocked")
+        )
+        .group_by(achievements_model.PlayerAchievement.player_id)
+    )
+    rows = session.execute(stmt).all()
+
+    # Remove existing achievements_unlocked counters
+    session.execute(delete(achievements_model.PlayerProgress).where(achievements_model.PlayerProgress.counter_key == "achievements_unlocked"))
+
+    # Insert new counters
+    for player_id, unlocked in rows:
+        up = achievements_model.PlayerProgress(player_id=player_id, counter_key="achievements_unlocked", value=int(unlocked))
+        session.add(up)
 
 def reconcile_wins(session: Session):
     # Build subquery to find max points per finished game
@@ -124,6 +156,7 @@ def reconcile(engine) -> None:
         with Session(engine) as session:
             reconcile_games(session)
             reconcile_wins(session)
+            reconcile_achievements(session)
             session.commit()
     except Exception as e:
         logging.exception("Error reconciling achievements counters")
@@ -141,6 +174,7 @@ def load_achievements(engine, dir_path: str | None = None) -> None:
       - rule_json
       - points (optional)
       - is_active (optional)
+      - from_date (optional)
 
     Existing achievements with the same achievement_id will be updated. If achievement_id
     is not provided we try to match by (key, version) and otherwise create a new id.

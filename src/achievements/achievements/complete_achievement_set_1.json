@@ -1,0 +1,14 @@
+{
+  "achievement_id": "a2b1f0e0-000c-11f1-0000-00000000000c",
+  "key": "complete_achievement_set_1",
+  "version": 1,
+  "name": "Collector I",
+  "description": "Unlock any 5 achievements",
+  "rule_json": {
+    "type": "counter",
+    "counter_key": "achievements_unlocked",
+    "target": 5
+  },
+  "points": 400,
+  "is_active": true
+}

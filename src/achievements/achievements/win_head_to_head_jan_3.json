@@ -1,0 +1,14 @@
+{
+  "achievement_id": "a2b1f0e0-000a-11f1-0000-00000000000a",
+  "key": "beat_jan_3",
+  "version": 1,
+  "name": "Jan Bane",
+  "description": "Defeat Jan head-to-head 3 times",
+  "rule_json": {
+    "type": "head_to_head",
+    "opponent_name": "Jan",
+    "target": 3
+  },
+  "points": 250,
+  "is_active": true
+}

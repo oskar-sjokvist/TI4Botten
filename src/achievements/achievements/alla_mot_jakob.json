@@ -1,0 +1,18 @@
+{
+  "achievement_id": "79f53430-7bd2-11f0-bc5d-8ae8ef96ea67",
+  "key": "alla_mot_jakob",
+  "version": 1,
+  "name": "Alla mot Jakob",
+  "description": "Finish a game where Jake is in last place",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "player": {
+        "Jake": "loser"
+      }
+    },
+    "target": 1
+  },
+  "points": 20,
+  "is_active": true
+}

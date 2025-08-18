@@ -1,0 +1,16 @@
+{
+  "achievement_id": "a2b1f0e0-0005-11f1-0000-000000000005",
+  "key": "finish_as_xxcha",
+  "version": 1,
+  "name": "Watchful Protectors",
+  "description": "Finish a game while playing as the Xxcha Kingdom",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "Xxcha Kingdom"
+    },
+    "target": 1
+  },
+  "points": 200,
+  "is_active": true
+}

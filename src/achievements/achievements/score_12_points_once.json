@@ -1,0 +1,19 @@
+{
+  "achievement_id": "a2b1f0e0-0022-11f1-0000-000000000022",
+  "key": "score_12_once",
+  "version": 1,
+  "name": "Decisive Victory",
+  "description": "Finish a game with 12 or more points",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "points": {
+        "op": "gte",
+        "target": 12
+      }
+    },
+    "target": 1
+  },
+  "points": 800,
+  "is_active": true
+}

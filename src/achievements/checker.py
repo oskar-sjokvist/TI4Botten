@@ -10,24 +10,8 @@ from . import model as achievements_model
 from ..rating import model as rating_model
 from ..game import model as game_model
 from ..typing import *
-
-@dataclass
-class Achieved:
-    """Marker for an achieved achievement."""
-
-
-@dataclass
-class Unlocked:
-    """Marker for an already unlocked achievement."""
-
-@dataclass
-class Locked:
-    current: Optional[int]
-    target: Optional[int]
-
-
-AchievementType = Achieved|Unlocked|Locked|str
-
+from .achievementtype import *
+from .rules import head_to_head, finish, player as player_rule
 
 
 class AchievementChecker:
@@ -175,14 +159,14 @@ class AchievementChecker:
                         target=int(target),
                     )
                 if rtype == "head_to_head":
-                    return self._rule_head_to_head(session, rule, player_id)
+                    return head_to_head(session, rule, player_id)
                 if rtype == "finish":
-                    return self._rule_finish(session, rule, player_id)
+                    return finish(session, rule, player_id)
                 if rtype == "player":
-                    return self._rule_player(session, rule, player_id)
+                    return player_rule(session, rule, player_id)
 
                 # Unknown or unsupported rule types
                 return f"Unsupported rule type: {rtype}"
         except Exception as e:  # pragma: no cover - surface DB/runtime errors
-            logging.exception("Error while checking achievement rule}")
+            logging.exception("Error while checking achievement rule")
             return "Error while evaluating rule"

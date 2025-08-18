@@ -1,0 +1,19 @@
+{
+  "achievement_id": "a2b1f0e0-0008-11f1-0000-000000000008",
+  "key": "finish_with_gte_8_twice",
+  "version": 1,
+  "name": "Consistent Victor",
+  "description": "Finish with 8 or more points in two separate games",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "points": {
+        "op": "gte",
+        "target": 8
+      }
+    },
+    "target": 2
+  },
+  "points": 350,
+  "is_active": true
+}

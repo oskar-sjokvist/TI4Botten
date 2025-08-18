@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f0000000-0000-4000-8000-000000000022",
+  "key": "finish_against_the_arborec",
+  "version": 1,
+  "name": "Against Arborec",
+  "description": "Finish a game where The Arborec was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "against_faction": "The Arborec"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

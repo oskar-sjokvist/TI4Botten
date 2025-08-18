@@ -1,0 +1,14 @@
+{
+  "achievement_id": "a2b1f0e0-000b-11f1-0000-00000000000b",
+  "key": "earn_100_vp",
+  "version": 1,
+  "name": "Victory Hoarder",
+  "description": "Accumulate 100 points across finished games",
+  "rule_json": {
+    "type": "counter",
+    "counter_key": "points_total",
+    "target": 100
+  },
+  "points": 600,
+  "is_active": true
+}

@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f0000000-0000-4000-8000-000000000023",
+  "key": "win_against_the_arborec",
+  "version": 1,
+  "name": "Defeated Arborec",
+  "description": "Win a game where The Arborec was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Arborec"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

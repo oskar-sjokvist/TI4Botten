@@ -1,0 +1,18 @@
+{
+  "achievement_id": "4712188e-7bd3-11f0-9417-8ae8ef96ea67",
+  "key": "long_live_the_king",
+  "version": 1,
+  "name": "Long live the king",
+  "description": "Finish a game where Jake is in first place",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "player": {
+        "Jake": "winner"
+      }
+    },
+    "target": 1
+  },
+  "points": 20,
+  "is_active": true
+}

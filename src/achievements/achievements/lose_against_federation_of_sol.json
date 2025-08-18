@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f0000000-0000-4000-8000-000000000014",
+  "key": "lose_against_federation_of_sol",
+  "version": 1,
+  "name": "Lost to Sol",
+  "description": "Lose a game where The Federation of Sol was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Federation of Sol"
+    },
+    "target": 1
+  },
+  "points": 25,
+  "is_active": true
+}

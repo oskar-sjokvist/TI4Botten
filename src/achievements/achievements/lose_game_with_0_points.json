@@ -1,0 +1,19 @@
+{
+  "achievement_id": "a2b1f0e0-0025-11f1-0000-000000000025",
+  "key": "lose_with_0_points",
+  "version": 1,
+  "name": "Complete Failure",
+  "description": "Finish a game with 0 points",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "points": {
+        "op": "lte",
+        "target": 0
+      }
+    },
+    "target": 1
+  },
+  "points": 120,
+  "is_active": true
+}

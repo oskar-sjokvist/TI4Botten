@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f0000000-0000-4000-8000-000000000033",
+  "key": "win_against_barony_of_letnev",
+  "version": 1,
+  "name": "Vanquish Letnev",
+  "description": "Win a game where The Barony of Letnev was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Barony of Letnev"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

@@ -1,0 +1,14 @@
+{
+  "achievement_id": "a2b1f0e0-0003-11f1-0000-000000000003",
+  "key": "play_20_games",
+  "version": 1,
+  "name": "Monthly Regular",
+  "description": "Play 20 games",
+  "rule_json": {
+    "type": "counter",
+    "counter_key": "games_played",
+    "target": 20
+  },
+  "points": 1000,
+  "is_active": true
+}
