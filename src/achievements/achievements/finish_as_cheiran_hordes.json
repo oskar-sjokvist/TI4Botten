@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f1000000-0000-4000-8000-000000000062",
+  "key": "finish_as_cheiran_hordes",
+  "version": 1,
+  "name": "Cheiran Conquest",
+  "description": "Finish a game while playing as The Cheiran Hordes",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "The Cheiran Hordes"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

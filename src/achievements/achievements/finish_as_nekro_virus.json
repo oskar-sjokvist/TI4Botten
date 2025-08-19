@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f1000000-0000-4000-8000-000000000046",
+  "key": "finish_as_nekro_virus",
+  "version": 1,
+  "name": "Nekro Victor",
+  "description": "Finish a game while playing as The Nekro Virus",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "The Nekro Virus"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

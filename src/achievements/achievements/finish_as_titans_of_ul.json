@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f1000000-0000-4000-8000-000000000056",
+  "key": "finish_as_titans_of_ul",
+  "version": 1,
+  "name": "Titans' Triumph",
+  "description": "Finish a game while playing as The Titans of Ul",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "The Titans of Ul"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

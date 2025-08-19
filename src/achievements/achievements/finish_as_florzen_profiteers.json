@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f1000000-0000-4000-8000-000000000065",
+  "key": "finish_as_florzen_profiteers",
+  "version": 1,
+  "name": "Florzen Finisher",
+  "description": "Finish a game while playing as The Florzen Profiteers",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "The Florzen Profiteers"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

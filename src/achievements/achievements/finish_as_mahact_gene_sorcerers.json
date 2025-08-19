@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f1000000-0000-4000-8000-000000000053",
+  "key": "finish_as_mahact_gene_sorcerers",
+  "version": 1,
+  "name": "Mahact Mastery",
+  "description": "Finish a game while playing as The Mahact Gene‑Sorcerers",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "The Mahact Gene‑Sorcerers"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

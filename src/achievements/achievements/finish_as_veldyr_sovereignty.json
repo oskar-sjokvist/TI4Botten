@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f1000000-0000-4000-8000-000000000087",
+  "key": "finish_as_veldyr_sovereignty",
+  "version": 1,
+  "name": "Veldyr Victor",
+  "description": "Finish a game while playing as The Veldyr Sovereignty",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "The Veldyr Sovereignty"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f1000000-0000-4000-8000-000000000063",
+  "key": "finish_as_dih_mohn_flotilla",
+  "version": 1,
+  "name": "Dih-Mohn Domination",
+  "description": "Finish a game while playing as The Dih‑Mohn Flotilla",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "The Dih‑Mohn Flotilla"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

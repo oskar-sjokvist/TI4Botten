@@ -36,5 +36,13 @@ class Bot(commands.Bot):
 
         super().__init__(command_prefix="!", intents=intents)
 
+    async def on_command_error(self, ctx: commands.Context, error: Exception) -> None:
+        if isinstance(error, commands.CommandNotFound):
+            await ctx.send(embed=discord.Embed(
+                title="Command not found",
+                description=f"{error}. Type !help for a list of commands",
+                color=discord.Color.red()
+            ))
+
     async def setup_hook(self) -> None:
         await asyncio.gather(*(self.add_cog(cog) for cog in self.init_cogs))

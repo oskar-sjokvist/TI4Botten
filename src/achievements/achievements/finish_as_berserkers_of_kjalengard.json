@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f1000000-0000-4000-8000-000000000060",
+  "key": "finish_as_berserkers_of_kjalengard",
+  "version": 1,
+  "name": "Berserker's Glory",
+  "description": "Finish a game while playing as The Berserkers of Kjalengard",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "The Berserkers of Kjalengard"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

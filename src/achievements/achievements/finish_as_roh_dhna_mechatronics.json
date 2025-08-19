@@ -1,0 +1,16 @@
+{
+  "achievement_id": "f1000000-0000-4000-8000-000000000057",
+  "key": "finish_as_roh_dhna_mechatronics",
+  "version": 1,
+  "name": "Roh'Dhna Victory",
+  "description": "Finish a game while playing as Roh’Dhna Mechatronics",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "play_as_faction": "Roh’Dhna Mechatronics"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}
