@@ -109,8 +109,6 @@ class AchievementsLogic:
                 case Unlocked():
                     logging.exception(f"Achievement already unlocked: {ach.name}")
                 case Locked(current, target):
-                    info = f"Achievement locked: {ach.name} (Progress: {current}/{target})"
-                    logging.info(info)
                     locked.append(Achievement(
                             name = ach.name,
                             points = ach.points,
