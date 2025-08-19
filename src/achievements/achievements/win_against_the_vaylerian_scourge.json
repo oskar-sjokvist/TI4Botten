@@ -1,0 +1,14 @@
+{
+  "achievement_id": "win_against_the_vaylerian_scourge",
+  "key": "win_against_the_vaylerian_scourge",
+  "version": 1,
+  "name": "Win against The Vaylerian Scourge",
+  "description": "Win a game against The Vaylerian Scourge.",
+  "rule_json": {
+    "type": "finish",
+    "filter": { "win_against": "The Vaylerian Scourge" },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

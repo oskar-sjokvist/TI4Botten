@@ -1,0 +1,14 @@
+{
+  "achievement_id": "win_against_the_monks_of_kolume",
+  "key": "win_against_the_monks_of_kolume",
+  "version": 1,
+  "name": "Win against The Monks of Kolume",
+  "description": "Win a game against The Monks of Kolume.",
+  "rule_json": {
+    "type": "finish",
+    "filter": { "win_against": "The Monks of Kolume" },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

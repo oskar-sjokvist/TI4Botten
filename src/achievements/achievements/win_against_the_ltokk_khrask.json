@@ -1,0 +1,14 @@
+{
+  "achievement_id": "win_against_the_ltokk_khrask",
+  "key": "win_against_the_ltokk_khrask",
+  "version": 1,
+  "name": "Win against The L’Tokk Khrask",
+  "description": "Win a game against The L’Tokk Khrask.",
+  "rule_json": {
+    "type": "finish",
+  "filter": { "win_against": "The L’Tokk Khrask" },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

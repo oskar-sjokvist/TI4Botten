@@ -1,0 +1,14 @@
+{
+  "achievement_id": "win_against_the_zealots_of_rhodun",
+  "key": "win_against_the_zealots_of_rhodun",
+  "version": 1,
+  "name": "Win against The Zealots of Rhodun",
+  "description": "Win a game against The Zealots of Rhodun.",
+  "rule_json": {
+    "type": "finish",
+    "filter": { "win_against": "The Zealots of Rhodun" },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}
