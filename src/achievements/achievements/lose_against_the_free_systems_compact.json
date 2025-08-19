@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_free_systems_compact",
+  "key": "lose_against_the_free_systems_compact",
+  "version": 1,
+  "name": "Lose against The Free Systems Compact",
+  "description": "Lose a game against The Free Systems Compact.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Free Systems Compact"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

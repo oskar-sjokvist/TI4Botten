@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_yssaril_tribes",
+  "key": "lose_against_the_yssaril_tribes",
+  "version": 1,
+  "name": "Lose against The Yssaril Tribes",
+  "description": "Lose a game against The Yssaril Tribes.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Yssaril Tribes"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

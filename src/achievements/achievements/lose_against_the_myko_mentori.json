@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_myko_mentori",
+  "key": "lose_against_the_myko_mentori",
+  "version": 1,
+  "name": "Lose against The Myko‑Mentori",
+  "description": "Lose a game against The Myko‑Mentori.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Myko‑Mentori"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

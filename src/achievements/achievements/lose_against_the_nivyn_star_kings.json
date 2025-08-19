@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_nivyn_star_kings",
+  "key": "lose_against_the_nivyn_star_kings",
+  "version": 1,
+  "name": "Lose against The Nivyn Star Kings",
+  "description": "Lose a game against The Nivyn Star Kings.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Nivyn Star Kings"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

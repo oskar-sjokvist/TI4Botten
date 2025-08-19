@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_lanefir_remnants",
+  "key": "lose_against_the_lanefir_remnants",
+  "version": 1,
+  "name": "Lose against The Lanefir Remnants",
+  "description": "Lose a game against The Lanefir Remnants.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Lanefir Remnants"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

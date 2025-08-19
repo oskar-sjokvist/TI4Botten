@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_cheiran_hordes",
+  "key": "lose_against_the_cheiran_hordes",
+  "version": 1,
+  "name": "Lose against The Cheiran Hordes",
+  "description": "Lose a game against The Cheiran Hordes.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Cheiran Hordes"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

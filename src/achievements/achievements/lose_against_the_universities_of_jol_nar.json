@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_universities_of_jol_nar",
+  "key": "lose_against_the_universities_of_jol_nar",
+  "version": 1,
+  "name": "Lose against The Universities of Jol-Nar",
+  "description": "Lose a game against The Universities of Jol-Nar.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Universities of Jol-Nar"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

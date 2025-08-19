@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_ghoti_wayfarers",
+  "key": "lose_against_the_ghoti_wayfarers",
+  "version": 1,
+  "name": "Lose against The Ghoti Wayfarers",
+  "description": "Lose a game against The Ghoti Wayfarers.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Ghoti Wayfarers"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_xxcha_kingdom",
+  "key": "lose_against_the_xxcha_kingdom",
+  "version": 1,
+  "name": "Lose against The Xxcha Kingdom",
+  "description": "Lose a game against The Xxcha Kingdom.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Xxcha Kingdom"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_vaden_banking_clans",
+  "key": "lose_against_the_vaden_banking_clans",
+  "version": 1,
+  "name": "Lose against The Vaden Banking Clans",
+  "description": "Lose a game against The Vaden Banking Clans.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Vaden Banking Clans"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

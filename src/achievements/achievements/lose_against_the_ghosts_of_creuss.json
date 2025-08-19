@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_ghosts_of_creuss",
+  "key": "lose_against_the_ghosts_of_creuss",
+  "version": 1,
+  "name": "Lose against The Ghosts of Creuss",
+  "description": "Lose a game against The Ghosts of Creuss.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Ghosts of Creuss"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

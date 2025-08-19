@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_vuilraith_cabal",
+  "key": "lose_against_the_vuilraith_cabal",
+  "version": 1,
+  "name": "Lose against The Vuil’Raith Cabal",
+  "description": "Lose a game against The Vuil’Raith Cabal.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Vuil’Raith Cabal"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

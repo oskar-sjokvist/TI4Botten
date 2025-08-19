@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_l1z1x_mindnet",
+  "key": "lose_against_the_l1z1x_mindnet",
+  "version": 1,
+  "name": "Lose against The L1Z1X Mindnet",
+  "description": "Lose a game against The L1Z1X Mindnet.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The L1Z1X Mindnet"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_mentak_coalition",
+  "key": "lose_against_the_mentak_coalition",
+  "version": 1,
+  "name": "Lose against The Mentak Coalition",
+  "description": "Lose a game against The Mentak Coalition.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Mentak Coalition"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_veldyr_sovereignty",
+  "key": "lose_against_the_veldyr_sovereignty",
+  "version": 1,
+  "name": "Lose against The Veldyr Sovereignty",
+  "description": "Lose a game against The Veldyr Sovereignty.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Veldyr Sovereignty"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

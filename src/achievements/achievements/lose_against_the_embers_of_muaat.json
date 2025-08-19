@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_embers_of_muaat",
+  "key": "lose_against_the_embers_of_muaat",
+  "version": 1,
+  "name": "Lose against The Embers of Muaat",
+  "description": "Lose a game against The Embers of Muaat.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Embers of Muaat"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

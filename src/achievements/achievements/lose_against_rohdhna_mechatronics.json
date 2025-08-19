@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_rohdhna_mechatronics",
+  "key": "lose_against_rohdhna_mechatronics",
+  "version": 1,
+  "name": "Lose against Roh’Dhna Mechatronics",
+  "description": "Lose a game against Roh’Dhna Mechatronics.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "Roh’Dhna Mechatronics"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_glimmer_of_mortheus",
+  "key": "lose_against_the_glimmer_of_mortheus",
+  "version": 1,
+  "name": "Lose against The Glimmer of Mortheus",
+  "description": "Lose a game against The Glimmer of Mortheus.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Glimmer of Mortheus"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

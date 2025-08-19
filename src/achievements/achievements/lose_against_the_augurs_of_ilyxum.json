@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_augurs_of_ilyxum",
+  "key": "lose_against_the_augurs_of_ilyxum",
+  "version": 1,
+  "name": "Lose against The Augurs of Ilyxum",
+  "description": "Lose a game against The Augurs of Ilyxum.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Augurs of Ilyxum"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

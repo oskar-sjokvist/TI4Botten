@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_council_keleres",
+  "key": "lose_against_the_council_keleres",
+  "version": 1,
+  "name": "Lose against The Council Keleres",
+  "description": "Lose a game against The Council Keleres.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Council Keleres"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_titans_of_ul",
+  "key": "lose_against_the_titans_of_ul",
+  "version": 1,
+  "name": "Lose against The Titans of Ul",
+  "description": "Lose a game against The Titans of Ul.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Titans of Ul"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}

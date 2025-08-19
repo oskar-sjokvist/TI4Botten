@@ -1,0 +1,16 @@
+{
+  "achievement_id": "lose_against_the_naaz_rokha_alliance",
+  "key": "lose_against_the_naaz_rokha_alliance",
+  "version": 1,
+  "name": "Lose against The Naaz‑Rokha Alliance",
+  "description": "Lose a game against The Naaz‑Rokha Alliance.",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "lose_against": "The Naaz‑Rokha Alliance"
+    },
+    "target": 1
+  },
+  "points": 50,
+  "is_active": true
+}
