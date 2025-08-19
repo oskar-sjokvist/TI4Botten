@@ -1,6 +1,9 @@
 import logging
 import discord
 
+
+from itertools import batched
+from reactionmenu import ViewMenu, ViewButton
 from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 from dataclasses import dataclass
@@ -30,18 +33,29 @@ class PlayerAchievements:
     locked: List[Achievement]
     unlocked: List[Achievement]
 
-    def embed_view(self) -> discord.Embed:
-        embed = discord.Embed(
-            title=f"Achievements for player {self.name}",
-            color=discord.Color.blue()
-        )
-        for u in self.unlocked:
-            embed.add_field(name=u.name, value=f"Unlocked at {u.unlocked_time}\n({u.points} pts) {u.description}", inline=False)
-        return embed
+    def view_menu(self, ctx) -> ViewMenu:
+        def method(achievements: List[Achievement]) -> discord.Embed:
+            embed = discord.Embed(
+                title=f"Achievements for player {self.name}",
+                color=discord.Color.blue()
+            )
+            for u in achievements:
+                embed.add_field(name=u.name, value=f"Unlocked at {u.unlocked_time}\n({u.points} pts) {u.description}", inline=False)
+            return embed
+        menu = ViewMenu(ctx, menu_type=ViewMenu.TypeEmbed)
+        for batch in batched(self.unlocked, 5):
+            menu.add_page(method([*batch]))
+        
+        menu.add_button(ViewButton.back())
+        menu.add_button(ViewButton.next())
+        return menu
+
+
 
     # This doesn't scale well. Add a pagination embed soon.
     def string_view(self):
         lines = [f"## Achievements for player {self.name}:"]
+
 
         if self.unlocked:
             lines.append(f"### Unlocked ({len(self.unlocked)}):")
