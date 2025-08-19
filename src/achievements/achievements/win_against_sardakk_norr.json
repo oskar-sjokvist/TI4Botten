@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000001",
+  "key": "win_against_sardakk_norr",
+  "version": 1,
+  "name": "Defeated Sardakk N'orr",
+  "description": "Win a game where Sardakk N’orr was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "Sardakk N’orr"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

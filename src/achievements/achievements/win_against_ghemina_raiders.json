@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000031",
+  "key": "win_against_ghemina_raiders",
+  "version": 1,
+  "name": "Outmaneuver Ghemina",
+  "description": "Win a game where The Ghemina Raiders was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Ghemina Raiders"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

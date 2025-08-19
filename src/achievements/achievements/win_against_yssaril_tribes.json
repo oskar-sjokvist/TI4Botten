@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000011",
+  "key": "win_against_yssaril_tribes",
+  "version": 1,
+  "name": "Outwitted Yssaril",
+  "description": "Win a game where The Yssaril Tribes was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Yssaril Tribes"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000022",
+  "key": "win_against_bentor_conglomerate",
+  "version": 1,
+  "name": "Bankrupt Bentor",
+  "description": "Win a game where The Bentor Conglomerate was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Bentor Conglomerate"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

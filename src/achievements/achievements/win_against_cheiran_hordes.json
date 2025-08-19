@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000025",
+  "key": "win_against_cheiran_hordes",
+  "version": 1,
+  "name": "Crush the Cheiran",
+  "description": "Win a game where The Cheiran Hordes was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Cheiran Hordes"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

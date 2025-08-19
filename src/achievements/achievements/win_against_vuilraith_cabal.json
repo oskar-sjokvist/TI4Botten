@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000019",
+  "key": "win_against_vuilraith_cabal",
+  "version": 1,
+  "name": "Survived the Vuil'Raith",
+  "description": "Win a game where The Vuil’Raith Cabal was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Vuil’Raith Cabal"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000029",
+  "key": "win_against_free_systems_compact",
+  "version": 1,
+  "name": "Unite against Free Systems",
+  "description": "Win a game where The Free Systems Compact was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Free Systems Compact"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

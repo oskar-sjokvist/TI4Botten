@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000008",
+  "key": "win_against_nekro_virus",
+  "version": 1,
+  "name": "Stop the Virus",
+  "description": "Win a game where The Nekro Virus was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Nekro Virus"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

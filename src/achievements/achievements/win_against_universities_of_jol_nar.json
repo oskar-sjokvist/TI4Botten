@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000009",
+  "key": "win_against_universities_of_jol_nar",
+  "version": 1,
+  "name": "Outsmart Jol-Nar",
+  "description": "Win a game where The Universities of Jol-Nar was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Universities of Jol-Nar"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

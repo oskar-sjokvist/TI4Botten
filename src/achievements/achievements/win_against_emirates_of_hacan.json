@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000003",
+  "key": "win_against_emirates_of_hacan",
+  "version": 1,
+  "name": "Outtraded Hacan",
+  "description": "Win a game where The Emirates of Hacan was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Emirates of Hacan"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

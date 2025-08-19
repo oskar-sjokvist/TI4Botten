@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000007",
+  "key": "win_against_naalu_collective",
+  "version": 1,
+  "name": "Outread the Naalu",
+  "description": "Win a game where The Naalu Collective was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Naalu Collective"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

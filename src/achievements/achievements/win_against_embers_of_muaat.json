@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000002",
+  "key": "win_against_embers_of_muaat",
+  "version": 1,
+  "name": "Singe the Embers",
+  "description": "Win a game where The Embers of Muaat was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Embers of Muaat"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

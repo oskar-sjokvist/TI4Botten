@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000005",
+  "key": "win_against_l1z1x_mindnet",
+  "version": 1,
+  "name": "Overcome the Mindnet",
+  "description": "Win a game where The L1Z1X Mindnet was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The L1Z1X Mindnet"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

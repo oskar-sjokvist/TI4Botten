@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000026",
+  "key": "win_against_dih_mohn_flotilla",
+  "version": 1,
+  "name": "Secure Dih-Mohn",
+  "description": "Win a game where The Dih‑Mohn Flotilla was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Dih‑Mohn Flotilla"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

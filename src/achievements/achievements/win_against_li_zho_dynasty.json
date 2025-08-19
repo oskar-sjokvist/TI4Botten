@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000038",
+  "key": "win_against_li_zho_dynasty",
+  "version": 1,
+  "name": "Outmaneuver Li-Zho",
+  "description": "Win a game where The Li‑Zho Dynasty was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Li‑Zho Dynasty"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

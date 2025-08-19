@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000004",
+  "key": "win_against_ghosts_of_creuss",
+  "version": 1,
+  "name": "Vanquish Creuss",
+  "description": "Win a game where The Ghosts of Creuss was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Ghosts of Creuss"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

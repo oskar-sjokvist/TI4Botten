@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000024",
+  "key": "win_against_celdauri_trade_confederation",
+  "version": 1,
+  "name": "Outtrade Celdauri",
+  "description": "Win a game where The Celdauri Trade Confederation was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Celdauri Trade Confederation"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

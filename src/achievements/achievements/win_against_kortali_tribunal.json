@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000035",
+  "key": "win_against_kortali_tribunal",
+  "version": 1,
+  "name": "Evade Kortali",
+  "description": "Win a game where The Kortali Tribunal was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Kortali Tribunal"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

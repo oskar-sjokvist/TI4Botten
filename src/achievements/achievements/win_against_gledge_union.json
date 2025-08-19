@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000030",
+  "key": "win_against_gledge_union",
+  "version": 1,
+  "name": "Stop the GLEdge",
+  "description": "Win a game where The GLEdge Union was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The GLEdge Union"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

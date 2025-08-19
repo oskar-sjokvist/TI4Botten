@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000016",
+  "key": "win_against_naaz_rokha_alliance",
+  "version": 1,
+  "name": "Outmaneuver Naaz-Rokha",
+  "description": "Win a game where The Naaz‑Rokha Alliance was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Naaz‑Rokha Alliance"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

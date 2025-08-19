@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000021",
+  "key": "win_against_augurs_of_ilyxum",
+  "version": 1,
+  "name": "Dispel the Augurs",
+  "description": "Win a game where The Augurs of Ilyxum was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Augurs of Ilyxum"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000034",
+  "key": "win_against_kollecc_society",
+  "version": 1,
+  "name": "Catch the Kollecc",
+  "description": "Win a game where The Kollecc Society was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Kollecc Society"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

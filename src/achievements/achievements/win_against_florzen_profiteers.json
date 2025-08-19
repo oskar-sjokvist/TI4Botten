@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000028",
+  "key": "win_against_florzen_profiteers",
+  "version": 1,
+  "name": "Outprofit Florzen",
+  "description": "Win a game where The Florzen Profiteers was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Florzen Profiteers"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

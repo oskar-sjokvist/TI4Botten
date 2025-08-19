@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000017",
+  "key": "win_against_nomad",
+  "version": 1,
+  "name": "Stop the Nomad",
+  "description": "Win a game where The Nomad was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Nomad"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}

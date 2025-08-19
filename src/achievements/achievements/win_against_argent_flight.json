@@ -1,0 +1,16 @@
+{
+  "achievement_id": "w1000000-0000-4000-8000-000000000013",
+  "key": "win_against_argent_flight",
+  "version": 1,
+  "name": "Ground the Argent",
+  "description": "Win a game where The Argent Flight was present",
+  "rule_json": {
+    "type": "finish",
+    "filter": {
+      "win_against": "The Argent Flight"
+    },
+    "target": 1
+  },
+  "points": 75,
+  "is_active": true
+}
