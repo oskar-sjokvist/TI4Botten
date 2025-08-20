@@ -286,7 +286,21 @@ Living rules reference (Prophecy of Kings)
             logging.exception("Error fetching game data")
             return Err("An error occurred while fetching the game data.")
 
-    def game(self, game_id) -> Result[discord.Embed]:
+    def game_from_name(self, game_name: str) -> Result[discord.Embed]:
+        with Session(self.engine) as session:
+            try:
+                game = session.scalars(
+                    select(model.Game).filter_by(name=game_name)
+                ).first()
+                if not game:
+                    return Err(f"No game found.")
+                return self.game(game.game_id)
+
+            except Exception as e:
+                logging.exception("!game error")
+                return Err("An error occurred while fetching the game data.")
+
+    def game(self, game_id: int) -> Result[discord.Embed]:
         with Session(self.engine) as session:
             try:
                 game = session.get(model.Game, game_id)
@@ -298,17 +312,21 @@ Living rules reference (Prophecy of Kings)
                     f"Game state: {game.game_state.value}",
                 ]
 
+                winner = self.controller.winner(session, game)
                 players = game.game_players
                 if players:
                     lines.append("")
                     lines.append("Players:")
                     for player in players:
-                        s = player.player.name if player.player.name else "Unknown"
+                        s = ""
+                        if winner == player:
+                            s += "🏆 "
+                        s += player.player.name if player.player.name else "Unknown"
                         if player.faction:
                             s += f" as {player.faction}"
                         if player.points:
                             s += f" with {player.points} points."
-                    lines.append(s)
+                        lines.append(s)
                 lines.append("")
 
                 match self.config(game.game_id, "get", None):
@@ -487,7 +505,7 @@ Living rules reference (Prophecy of Kings)
             for game in games:
                 winner = self.controller.winner(session, game)
                 embed.add_field(
-                    name=game.name,
+                    name=f"{game.name} (players {len(game.game_players)})",
                     value=f"Winner: {f"{winner.player.name} ({winner.faction})" if winner else "Unknown"}",
                     inline=False
                 )

@@ -140,11 +140,15 @@ class Game(commands.Cog):
                 await ctx.send(s)
 
     @commands.command()
-    async def info(self, ctx: commands.Context, game_id: Optional[int]) -> None:
+    async def info(self, ctx: commands.Context, *, game_name: Optional[str]) -> None:
         """Fetch game info"""
-        if not game_id:
+        if not game_name:
             game_id = self.__game_id(ctx)
-        await self.__send_embed_or_pretty_err(ctx, self.logic.game(game_id))
+            await self.__send_embed_or_pretty_err(ctx, self.logic.game(game_id))
+            return
+        await self.__send_embed_or_pretty_err(ctx, self.logic.game_from_name(game_name))
+        
+        
 
     @commands.command()
     async def games(self, ctx: commands.Context) -> None:
