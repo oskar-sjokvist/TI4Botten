@@ -44,7 +44,7 @@ class PlayerAchievements:
             return embed
         menu = ViewMenu(ctx, menu_type=ViewMenu.TypeEmbed)
         for batch in batched(self.unlocked, 5):
-            menu.add_page(method([*batch]))
+            menu.add_page(method(list(batch)))
         
         menu.add_button(ViewButton.back())
         menu.add_button(ViewButton.next())

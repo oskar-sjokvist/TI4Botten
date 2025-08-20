@@ -148,8 +148,12 @@ class Game(commands.Cog):
 
     @commands.command()
     async def games(self, ctx: commands.Context) -> None:
-        """Fetches 5 latest games."""
-        await self.__send_embed_or_pretty_err(ctx, self.logic.games(5))
+        """Fetches latest games."""
+        match self.logic.games():
+            case Ok(paginated):
+                await paginated.view_menu(ctx).start()
+            case Err(s):
+                await ctx.send(s)
 
     @commands.command()
     async def lobby(self, ctx: commands.Context, *, name: Optional[str]) -> None:

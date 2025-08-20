@@ -14,15 +14,30 @@ from . import controller
 
 from ..typing import *
 
+from reactionmenu import ViewMenu, ViewButton
 from discord.ext import commands
 from datetime import datetime, timedelta
 from sqlalchemy import inspect, Enum, Boolean, String, Integer, select
 from sqlalchemy.orm import Session
 from string import Template
-from typing import Optional, Dict, Any, Iterable, Sequence, List
+from typing import Optional, Dict, Any, Iterable, Sequence, List, List
+from itertools import batched
 
 from blinker import signal
 
+
+class PaginatedEmbed:
+    def __init__(self, embeds: List[discord.Embed]):
+        self.controller = controller
+        self.embeds = embeds
+
+    def view_menu(self, ctx: commands.Context):
+        menu = ViewMenu(ctx, menu_type=ViewMenu.TypeEmbed)
+        for embed in self.embeds:
+            menu.add_page(embed)
+        menu.add_button(ViewButton.back())
+        menu.add_button(ViewButton.next())
+        return menu
 
 class GameLogic:
 
@@ -466,7 +481,18 @@ Living rules reference (Prophecy of Kings)
                 logging.exception("Error joining lobby")
                 return Err("An error occurred while joining the lobby.")
 
-    def games(self, game_limit: int = 5) -> Result[discord.Embed]:
+    def games(self, game_limit: int = 40) -> Result[PaginatedEmbed]:
+        def embed_from_games(games: List[model.Game]) -> discord.Embed:
+            embed = discord.Embed(title="🎮 Recent Games", color=discord.Color.blue())
+            for game in games:
+                winner = self.controller.winner(session, game)
+                embed.add_field(
+                    name=game.name,
+                    value=f"Winner: {f"{winner.player.name} ({winner.faction})" if winner else "Unknown"}",
+                    inline=False
+                )
+            return embed
+
         with Session(self.engine) as session:
             try:
                 games = session.scalars(
@@ -477,17 +503,11 @@ Living rules reference (Prophecy of Kings)
                 ).all()
                 if not games:
                     return Err(f"No games found.")
-                lines = []
-                for game in games:
-                    winner = self.controller.winner(session, game)
-                    lines.append(
-                        f"{game.name}. Winner {f"{winner.player.name} ({winner.faction})" if winner else "Unknown"}"
-                    )
-                return Ok(discord.Embed(
-                    title="📜 Recent Games",
-                    description="\n".join(lines),
-                    color=discord.Color.blue()
-                ))
+                embeds = []
+                for game_batch in batched(games, 5):
+                    embed = embed_from_games(list(game_batch))
+                    embeds.append(embed)
+                return Ok(PaginatedEmbed(embeds))
             except Exception as e:
                 logging.exception("Error fetching game data")
                 return Err("An error occurred while fetching the game data.")
