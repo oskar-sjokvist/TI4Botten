@@ -21,7 +21,7 @@ class DraftingMode(enum.Enum):
     PICKS_ONLY = "PICKS_ONLY"
     PICKS_AND_BANS = "PICKS_AND_BANS"
     EXCLUSIVE_POOL = "EXCLUSIVE_POOL"
-    MILTY_DRAFT = "MILTY_DRAFT"
+    HOMEBREW_DRAFT = "HOMEBREW_DRAFT"
 
 
 class GamePlayer(models.Base):
@@ -34,10 +34,10 @@ class GamePlayer(models.Base):
     points: Mapped[int] = mapped_column(Integer, default=0)
     turn_order: Mapped[int] = mapped_column(Integer, default=0)
 
-    # Used in exclusive pool mode and Milty draft
+    # Used in exclusive pool mode and Homebrew draft
     factions: Mapped[List[str]] = mapped_column(JSON, default=[])
 
-    # Used in Milty draft
+    # Used in Homebrew draft
     position: Mapped[Optional[int]] = mapped_column(Integer)
     strategy_card: Mapped[Optional[str]] = mapped_column(String)
 

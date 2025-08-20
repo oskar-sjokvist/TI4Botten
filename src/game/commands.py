@@ -5,6 +5,7 @@ import discord
 
 from . import gamelogic
 from . import factions
+from . import strategy_cards
 from ..typing import *
 
 from discord.ext import commands
@@ -22,7 +23,9 @@ class Game(commands.Cog):
     ) -> None:
         """Initialize the Commands cog with factions."""
         self.factions = factions.read_factions()
+        self.strategy_cards = strategy_cards.read_strategy_cards()
         self.logic = gamelogic.GameLogic(bot, engine)
+
 
     async def __send_embed_or_pretty_err(self, ctx: commands.Context, result: Result[discord.Embed]) -> None:
         match result:
@@ -43,6 +46,15 @@ class Game(commands.Cog):
     def __game_id(self, ctx: commands.Context):
         # Let's use the channel ID for the game ID.
         return ctx.channel.id
+
+    @commands.command(name="strategy-cards")
+    async def strat_cards(
+        self, ctx: commands.Context) -> None:
+        """Returns the list of strategy cards in the game."""
+
+        await ctx.send(
+            f"{'\n'.join([str(sc) for sc in self.strategy_cards])}"
+        )
 
     @commands.command(name="factions")
     async def random_factions(
