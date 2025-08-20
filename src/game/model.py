@@ -64,6 +64,7 @@ class Game(models.Base):
 
     turn: Mapped[int] = mapped_column(Integer, default=0)
 
+    map_string: Mapped[List[int]] = mapped_column(JSON, default=[])
     game_players: Mapped[List["GamePlayer"]] = relationship(
         "GamePlayer", back_populates="game", cascade="all"
     )

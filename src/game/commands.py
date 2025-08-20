@@ -6,6 +6,7 @@ import discord
 from . import gamelogic
 from . import factions
 from . import strategy_cards
+from . import board
 from ..typing import *
 
 from discord.ext import commands
@@ -25,6 +26,7 @@ class Game(commands.Cog):
         self.factions = factions.read_factions()
         self.strategy_cards = strategy_cards.read_strategy_cards()
         self.logic = gamelogic.GameLogic(bot, engine)
+        self.planets = board.read_planets()
 
 
     async def __send_embed_or_pretty_err(self, ctx: commands.Context, result: Result[discord.Embed]) -> None:
@@ -56,6 +58,14 @@ class Game(commands.Cog):
             f"{'\n'.join([str(sc) for sc in self.strategy_cards])}"
         )
 
+    @commands.command(name="planets")
+    async def list_planets(
+        self, ctx: commands.Context) -> None:
+        """Returns the list of planets in the game."""
+
+        await ctx.send(
+            f"{'\n'.join([f"{planet.source}: {str(planet)}" for planet in self.planets])}"
+        )
     @commands.command(name="factions")
     async def random_factions(
         self, ctx: commands.Context, number: int = 8, *, sources: str = ""
