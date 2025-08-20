@@ -31,6 +31,27 @@ class PaginatedEmbed:
         self.controller = controller
         self.embeds = embeds
 
+    @property
+    def description(self) -> str:
+        # Provide a combined description from all embeds so tests can assert on it.
+        parts: List[str] = []
+        for e in self.embeds:
+            if e.description:
+                parts.append(e.description)
+                continue
+            # Fall back to including title and fields for embeds without description
+            if e.title:
+                parts.append(e.title)
+            for f in getattr(e, 'fields', []):
+                parts.append(f"{f.name}: {f.value}")
+        return "\n\n".join(parts)
+
+    def __getattr__(self, item):
+        # Forward attribute access to the first embed for convenience (e.g., title, color)
+        if self.embeds:
+            return getattr(self.embeds[0], item)
+        raise AttributeError(item)
+
     def view_menu(self, ctx: commands.Context):
         menu = ViewMenu(ctx, menu_type=ViewMenu.TypeEmbed)
         for embed in self.embeds:
