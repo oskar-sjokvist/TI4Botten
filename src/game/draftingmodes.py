@@ -349,6 +349,79 @@ class PicksAndBans(GameMode):
             color=discord.Color.green()
         ))
 
+
+    def ban(
+        self, session: Session, player: model.GamePlayer, faction: Optional[str]
+    ) -> Optional[str]:
+        current_drafter = self.controller.current_drafter(session, self.game)
+        all_bans = [
+            banned
+            for gameplayer in self.game.game_players
+            for banned in gameplayer.bans
+            if gameplayer.bans
+        ]
+        if not faction:
+            lines = list()
+            if self.game.game_state == model.GameState.BAN:
+                lines.append(f"It is {current_drafter.player.name}'s turn to ban.")
+            if all_bans:
+                lines.append("These factions are banned:")
+                lines.extend([f"* {f}" for f in all_bans])
+            return "\n".join(lines)
+
+        if current_drafter.player.player_id != player.player_id:
+            return f"It is not your turn to ban! It is {current_drafter.player.name}'s turn"
+
+        # Process the ban
+        best = gamelogic.GameLogic._closest_match(faction, player.factions)
+        if not best:
+            return f"You can't ban faction {faction}. Check your spelling or available factions."
+
+        # Check if this faction is already banned by anyone
+        if best in all_bans:
+            return f"Faction {best} has already been banned!"
+
+        # Initialize bans list if it doesn't exist
+        if not player.bans:
+            player.bans = []
+
+        player.bans.append(best)
+        attributes.flag_modified(player, "bans")
+
+        # Remove banned faction from all players' available factions
+        for any_player in self.game.game_players:
+            if best in any_player.factions:
+                any_player.factions.remove(best)
+                attributes.flag_modified(any_player, "factions")
+
+        lines = [f"{player.player.name} has banned {best}."]
+
+        number_of_players = len(self.game.game_players)
+
+        total_bans_needed = number_of_players * self.game.game_settings.bans_per_player
+
+        self.game.turn = (self.game.turn + 1) % number_of_players
+        current_drafter = self.controller.current_drafter(session, self.game)
+
+        if total_bans_needed == len(all_bans) + 1:
+            self.game.game_state = model.GameState.DRAFT
+            lines.append("Banning is now complete!")
+            lines.append(
+                f"Next one to draft is <@{current_drafter.player_id}>. Use !draft."
+            )
+        else:
+            lines.append(
+                f"Next one to ban is <@{current_drafter.player_id}>. Use !ban."
+            )
+
+        session.merge(player)
+        session.merge(self.game)
+        session.commit()
+
+        return "\n".join(lines)
+
+
+
 class HomeBrewDraft(GameMode):
     def draft(
         self,
