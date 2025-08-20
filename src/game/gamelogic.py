@@ -7,6 +7,7 @@ import discord
 import enum
 
 from . import factions as fs
+from . import strategy_cards
 from . import model
 from . import draftingmodes
 from . import controller
@@ -18,7 +19,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import inspect, Enum, Boolean, String, Integer, select
 from sqlalchemy.orm import Session
 from string import Template
-from typing import Optional, Dict, Any, Iterable, Sequence
+from typing import Optional, Dict, Any, Iterable, Sequence, List
 
 from blinker import signal
 
@@ -243,7 +244,10 @@ Living rules reference (Prophecy of Kings)
     def _start_game(self, session: Session, game: model.Game) -> discord.Embed:
         players_info_lines = []
         for player in game.game_players:
-            players_info_lines.append(f"{player.player.name} playing {player.faction}")
+            if game.game_settings.drafting_mode == model.DraftingMode.HOMEBREW_DRAFT:
+                players_info_lines.append(f"<@{player.player_id}> playing {player.faction}, starting with {player.strategy_card} at position {player.position}")
+            else:
+                players_info_lines.append(f"{player.player.name} playing {player.faction}")
 
         game.game_state = model.GameState.STARTED
         session.merge(game)
@@ -552,11 +556,11 @@ Living rules reference (Prophecy of Kings)
 
                 dtype = valid_keys[property]
                 if isinstance(dtype, Enum):
-                    enum_list = list(dtype.enums)
-                    best_value = GameLogic._closest_match(value, enum_list)
+                    enum_map: Dict[str, Any] = {text.lower(): text for text in dtype.enums}
+                    best_value = GameLogic._closest_match(value.lower(), enum_map.keys())
                     if not best_value:
-                        return Err(f"Valid values are: {enum_list}")
-                    new_value = best_value
+                        return Err(f"Valid values are: {enum_map.values()}")
+                    new_value = enum_map[best_value]
                 elif isinstance(dtype, Boolean):
                     val = value.lower()
                     if val in ["true", "t", "yes", "y", "1"]:
