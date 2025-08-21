@@ -1,5 +1,6 @@
 import discord
 import asyncio
+import Levenshtein
 
 from .game.commands import Game
 from .misc.commands import Misc
@@ -26,7 +27,6 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 class Bot(commands.Bot):
     def __init__(self, intents: discord.Intents) -> None:
         engine = create_engine("sqlite:///app.db", connect_args={"timeout": 15})
-        
 
         # Instantiate all the tables.
         models.Base.metadata.create_all(engine)
@@ -37,10 +37,12 @@ class Bot(commands.Bot):
         super().__init__(command_prefix="!", intents=intents)
 
     async def on_command_error(self, ctx: commands.Context, error: Exception) -> None:
+        similarity = max([(command.name, Levenshtein.ratio(ctx.message.content, command.name)) for command in self.commands], key = lambda x: x[1])[0]
+
         if isinstance(error, commands.CommandNotFound):
             await ctx.send(embed=discord.Embed(
                 title="Command not found",
-                description=f"{error}. Type !help for a list of commands",
+                description=f"{error}. Did you mean !{similarity}? Type !help for a list of commands",
                 color=discord.Color.red()
             ))
 

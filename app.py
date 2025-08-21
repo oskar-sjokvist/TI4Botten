@@ -6,10 +6,20 @@ import sys
 
 from src.bot import Bot
 
+
+LOG_FILE = "log.log"
 logging.basicConfig(
-    stream=sys.stdout,
+    filename=LOG_FILE,
     level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
 )
+
+# Nice for local debugging
+# logging.basicConfig(
+#     stream=sys.stdout,
+#     level=logging.INFO,
+# )
 
 
 def main():
