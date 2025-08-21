@@ -134,8 +134,8 @@ Living rules reference (Prophecy of Kings)
             f"Players:\n{player.name}\n\n"
             "-# Feel free to give some context like where and when you want to play.\n"
             "-# Configure the game by using the !config command.\n"
-            "-# Type !polls to apply the results of the polls to the configuration"
-            "Get ready for the game!"
+            "-# Type !polls to apply the results of the polls to the configuration.\n"
+            "Get ready for the game! Type !start when everyone has joined the game."
         )
         return discord.Embed(
             title="🛡️ Lobby Started!",
