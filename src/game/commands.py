@@ -27,6 +27,7 @@ class Game(commands.Cog):
         self.strategy_cards = strategy_cards.read_strategy_cards()
         self.logic = gamelogic.GameLogic(bot, engine)
         self.planets = board.read_planets()
+        self.systems = board.read_systems(self.planets)
 
 
     async def __send_embed_or_pretty_err(self, ctx: commands.Context, result: Result[discord.Embed]) -> None:
@@ -60,21 +61,27 @@ class Game(commands.Cog):
 
     @commands.command(name="planets")
     async def list_planets(
-        self, ctx: commands.Context) -> None:
-        """Returns the list of planets in the game."""
-
+        self, ctx: commands.Context, number: int = 8, sources: str = "") -> None:
+        """Returns a number of planets in the game."""
+        random_planets = [str(planet) for planet in board.Planet.get_random_planets(self.planets, number, sources)]
         await ctx.send(
-            f"{'\n'.join([f"{planet.source}: {str(planet)}" for planet in self.planets])}"
+            f"{'\n'.join(random_planets)}"
         )
+
+    @commands.command(name="systems")
+    async def list_systems(
+        self, ctx: commands.Context, number: int = 5, *, sources: str = "") -> None:
+        """Returns a number of systems in the game."""
+        random_systems = [str(system) for system in board.System.get_random_systems(self.systems, number, sources)]
+        await ctx.send(
+            f"Systems list ({number}/{len(self.systems)}):\n{'\n'.join(random_systems)}"
+        )
+
     @commands.command(name="factions")
     async def random_factions(
         self, ctx: commands.Context, number: int = 8, *, sources: str = ""
     ) -> None:
         """Returns a specified number of random factions."""
-        if number <= 0:
-            await ctx.send("Please specify a positive number of factions.")
-            return
-
         random_factions = [
             str(faction)
             for faction in self.factions.get_random_factions(number, sources)

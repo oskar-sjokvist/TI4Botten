@@ -8,3 +8,4 @@ venv/
 .python-version
 src/game/util/data_clean.csv
 src/game/util/player.csv
+log.log

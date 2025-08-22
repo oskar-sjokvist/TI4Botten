@@ -1,4 +1,31 @@
 Source;Planet;Traits;Legendary;Resources;Influence;Technology Specialities;Legendary Ability;Flavor Text
+Base Game;Jord;;;4;2;;;Distinctly seasonal, with the greatest variety of climates and ecologies in the galaxy. The Federation of Sol rules the Jord humans from the great city of New Moscow.
+Base Game;Moll Primus;;;4;1;;;In places lush and rich, in others a barren wasteland. This old Lazax penal colony has prospered under the rule of the governing Mentak Coalition.
+Base Game;Darien;;;4;4;;;Darien is the heart of the brotherhood's realm. Here, within the great Monastery of Lucas, rests the Yin, the holy egg from which all the Brotherhood were made.
+Base Game;Muaat;;;4;1;;;The fiery surface of Muaat is uninhabitable to most races. It is home to the Gashlai, and only here can they live outside of their cumbersome ember suits.
+Base Game;Nestphar;;;3;2;;;The fungal world of Nestphar is home to the symbiotic Arborec. Nestphar's orbit is filled with Flaah spores that extend its Symphony.
+Base Game;[0.0.0];;;5;0;;;This elusive energy-rich planet was the desperate destination of the secret Lazax diaspora. Now, it is a technological nightmare.
+Base Game;Winnu;;;3;4;;;The shining cities of the Winnu are the last places where authentic Lazax art and culture are still revered.
+Base Game;Mordai II;;;4;0;;;Mined to its bones by the virulent Nekro, Mordai II is reinforced by graviton energy beams that barely keep the world from collapsing in on itself.
+Base Game;Maaluuk;;;0;2;;;Mostly pungent marshland and mudplains. Original world of the Naalu race, which now enslaves winged Miashan to work its great iron-extraction plants.
+Base Game;Druaa;;;3;1;;;Despite its oversized poles, Druaa is one of the most beautiful planets. Its flowered steppes, violet mountains, and glowing forests are famous across the galaxy.
+Base Game;Arc Prime;;;4;0;;;Below the thin surface of atmosphere lie the continent-sized caverns of the Letnev. Rich in metals and energy, its vast fungus fields struggle to feed its population.
+Base Game;Wren Terra;;;2;1;;;Arid, windy, and populated primarily by predatory Daartar hounds. The Barony utilizes large swathes of its northern steppes for low-yield agriculture.
+Base Game;Lisis II;;;1;0;;;The crystal caverns of Lisis II are the source of most of the Jorun colonists' water and foodstuffs. Notable for the great crescent-shaped valley of Gavar.
+Base Game;Ragh;;;2;1;;;The capital colony of the Saar and the epicenter of the Saar religion. Also called "Ragh's Call" by the Saar.
+Base Game;Nar;;;2;3;;;Covered by mild oceans and a small archipelago called The Reef by off-worlders. The Circle of Regents makes its home in the underwater city-school of Nuun-Dascha.
+Base Game;Jol;;;1;2;;;Covered by cold oceans and a few inhospitable islands. The seat of the Headmaster, the Hylar ruler, dwells in the deep underwater city of Wun-Escha.
+Base Game;Tren'lak;;;1;0;;;Icy and desolate. Other than the ferocious snow dracs and the rare icemoon flowers, life is restricted to the N'orr boomtowers and ice mines.
+Base Game;Quinarra;;;3;1;;;Enormous and oceanless. Not only the largest planet supporting sentient life, but also the one with the least moisture. Home to the Sardakk N'orr hive-cities.
+Base Game;Archon Ren;;;2;3;;;Populated by small arboreal villages, this planet's only true urban center is the royal city of Kklaj. The Xxcha home world and home to the renowned library of Xuun.
+Base Game;Archon Tau;;;1;1;;;Ravaged by Sol and Letnev bombardments during the Twilight Wars. The Xxcha commit substantial resources to rebuilding its ecology and cleansing its toxic continents.
+Base Game;Retillion;;;2;3;;;A mix of tundra, swamps, rivers, and dense forests. Home to the mysterious, chameleonic Yssaril, whose capital Wueca has eluded all attempts at cartography.
+Base Game;Shalloq;;;1;2;;;Covered with tundra, wetlands, and rainforest, much like its sister-planet Retillion. Home to the Mojeb, the only major Yssaril city catalogued by off-worlders.
+Base Game;Creuss;;;4;2;;;Trapped between matter and void lies the realm of the Creuss. Made of trapped light and radioactive gas, this realm hosts the most peculiar forms of life.
+Base Game;Arretze;;;2;0;;;Also called the "Moving Sand." The desert home of the Hacan Mowshir trade families and the great orbital trading ports of Haal, Shimax, and Dry Wind.
+Base Game;Hercant;;;1;1;;;Also called the "Fire Sand." Seat of the Quieron, the Hacan council, and the Sword Fleet. Harbors the greatest of the famous Hacan moving cities.
+Base Game;Kamdorn;;;0;1;;;Also called the "Dream Sand." The least populated of the Hacan planets, but the center of Hacan mythology and religion. The only known source of starflowers.
+Base Game;Mecatol Rex;;;1;6;;;Of all the planets in the galaxy, no planet was more war-torn than Mecatol Rex. Over the course of only a few years, the planet’s ecology was ravaged by bombardments, its population nearly wiped out, and its green fields blasted into a toxic wasteland.
 Base Game;Abyz;Hazardous;;3;0;;;Its thick, complex atmosphere is inhospitable to most races, but Abyz is known for its seemingly endless natural reserves of rare minerals and precious metals.
 Base Game;Fria;Hazardous;;2;0;;;Brutally cold ice world populated only by a few scattered mining camps. Despite brutal climate, highly prized for its deposits of rare ores used in starship drives.
 Base Game;Arinam;Industrial;;1;2;;;Isolated planet poor in resources but rich in natural beauty. Boasts many exotic resorts frequented by the rich and famous of the galaxy.
@@ -9,7 +36,7 @@ Base Game;Bereg;Hazardous;;3;1;;;A frozen world that is inhospitable to most rac
 Base Game;Lirta IV;Hazardous;;2;3;;;Covered in vast swamps and fetid bogs. Home to rare biochemical compounds unique to its marshlands used in everything from exotic foods to biogenic drugs.
 Base Game;Centauri;Cultural;;1;3;;;Venerable world with few resources but a rich history. Site of important treaties between several races during the Twilight Wars.
 Base Game;Gral;Industrial;;1;1;Blue;;Backwater planet with modest resources and an unassuming populace. Most noted for the reliable and affordable vehicles produced in its factories.
-Base Game;Coorneeq;Cultural;;1;2;;;Former garden world that has subsequently enjoyed increased industrialization. Home to the esteemed Free Worlds Academy of Military Science and Research.
+Base Game;Corneeq;Cultural;;1;2;;;Former garden world that has subsequently enjoyed increased industrialization. Home to the esteemed Free Worlds Academy of Military Science and Research.
 Base Game;Resculon;Cultural;;2;0;;;Poor in natural resources, but a nearby nexus of major trade routes has brought it increasing wealth as interstellar commerce has intensified.
 Base Game;Dal Bootha;Cultural;;0;2;;;A populous planet whose resources have been severely depleted. Well-educated citizenry and many universities, but dependent on foreign imports.
 Base Game;Xxehan;Cultural;;1;1;;;Known for genetically complex native lifeforms adapted to tainted atmosphere and biochemistry.
@@ -31,6 +58,16 @@ Base Game;Torkan;Cultural;;0;3;;;Populous planet almost completely dependent on 
 Base Game;Thibah;Industrial;;1;1;Blue;;Burdened by overpopulation and low mineral content in the planetary crust. Historically used as a staging world for deep-space exploration and trade.
 Base Game;Vefut II;Hazardous;;2;2;;;Massive, rocky world cursed with extreme gravity. Underground cities support advanced research in antigravity technologies.
 Base Game;Wellon;Industrial;;1;2;Yellow;;Sky cities suspended in helium-rich atmosphere more noted for fantastic views than the small quantities of exotic elements harvested by their chemical mines.
+Prophecy of Kings;Valk;;;2;0;;;Valk contains lodes of rare minerals and metals within its crust. Skyhooks bring ore shipments up from the surface to the open-air shipyards in orbit
+Prophecy of Kings;Avar;;;1;1;;;Lighter than its companion worlds, Avar is riddled with caverns. The majority of the Atharal Torus lives in the bustling aeries within, sheltered from the radiation bursts emanating from nearby Phorus
+Prophecy of Kings;Ylir;;;0;2;;;The smallest of the three planets in the Atharel Torus, Ylir is covered in kilometers of water. The Murmeration meets in platform cities that drift with the currents
+Prophecy of Kings;The Dark;;;3;4;;;A massive nebula dominating the skies of many core worlds. Thick clouds of dust obscure its heart, a lightless refuge where Empyrean ships have congregated for millennia
+Prophecy of Kings;Ixth;;;3;5;;;A dry, dead world of black volcanic mountains and molten seas of lava. The great necropolis of Aior Dol Gorgos on the Plateau Imperia is the only evidence of civilization.
+Prophecy of Kings;Naazir;;;2;1;;;A small planet of high mountains and deep, narrow seas. Cities and vertical farms burrow into cliff faces, while orbital factories produce high-tech consumer goods
+Prophecy of Kings;Rokha;;;1;2;;;Terraformed by comet-drops and Alliance biotech into a cool world with alpine forests and stormy seas. The city of Dormont Vault boasts the famous Exotic Energies Institute
+Prophecy of Kings;Arcturus;;;4;4;;;Cold and still, with a surface buried beneath kilometers of ice. A few smuggler bases dot the surface, but Sumerian Station circles the planet, making it a vital trading destination
+Prophecy of Kings;Elysium;;;4;1;;;Larger than a thousand terrestrial planets, Elysium is an artificial shell-world built around the powerful singularity in its hollow heart. Its surface is covered in calm seas and cultivated plants
+Prophecy of Kings;Acheron;;;4;0;;;Once a dusty, dead world concealing a portal to Ixth. Now, a gravity rift has shattered the world, creating a labyrinth of strange energies and tumbling shards of rock
 Prophecy of Kings;Archon Vail;Hazardous;;1;3;Blue;;A former Xxcha colony, its extremely low temperatures create exotic molecular compounds that give the world its famed violet hue. Orbital facilities use the compounds in high-energy stardrive research
 Prophecy of Kings;Perimeter;Industrial;;2;1;;;Former garrison world with fond memories of the Lazax. Maintains formidable military with informal ties to the Winnu. Perpendicular rings make orbital navigation difficult
 Prophecy of Kings;Ang;Industrial;;2;0;Red;;High rotational speed creates extremely energized magnetosphere. Orbital taps use this to energize starship fuels and power labs developing new beam weapons
@@ -39,6 +76,8 @@ Prophecy of Kings;Vorhal;Cultural;;0;2;Green;;This icy world is wreathed by powe
 Prophecy of Kings;Atlas;Hazardous;;3;1;;;Heavy grav world and former Sol colony famed for squat, strong inhabitants and strategic location. Visitors need support exoskeletons to move on the surface
 Prophecy of Kings;Primor;Cultural;Yes;2;1;;You may exhaust this card at the end of your turn to place up to 2 infantry from your reinforcements on any planet you control;Large temperate world. Site of several pitched battles during the Twilight Wars due to valuable osmium deposits and a well- educated populace
 Prophecy of Kings;Hope's End;Hazardous;Yes;3;0;;You may exhaust this card at the end of your turn to place 1 mech from your reinforcements on any planet you control, or draw 1 action card;Buried in the Ichal Nebula. The Lazax used the toxic wildlife and fierce aurora storms to train their troops. Even now, volatile weapon caches remain hidden beneath its sands.
+Prophecy of Kings;Mallice;Cultural;Yes;0;3;;You may exhaust this card at the end of your turn to gain 2 trade goods or convert all of your commodities into trade goods;Trapped in a space believed to be beyond our universe, a shimmering world of strange energies and disconcerting warping of physical laws sitting at the heart of a strategically vital wormhole nexus.
+Prophecy of Kings;Mirage;Cultural;Yes;1;2;;You may exhaust this card at the end of your turn to place up to 2 fighters from your reinforcements in any system that contains 1 or more of your ships;Exists on no known charts and appears deserted to those who stumble across it. However, secretive local live in cloaked cities heavily defended by swarms of starfighters.
 Prophecy of Kings;Cormund;Hazardous;;2;0;;;A remote and sparsely settled Naaz-Rokha world destroyed during early entropic field tests. Now mining corporations harvest metals from the shattered core
 Prophecy of Kings;Everra;Cultural;;3;1;;;Ancient world of red seas and bare rocks. Locals live in wondrous nano-carbon cities built by a mysterious ancient race, and mine nearby nebulae for rare gases
 Prophecy of Kings;Jeol Ir;Industrial;;2;3;;;Heavily industrialized world. Pollution has killed all life outside of dome cities, but twin suns provide constant power for factories and huge populace
@@ -58,7 +97,64 @@ Prophecy of Kings;Ashtroth;Hazardous;;2;0;;;Covered in boggy landmasses and shal
 Prophecy of Kings;Loki;Cultural;;1;2;;;Cold and wracked with violent storms, Loki still hosts several Yssaril and human colonies, some of which have engaged in escalating shadow-conflicts
 Prophecy of Kings;Rigel I;Hazardous;;0;1;;;Hot, innermost world of the Rigel system. Cities and native life cluster inland from the heavily alkaline oceans
 Prophecy of Kings;Rigel II;Industrial;;1;2;;;Temperate world with expansive oceans. Covered in estates and resorts for the system's elite, with extensive fisheries that feed much of the rest of the system
-Prophecy of Kings;Rigel III;Industrial;;1;1;Green;Outermost world of the Rigel system, and extensively settled despite cooler climates. Boasts a diverse range of industries and research institutions
+Prophecy of Kings;Rigel III;Industrial;;1;1;Green;;Outermost world of the Rigel system, and extensively settled despite cooler climates. Boasts a diverse range of industries and research institutions
+Codex;Custodia Vigilia;;Yes;2;3;;While you control Mecatol Rex, it gains SPACE CANNON 5 and PRODUCTION 3. Gain 2 command tokens when another player scores Victory Points using imperial.;Custodia Vigilia. The fully realized seat of the Keleres. A veritable fortress in the heart of Mecatol City. Ten thousand people come and go daily, and the Keleres see them all.
+Discordant Stars;Axis;;;5;0;;;Once the hub of galactic starship construction, Axis was left all but depopulated after the treacherous Jol-Nar released a plague on it during the final days of the Twilight Wars.
+Discordant Stars;Benc;;;2;0;;;A cold, dark, tundra world holding a wealth of natural resources, which has more recently been repurposed as a vault world for the Conglomerate.
+Discordant Stars;Hau;;;1;2;;;A long-time merchant stopover, now a bustling merchant hub for the Conglomerate's trade of relics and other artifacts.
+Discordant Stars;Louk;;;2;1;;;Louk is the crown jewel of the Celdauri Federation. Both prized for its natural beauty, and its resource rich interior, Louk serves as a symbol for Celdauri partnership, wealthy but respected.
+Discordant Stars;Auldane;;;1;3;;;As the seat of power for the Celdauri Federation, the planet Auldane's scorched deserts are dotted by massive cities whose grey footprints are even visible from space.
+Discordant Stars;Gghurn Theta;;;2;1;;;Gghurn Theta's warm, shallow seas and rocky outcrops are littered with abandoned research and aquaculture facilities.
+Discordant Stars;Arche;;;2;2;;;The subterranean caves of this cold water world are the birthplace of Cheiran culture.
+Discordant Stars;Cymiae;;;3;1;;;This rich jungle world was once used as a nature preserve. When containment failed at a hidden research post, the world's few civilized inhabitants were soon overrun.
+Discordant Stars;Abyssus;;;4;2;;;The new holy world and sanctuary of the Dih-Mohn, Abyssus is a world shrouded by deep purple mists, with a few vast plateaus peeking out of the mist which provide arable land for the cities below.
+Discordant Stars;Edyn;;;3;3;;;Known for its beautiful architecture and fine arts, the Mandate's home planet is now a hub of galactic trade and negotiation.
+Discordant Stars;Ekko;;;0;1;;;A world treated nearly as sacred by the Mandate, it is home to their advanced research and development centers.
+Discordant Stars;Okke;;;0;1;;;Once a proving ground, this small planet now serves as a quiet reminder that the Mandate is peaceful by choice.
+Discordant Stars;Delmor;;;2;1;;;A world of dense swamp and tall mountains, Delmor consists of two primary ecosystems, one in the clouds and mountains above, the other in the swamps below.
+Discordant Stars;Kyd;;;1;2;;;Mostly consisting of a shallow ocean, with hundreds of thousands of small islands dotted across, Kyd is a world known for its unique mixture of terrestrial and aquatic ecosystems.
+Discordant Stars;Idyn;;;1;0;;;Once a mining colony outpost, a small and peaceful revolution started a movement for independence that has begun to take root across the galaxy.
+Discordant Stars;Kroll;;;1;1;;;More of an overbloated intragalactic assembly than an actual home to any specific people, the capital of the Free Systems Alliance is a swamp of democratic bureacracy.
+Discordant Stars;Cyrra;;;0;1;;;Teeming with exotic wildlife, and home to a few highly-rated orbital resorts, the planet's unique ecology has led to more than a few breakthroughs in medicine.
+Discordant Stars;Drah;;;1;2;;;Drah is a cold world, holding the seat of the Lord, Kantrus. Clans seeking his favor must prove their worth in rhetoric, arts, and intrigue. Some think this weakness, but Kantrus knows well; diplomacy is often the sharpest blade.
+Discordant Stars;Trykk;;;2;1;;;The Lady, Korela, keeps her seat on Trykk in the highlands of the southern continent. The various raider clans fight for a seat at her table, each sending their best fighting pairs. The Lady prefers her contests remain...deadly.
+Discordant Stars;Ghoti;;;3;3;;;The Wayfarer's form is not known, though some who meet the All-Mother later describe visions of swirling lights in an impossibly deep sea.
+Discordant Stars;Last Stop;;;3;0;;;Home to the Union, and furthest recognized outpost of civilization, it is looked upon with great fondness by all who travel this far.
+Discordant Stars;Chrion;;;2;3;;;A vibrant world, most life is sheltered carefully inside the civil zones as the Oracle's caretakers maintain the planet's ecology.
+Discordant Stars;Demis;;;2;2;;;A charred world, and a humbling reminder of those that challenged the Oracle's rise to dominance over the Chri people.
+Discordant Stars;Kjalengard;;;3;2;;;Kjalengard, where the most luscious of flora and fauna thrive, host of glorious warriors, and home to billions of others who enjoy bountiful lives.
+Discordant Stars;Hulgade;;;1;0;;;To avoid polluting Kjalengard, the spacious Hulgade was colonized and built up to be the outward trading post for Kjalengard.
+Discordant Stars;Susuros;;;4;4;;;Tucked in the heart of unclaimed space, the Kollecc Society's capital is a nexus for bounty hunters and mercenaries, as well a home to one of galaxy's most extensive and eclectic collections of rare artifacts.
+Discordant Stars;Alesna;;;2;0;;;The Kolume capital, this temperate world is home to most of their population, as well as the ruins of the civilization that created them.
+Discordant Stars;Azle;;;2;0;;;While barren, this mineral rich planet is a bountiful source of raw materials — and the home of the first Kolume, who were built here to strike the earth.
+Discordant Stars;Ogdun;;;2;0;;;An altogether ordinary world, and ancient home of the Kortali war industry, the world is a depressing testament to the single-minded devotion of its people.
+Discordant Stars;Brthkul;;;1;3;;;Named after the charred corpse of the Kortali All-Father, the home world of their Queens is a sacred world to the Tribunal.
+Discordant Stars;Avicenna;;;4;0;;;There are few worlds as inhospitable to visitors as the Kyro homeworld, some say this is a point of pride for its inhabitants.
+Discordant Stars;Aysis' Rest;;;4;3;;;Homeworld of the Remnants and veritable paradise, Aysis' Rest is named in honor of an ancient legend of the Lanefir people.
+Discordant Stars;Solitude;;;0;1;;;A wasteland and forsaken world of the Lanefir, home only to exiles and the occasional pilgrim.
+Discordant Stars;Pax;;;1;2;;;Home of the Li-Zho, many well-kept secrets lie far from the prying eyes of offworlders.
+Discordant Stars;Vess;;;0;1;;;The subject of much Li-Zho poetry, the smaller of the Li-Zho's capital worlds is largely used as a quiet retreat for the military elite and various other Li-Zho nobles.
+Discordant Stars;Kyr;;;2;0;;;A planet-wide military staging ground, the Li-Zho use this world to train for a variety of foreign environments.
+Discordant Stars;Bohl-Dhur;;;3;4;;;The planet is remarkable for the quiet melodic hum given off by the ethereal crystals that give the Khrask life.
+Discordant Stars;Aldra;;;2;3;;;Capital of the Protectorate, daily life in the cities is a hum of activity under the ever-watchful shield of the Sentinel Machina.
+Discordant Stars;Beata;;;2;1;;;A lonely world at the edge of the Mirveda's home system, it is here that the Protectorate's Elite are sheltered when they are not needed in the capital.
+Discordant Stars;Biaheo;;;3;0;;;The Glimmer seem to develop their structural forms from the unique radioactive compounds found only on this brooding world.
+Discordant Stars;Empero;;;0;3;;;The third orbiting body from their home system's star, the Glimmer homeworld appears to have cracked under some cataclysmic energetic release, known only to Glimmer as "The Spark."
+Discordant Stars;Shi-Halaum;;;4;0;;;This is planetary sized mass of Mycelium. It feeds on itself and the bio-mass of its people to stay alive. It is a rotting mass of compiled genetic memory, literally the corpses of dead generations of Myko- Mentori and other dead.
+Discordant Stars;Ellas;;;3;3;;;With their sun finally snuffed out, the Nivyn found only one way to continue existence on their home world: by fully embracing the void they worship so fanatically.
+Discordant Stars;Zarr;;;2;1;;;A large mining world which has blossomed under the protection of the Nokar, it is now home to their primary starports.
+Discordant Stars;Nokk;;;1;1;;;A small, forgettable world home to much of the Sellships' administrative operations.
+Discordant Stars;Sanctuary;;;3;4;;;Once a prosperous mining world before being seized by revolting workers, Sanctuary now stands as beacon of hope for downtrodden peoples across the galaxy.
+Discordant Stars;Poh;;;2;0;;;Only the High Zealots are allowed on Poh's surface. Extra-system scans reveal the planet is largely unsettled, marked by scattered spires and temples.
+Discordant Stars;Orad;;;3;1;;;A race of beings called the Placi make up the vast majority of Orad's population. Historians speculate that had the Zealots not intervened, it would have been several millennia yet before the Placi even left their atmosphere.
+Discordant Stars;Prind;;;3;3;;;The only planet in its system, Prind was once a lush and fertile forest planet. When the Roh'Dhna Corp purchased the planet they stripped it of all natural value turning it into an industrial superfactory.
+Discordant Stars;Discordia;;;4;1;;;A hub of information brokers, stolen good markets, and smugglers of all kinds. Also, oddly, some of the finest free medical care for children in the galaxy.
+Discordant Stars;Vadarian;;;3;0;;;Vadarian is a dirty world controlled by the current Clan Prime, Clan Putriv. Clanmaster Prime Putriv Sirvonsk gained his rank in an unorthodox way - even for a Vaden.
+Discordant Stars;Norvus;;;1;2;;;Norvus was the site of the most recent Clanboyevoy. The event was halted abruptly when it was determined impossible to count the pieces of the former Clanmaster Prime.
+Discordant Stars;Vaylar;;;3;2;;;Once the home of two sentient species, Vaylar is a planet composing of two large land masses and two vast oceans.
+Discordant Stars;Rhune;;;3;4;;;The home of the Veldyr is known across the galaxy for its incredible weather, elegant culture, and the majesty of its sprawling cities.
+Discordant Stars;Zelian;;;3;3;;;A mysterious world filled with an unknown pulsing energy.
+Discordant Stars;Gen;;;2;0;;;A broken world drawn into Zelian's orbit. Currently in the process of being dismantled for resources.
 Discordant Stars;Silence;Industrial;Yes;2;2;;You may exhaust this card at the end of your turn to place 1 cruiser from your reinforcements in any system that contains 1 or more of your ships.;
 Discordant Stars;Echo;Hazardous;Yes;1;2;;You may exhaust this card at the end of your turn to place 1 frontier token in a system that does not contain a planet.;
 Discordant Stars;Tarrock;Industrial;Yes;3;0;;After an agenda is revealed, you may exhaust this card to predict aloud an outcome of that agenda. If your prediction is correct, draw 1 secret objective.;
@@ -70,9 +166,9 @@ Discordant Stars;Vioss;Cultural;;3;3;;;
 Discordant Stars;Fakrenn;Hazardous;;2;2;;;
 Discordant Stars;San-Vit;Cultural;;3;1;;;
 Discordant Stars;Lodran;Hazardous;;0;2;Yellow;;
-Discordant Stars;Dorvok;Industrial;;1;2;Red;; 
+Discordant Stars;Dorvok;Industrial;;1;2;Red;;
 Discordant Stars;Derbrae;Cultural;;2;3;;;
-Discordant Stars;Moln;Industrial;;1;2;Blue;; 
+Discordant Stars;Moln;Industrial;;1;2;Blue;;
 Discordant Stars;Rysaa;Hazardous;;2;0;Green;;
 Discordant Stars;Salin;Hazardous;;1;2;;;
 Discordant Stars;Gwiyun;Hazardous;;2;2;;;

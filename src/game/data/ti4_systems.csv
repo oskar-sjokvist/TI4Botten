@@ -1,0 +1,161 @@
+Source;Id;Type;Planets;Wormholes;Anomalies;Faction;Hyperlanes
+Base game;1;green;Jord;;;The Federation of Sol;
+Base game;2;green;Moll Primus;;;The Mentak Coalition;
+Base game;3;green;Darien;;;The Yin Brotherhood;
+Base game;4;green;Muaat;;;The Embers of Muaat;
+Base game;5;green;Nestphar;;;The Arborec;
+Base game;6;green;[0.0.0];;;The Lizix Mindnet;
+Base game;7;green;Winnu;;;The Winnu;
+Base game;8;green;Mordai II;;;The Nekro Virus;
+Base game;9;green;Maaluuk,Druaa;;;The Naalu Collective;
+Base game;10;green;Arc Prime,Wren Terra;;;The Barony of Letnev;
+Base game;11;green;Lisis II,Ragh;;;The Clan of Saar;
+Base game;12;green;Nar,Jol;;;The Universities of Jol-Nar;
+Base game;13;green;Tren'lak,Quinarra;;;Sardakk N'orr;
+Base game;14;green;Archon Ren,Archon Tau;;;The Xxcha Kingdom;
+Base game;15;green;Retillion,Shalloq;;;The Yssaril Tribes;
+Base game;16;green;Arretze,Hercant,Kamdorn;;;The Emirates of Hacan;
+Base game;17;green;;delta;;The Ghosts of Creuss;
+Base game;18;blue;Mecatol Rex;;;;
+Base game;19;blue;Wellon;;;;
+Base game;20;blue;Vefut II;;;;
+Base game;21;blue;Thibah;;;;
+Base game;22;blue;Tar'mann;;;;
+Base game;23;blue;Saudor;;;;
+Base game;24;blue;Mehar Xull;;;;
+Base game;25;blue;Quann;beta;;;
+Base game;26;blue;Lodor;alpha;;;
+Base game;27;blue;New Albion,Starpoint;;;;
+Base game;28;blue;Tequ'ran,Torkan;;;;
+Base game;29;blue;Qucen'n,Rarron;;;;
+Base game;30;blue;Mellon,Zohbat;;;;
+Base game;31;blue;Lazar,Sakulag;;;;
+Base game;32;blue;Dal Bootha,Xxehan;;;;
+Base game;33;blue;Corneeq,Resculon;;;;
+Base game;34;blue;Centauri,Gral;;;;
+Base game;35;blue;Bereg,Lirta IV;;;;
+Base game;36;blue;Arnor,Lor;;;;
+Base game;37;blue;Arinam,Meer;;;;
+Base game;38;blue;Abyz,Fria;;;;
+Base game;39;red;;alpha;;;
+Base game;40;red;;beta;;;
+Base game;41;red;;;gravity_rift;;
+Base game;42;red;;;nebula;;
+Base game;43;red;;;supernova;;
+Base game;44;red;;;asteroid_field;;
+Base game;45;red;;;asteroid_field;;
+Base game;46;red;;;;;
+Base game;47;red;;;;;
+Base game;48;red;;;;;
+Base game;49;red;;;;;
+Base game;50;red;;;;;
+Base game;51;green;Creuss;delta;;;
+Prophecy of Kings;52;green;Ixth;;;The Mahact Gene-sorcerers;
+Prophecy of Kings;53;green;Arcturus;;;The Nomad;
+Prophecy of Kings;54;green;Acheron;;;The Vuil'raith Cabal;
+Prophecy of Kings;55;green;Elysium;;;The Titans of Ul;
+Prophecy of Kings;56;green;The Dark;;;The Empyrean;
+Prophecy of Kings;57;green;Naazir,Rokha;;;The Naaz-Rokha Alliance;
+Prophecy of Kings;58;green;Valk,Avar,Ylir;;;The Argent Flight;
+Prophecy of Kings;59;blue;Archon Vail;;;;
+Prophecy of Kings;60;blue;Perimeter;;;;
+Prophecy of Kings;61;blue;Ang;;;;
+Prophecy of Kings;62;blue;Sem-Lore;;;;
+Prophecy of Kings;63;blue;Vorhal;;;;
+Prophecy of Kings;64;blue;Atlas;beta;;;
+Prophecy of Kings;65;blue;Primor;;;;
+Prophecy of Kings;66;blue;Hope's End;;;;
+Prophecy of Kings;67;red;Cormund;;gravity_rift;;
+Prophecy of Kings;68;red;Everra;;nebula;;
+Prophecy of Kings;69;blue;Accoen,Jeol Ir;;;;
+Prophecy of Kings;70;blue;Kraag,Siig;;;;
+Prophecy of Kings;71;blue;Ba'Kal,Alio Prima;;;;
+Prophecy of Kings;72;blue;Lisis,Velnor;;;;
+Prophecy of Kings;73;blue;Cealdri,Xanhact;;;;
+Prophecy of Kings;74;blue;Vega Major,Vega Minor;;;;
+Prophecy of Kings;75;blue;Loki,Abaddon,Ashtroth;;;;
+Prophecy of Kings;76;blue;Rigel I,Rigel II,Rigel III;;;;
+Prophecy of Kings;77;red;;;;;
+Prophecy of Kings;78;red;;;;;
+Prophecy of Kings;79;red;;alpha;asteroid_field;;
+Prophecy of Kings;80;red;;;supernova;;
+Prophecy of Kings;81;red;;;supernova;;
+Prophecy of Kings;82;blue;Mallice;alpha,beta,gamma;;;
+Prophecy of Kings;83A;hyperlane;;;;;[[1, 4]]
+Prophecy of Kings;83B;hyperlane;;;;;[[0, 3], [0, 2], [3, 5]]
+Prophecy of Kings;84A;hyperlane;;;;;[[2, 5]]
+Prophecy of Kings;84B;hyperlane;;;;;[[0, 3], [0, 4], [1, 3]]
+Prophecy of Kings;85A;hyperlane;;;;;[[1, 5]]
+Prophecy of Kings;85B;hyperlane;;;;;[[0, 3], [0, 2], [3, 5]]
+Prophecy of Kings;86A;hyperlane;;;;;[[1, 5]]
+Prophecy of Kings;86B;hyperlane;;;;;[[0, 3], [0, 4], [1, 3]]
+Prophecy of Kings;87A;hyperlane;;;;;[[0, 2], [2, 4], [2, 5]]
+Prophecy of Kings;87B;hyperlane;;;;;[[0, 2], [0, 3]]
+Prophecy of Kings;88A;hyperlane;;;;;[[0, 4], [1, 4], [2, 4]]
+Prophecy of Kings;88B;hyperlane;;;;;[[0, 3], [0, 2], [3, 5]]
+Prophecy of Kings;89A;hyperlane;;;;;[[0, 2], [0, 4], [2, 4]]
+Prophecy of Kings;89B;hyperlane;;;;;[[0, 3], [0, 4]]
+Prophecy of Kings;90A;hyperlane;;;;;[[1, 5], [2, 4]]
+Prophecy of Kings;90B;hyperlane;;;;;[[0, 3], [0, 4]]
+Prophecy of Kings;91A;hyperlane;;;;;[[0, 3], [0, 4], [1, 3]]
+Prophecy of Kings;91B;hyperlane;;;;;[[0, 2], [0, 3]]
+Discordant Stars;4200;green;Rhune;;;The Veldyr Conglomerate;
+Discordant Stars;4222;green;Idyn,Kroll,Cyrra;;;The Free Systems Compact;
+Discordant Stars;4223;green;Kyr,Pax,Vess;;;The Li-Zho Dynasty;
+Discordant Stars;4201;green;Bohl-Dhur;;;The L'Tokk Khrask;
+Discordant Stars;4212;green;Drah,Trykk;;;The Ghemina Raiders;
+Discordant Stars;4213;green;Vadarian,Norvus;;;The Vaden Banking Clans;
+Discordant Stars;4214;green;Biaheo,Empero;;nebula;The Glimmer of Mortheus;
+Discordant Stars;4215;green;Chrion,Demis;;;The Augurs of Ilyxum;
+Discordant Stars;4204;green;Axis;;;The Shipwrights of Axis;
+Discordant Stars;4205;green;Sanctuary;;;The Olradin League;
+Discordant Stars;4206;green;Shi-Halaum;;;The Myko-Mentori;
+Discordant Stars;4207;green;Discordia;;;The Tnelis Syndicate;
+Discordant Stars;4203;green;Cymiae;;;The Savages of Cymiae;
+Discordant Stars;4208;green;Prind;;;Roh'Dhna Mechatronics;
+Discordant Stars;4216;green;Zelian,Gen;;asteroid_field;The Zelian Purifier;
+Discordant Stars;4209;green;Vaylar;;;The Vaylerian Scourge;
+Discordant Stars;4217;green;Delmor,Kyd;;;The Florzen Profiteers;
+Discordant Stars;4210;green;Abyssus;;;The Dih-Mohn Flotilla;
+Discordant Stars;4218;green;Louk,Auldane;;;The Celdauri Trade Confederation;
+Discordant Stars;4211;green;Ellas;;gravity_rift;The Nivyn Star Kings;
+Discordant Stars;4219;green;Aldra,Beata;;;The Mirveda Protectorate;
+Discordant Stars;4220;green;Ogdun,Brthkul;;;The Kortali Tribunal;
+Discordant Stars;4202;green;Susuros;;;The Kollecc Society;
+Discordant Stars;4221;green;Poh,Orad;;;The Zealots of Rhodun;
+Discordant Stars;4224;red;;;asteroid_field;;
+Discordant Stars;4225;red;;;;;
+Discordant Stars;4230;green;Benc,Hau;;;The Bentor Conglomerate;
+Discordant Stars;4231;green;Zarr,Nokk;;;The Nokar Sellships;
+Discordant Stars;4228;green;Last Stop;;;The Gledge Union;
+Discordant Stars;4232;green;Aysis' Rest,Solitude;;;The Lanefir Remnants;
+Discordant Stars;4229;green;Avicenna;;;The Kyro Sodality;
+Discordant Stars;4227;green;;;;The Ghoti Wayfarers;
+Discordant Stars;4233;green;Alesna,Azle;;;The Monks of Kolume;
+Discordant Stars;4234;green;Gghurn Theta,Arche;;;The Cheiran Hordes;
+Discordant Stars;4236;green;Edyn,Ekko,Okke;;;The Edyn Mandate;
+Discordant Stars;4235;green;Kjalengard,Hulgade;;;The Berserkers of Kjalengard;
+Discordant Stars;4253;blue;Silence;;;;
+Discordant Stars;4254;blue;Echo;;;;
+Discordant Stars;4255;blue;Tarrock;;;;
+Discordant Stars;4256;blue;Prism;;;;
+Discordant Stars;4257;blue;Troac;;;;
+Discordant Stars;4258;blue;Etir V;;;;
+Discordant Stars;4259;blue;Vioss;;;;
+Discordant Stars;4260;blue;Fakrenn;alpha;;;
+Discordant Stars;4261;blue;San-Vit,Lodran;;;;
+Discordant Stars;4262;blue;Dorvok,Derbrae;;;;
+Discordant Stars;4263;blue;Rysaa,Moln;;;;
+Discordant Stars;4264;blue;Salin,Gwiyun;;;;
+Discordant Stars;4265;blue;Inan,Swog;;;;
+Discordant Stars;4266;blue;Detic,Lliot;;;;
+Discordant Stars;4267;blue;Qaak,Larred,Nairb;;;;
+Discordant Stars;4268;blue;Mandle,Sierpen,Regnem;;;;
+Discordant Stars;4269;red;Domna;;nebula;;
+Discordant Stars;4270;red;;;;;
+Discordant Stars;4271;red;;;;;
+Discordant Stars;4272;red;;beta;nebula;;
+Discordant Stars;4273;red;;;asteroid_field,nebula;;
+Discordant Stars;4274;red;;;gravity_rift,asteroid_field;;
+Discordant Stars;4275;red;;gamma;gravity_rift;;
+Discordant Stars;4276;red;;alpha,beta;supernova;;
